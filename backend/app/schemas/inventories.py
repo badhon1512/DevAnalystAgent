@@ -1,0 +1,19 @@
+from pydantic import BaseModel, ConfigDict
+from typing import Optional
+from datetime import datetime
+from uuid import UUID
+
+class InventoryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    inventory_id: UUID
+    product_id: UUID
+    warehouse_id: UUID
+    sku: Optional[str] = None
+    product_name: Optional[str] = None
+    warehouse_name: Optional[str] = None
+    stock_on_hand: int
+    reorder_point: int
+    updated_at: datetime
+
+   
