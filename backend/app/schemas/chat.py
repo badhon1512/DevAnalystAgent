@@ -2,6 +2,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from app.schemas.report import ReportSummary
+
 
 class ToolCallTrace(BaseModel):
     name: str
@@ -39,3 +41,4 @@ class ChatResponse(BaseModel):
     answer: str
     final_answer: str
     trace: AgentTrace
+    report: ReportSummary | None = None
