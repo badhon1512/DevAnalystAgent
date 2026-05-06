@@ -5,10 +5,20 @@ from pydantic import BaseModel, Field
 from app.schemas.report import ReportSummary
 
 
+class ToolArtifact(BaseModel):
+    type: str
+    label: str
+    filename: str
+    content_type: str
+    view_url: str | None = None
+    download_url: str | None = None
+
+
 class ToolCallTrace(BaseModel):
     name: str
     args: dict[str, Any] = Field(default_factory=dict)
     result_preview: str | None = None
+    artifacts: list[ToolArtifact] = Field(default_factory=list)
 
 
 class TokenUsageTrace(BaseModel):

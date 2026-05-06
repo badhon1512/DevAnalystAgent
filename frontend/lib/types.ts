@@ -6,6 +6,7 @@ export type ChatMessage = {
   content: string;
   createdAt: number;
   trace?: AgentTrace;
+  report?: ReportSummary;
 };
 
 export type ChatResponse = {
@@ -14,12 +15,46 @@ export type ChatResponse = {
   final_answer?: string;
   finalAnswer?: string;
   trace?: AgentTrace;
+  report?: ReportSummary;
+};
+
+export type ReportAsset = {
+  type: "html" | "markdown" | "json" | "pdf" | "chart" | "csv" | "other";
+  label: string;
+  filename: string;
+  relative_path: string;
+  content_type: string;
+  view_url?: string | null;
+  download_url?: string | null;
+};
+
+export type ReportSummary = {
+  report_id: string;
+  title: string;
+  summary: string;
+  created_at: string;
+  trace_id?: string | null;
+  assets: ReportAsset[];
+};
+
+export type VoiceTranscriptionResponse = {
+  transcript: string;
+  model: string;
+  latency_ms: number;
 };
 
 export type ToolCallTrace = {
   name: string;
   args: Record<string, unknown>;
   result_preview?: string | null;
+  artifacts?: {
+    type: string;
+    label: string;
+    filename: string;
+    content_type: string;
+    view_url?: string | null;
+    download_url?: string | null;
+  }[];
 };
 
 export type AgentTrace = {

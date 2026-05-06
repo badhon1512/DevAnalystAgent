@@ -1,4 +1,10 @@
-import type { ChatResponse, InventoryRow, ListResponse, Product } from "./types";
+import type {
+  ChatResponse,
+  InventoryRow,
+  ListResponse,
+  Product,
+  VoiceTranscriptionResponse,
+} from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 
@@ -28,6 +34,24 @@ export async function sendChat(query: string, conversationId: string): Promise<C
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Backend error (${res.status}): ${text}`);
+  }
+
+  return res.json();
+}
+
+export async function transcribeVoice(audio: Blob): Promise<VoiceTranscriptionResponse> {
+  const form = new FormData();
+  const extension = audio.type.includes("ogg") ? "ogg" : "webm";
+  form.append("file", audio, `recording.${extension}`);
+
+  const res = await fetch(`${API_BASE}/voice/transcribe`, {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Voice transcription error (${res.status}): ${text}`);
   }
 
   return res.json();

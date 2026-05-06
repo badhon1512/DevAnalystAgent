@@ -6,8 +6,10 @@ import os
 from contextlib import redirect_stdout
 from typing import Any, Dict, Optional
 
-from sqlalchemy import create_engine, text
 from langchain_core.tools import tool
+from sqlalchemy import create_engine, text
+
+from app.tools.read_write import build_chart_metadata, get_chart_output_path
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL)
@@ -77,13 +79,27 @@ def _safe_json(obj: Any) -> Any:
         return str(obj)
 
 
-def run_python_analytics(code: str, file_name= "", input_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def _error_response(message: str, stdout: str = "") -> Dict[str, Any]:
+    return {
+        "stdout": stdout,
+        "result": None,
+        "charts": [],
+        "error": message,
+    }
+
+
+def run_python_analytics(
+    code: str,
+    file_name: str = "chart.png",
+    input_data: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     """
     Execute restricted Python analytics code.
 
     Contract for agent:
     - Put final outputs in a variable named `result` (dict recommended).
     - If creating a chart, use matplotlib.pyplot and leave the current figure.
+    - The tool always returns `stdout`, `result`, `charts`, and `error`.
     Args:
     - code: Python code to execute (string).  
     - file_name: Optional filename for saving charts (if generated).                                                  
@@ -93,8 +109,11 @@ def run_python_analytics(code: str, file_name= "", input_data: Optional[Dict[str
     if not isinstance(code, str) or not code.strip():
         raise ValueError("code must be a non-empty string")
 
-    tree = ast.parse(code, mode="exec")
-    _check_ast(tree)
+    try:
+        tree = ast.parse(code, mode="exec")
+        _check_ast(tree)
+    except (SyntaxError, UnsafeCodeError, ValueError) as exc:
+        return _error_response(str(exc))
 
     # Import allowed libs here (host-controlled)
     import math
@@ -154,16 +173,21 @@ def run_python_analytics(code: str, file_name= "", input_data: Optional[Dict[str
     stdout_buf = io.StringIO()
     plt.close("all")  # clear previous figures
 
-    with redirect_stdout(stdout_buf):
-        exec(compile(tree, filename="<agent_code>", mode="exec"), env, env)
+    try:
+        with redirect_stdout(stdout_buf):
+            exec(compile(tree, filename="<agent_code>", mode="exec"), env, env)
+    except Exception as exc:
+        return _error_response(str(exc), stdout=stdout_buf.getvalue())
 
     stdout = stdout_buf.getvalue()
+    charts: list[Dict[str, Any]] = []
 
     if plt.get_fignums():
         fig = plt.gcf()
         fig.tight_layout()
+        output_path = get_chart_output_path(file_name or "chart.png")
         fig.savefig(
-            file_name,
+            output_path,
             format="png",
             dpi=150,
             bbox_inches="tight",
@@ -171,21 +195,31 @@ def run_python_analytics(code: str, file_name= "", input_data: Optional[Dict[str
             edgecolor="white",
         )
         plt.close(fig)
+        charts.append(build_chart_metadata(output_path))
 
     return {
         "stdout": stdout,
         "result": _safe_json(env.get("result")),
+        "charts": charts,
+        "error": None,
     }
 
 
 @tool
-def execute_python_code_tool(code: str, file_name: Optional[str] = "./sandbox_charts/x.png", input_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def execute_python_code_tool(
+    code: str,
+    file_name: Optional[str] = "chart.png",
+    input_data: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     """
-    Run any python code to extract insights from data, generate charts, or perform calculations. Input should be a JSON object with a string field "code" containing the Python code to execute, file name as an optional "file_name" field, and an optional "input_data" field which is a JSON object that will be passed as input to the code.
-    Preferably, use the sqlcalchemy library to query the database and pandas for data manipulation. You can also use matplotlib to generate charts, just make sure to leave the final chart as the current figure so it can be captured and returned as a base64-encoded PNG in the "chart_png_base64" field of the output.
+    Run restricted Python code to extract insights, generate charts, or perform calculations.
+    Return a structured response with `stdout`, `result`, `charts`, and `error`.
+    If generating a matplotlib chart, leave the final figure active and it will be saved automatically.
+    Prefer professional chart styling: clear title, labeled axes, readable legend, restrained colors,
+    appropriate figure size, and tidy layout.
     """
     with open("python_sandbox.log", "a") as log_file:
         log_file.write(
-            f"Executing code:\n{code}\nWith input_data:\n{json.dumps(input_data)}\n\n"
+            f"Executing code:\n{code}\nWith input_data:\n{json.dumps(input_data, default=str)}\n\n"
         )
     return run_python_analytics(code=code, input_data=input_data, file_name=file_name)

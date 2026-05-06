@@ -1,8 +1,8 @@
 from langgraph.graph import StateGraph, END, START
 from langgraph.prebuilt import ToolNode
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage
-from langgraph.checkpoint.memory import InMemorySaver  
+from langchain_core.messages import SystemMessage, ToolMessage
+from langgraph.checkpoint.memory import InMemorySaver
 from datetime import datetime
 from langchain.tools import tool
 from app.agents.guardrails import is_valid_query
@@ -13,7 +13,10 @@ thread = {"configurable": {"thread_id": "5"}}
 
 
 from app.tools.db import get_db_info_tool, get_sql_database_toolkit_tools, run_readonly_sql_tool
-from app.tools.file_system import get_file_management_toolkit                                                   
+from app.tools.file_system import get_file_management_toolkit
+from app.tools.python_sandbox import execute_python_code_tool
+from app.tools.read_write import save_chart_tool
+from app.tools.reporting import generate_report_tool
 
 
 base_llm = ChatOpenAI(model="gpt-5.4-nano")
@@ -25,16 +28,19 @@ def datetime_now() -> str:
 class ProductAgent():
 
     def __init__(self):
-
         sql_tools = get_sql_database_toolkit_tools(base_llm)
         self.tools = [
             datetime_now,
             get_db_info_tool,
             *sql_tools,
             run_readonly_sql_tool,
+            execute_python_code_tool,
+            save_chart_tool,
+            generate_report_tool,
             *get_file_management_toolkit(),
         ]
         self.llm = base_llm.bind_tools(self.tools)
+        self.finalize_llm = base_llm
         self.agent_graph = StateGraph(State)
 
         self.agent_graph.add_node("guardrail_check", is_valid_query)
@@ -86,6 +92,7 @@ Required workflow:
 3. Use `sql_db_query_checker` before executing a SQL query.
 4. If the request needs data retrieval, calculations, aggregations, rankings, time-series summaries, or comparisons, express them in read-only SQL and call `run_readonly_sql_tool`.
 5. Return only results that were actually retrieved or computed from tool outputs.
+6. If the request needs a derived calculation, trend analysis, transformation, or visualization that is easier in Python, use `execute_python_code_tool`.
 
 SQL tool policy:
 1. Use SQLDatabaseToolkit only for table listing, schema inspection, and query checking.
@@ -102,6 +109,27 @@ Tool usage guidance:
 4. `sql_db_schema`: inspect SQL table schemas.
 5. `sql_db_query_checker`: validate SQL before execution.
 6. `run_readonly_sql_tool`: execute checked read-only SQL.
+7. `execute_python_code_tool`: use for Python-based analysis, transformations, and chart generation after you have the needed data.
+8. `save_chart_tool`: use only if you explicitly need to save a base64 PNG chart produced outside the Python sandbox.
+9. `generate_report_tool`: use only if the user explicitly asks for a report, export, downloadable summary, or saved document.
+
+Report workflow:
+1. First complete the grounded analysis using the database tools.
+2. Then write the final grounded answer.
+3. If and only if the user asked for a report or downloadable artifact, call `generate_report_tool`.
+4. Pass your final grounded answer into `generate_report_tool` as the `answer` argument.
+5. Build `tool_calls_json` as a JSON array string that summarizes the most relevant tool evidence you used.
+6. Call `generate_report_tool` at most once per user request.
+7. After the tool succeeds, briefly tell the user that the report was generated and do not call any more tools.
+
+Python analytics workflow:
+1. Use SQL tools first to inspect schema and retrieve the minimum relevant data.
+2. Use `execute_python_code_tool` when you need derived metrics, comparisons, or graphs.
+3. Put the final structured Python output in a variable named `result`.
+4. If you generate a matplotlib figure, leave the final figure active so the sandbox can save it automatically.
+5. Summarize any returned `charts` artifacts in your final answer when relevant.
+6. For charts, prefer professional business visuals: clear title, labeled axes, readable legend, restrained colors, tidy layout, sensible figure size, and sorted categories/time axes where appropriate.
+7. Avoid cluttered defaults; choose the chart type that best supports comparison, trend, or ranking.
                                             """)
         
     def route_guardrail_check(self, state: State):
@@ -134,7 +162,17 @@ Tool usage guidance:
         #print("Calling LLM with messages:", state["messages"])
         messages = [self.system_message] + state["messages"]
 
-        llm_response = self.llm.invoke(messages)
+        last_message = state["messages"][-1]
+        if isinstance(last_message, ToolMessage) and getattr(last_message, "name", "") == "generate_report_tool":
+            finalize_message = SystemMessage(
+                content=(
+                    "A report has already been generated for this request. "
+                    "Reply to the user with a short confirmation and do not call any more tools."
+                )
+            )
+            llm_response = self.finalize_llm.invoke([self.system_message, finalize_message] + state["messages"])
+        else:
+            llm_response = self.llm.invoke(messages)
         #print("LLM response:", llm_response)
         return {"messages": [llm_response]}
 

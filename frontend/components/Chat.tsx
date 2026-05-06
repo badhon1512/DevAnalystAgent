@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { uuidv4 } from "../lib/uuid";
 import type { ChatMessage } from "../lib/types";
-import { sendChat } from "../lib/api";
+import { sendChat, transcribeVoice } from "../lib/api";
 import ChatMessageView from "./ChatMessage";
 import ChatComposer from "./ChatComposer";
 
@@ -23,7 +23,7 @@ export default function Chat() {
       id: uuidv4(),
       role: "assistant",
       content:
-        "Hi! I’m ProductAI. Ask me about sales, stock, or returns (e.g., “Why did sales drop last week?”).",
+        'Hi! I am ProductAI. Ask me about sales, stock, or returns (e.g., "Why did sales drop last week?").',
       createdAt: Date.now(),
     },
   ]);
@@ -38,7 +38,6 @@ export default function Chat() {
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length, loading]);
@@ -58,7 +57,7 @@ export default function Chat() {
     const typingId = uuidv4();
     setMessages((prev) => [
       ...prev,
-      { id: typingId, role: "assistant", content: "Typing…", createdAt: Date.now() },
+      { id: typingId, role: "assistant", content: "Typing...", createdAt: Date.now() },
     ]);
 
     setLoading(true);
@@ -73,7 +72,9 @@ export default function Chat() {
 
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === typingId ? { ...m, content: assistantText, trace: data?.trace } : m
+          m.id === typingId
+            ? { ...m, content: assistantText, trace: data?.trace, report: data?.report }
+            : m
         )
       );
     } catch (e: unknown) {
@@ -82,6 +83,12 @@ export default function Chat() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleTranscribeAudio(audio: Blob) {
+    setError("");
+    const result = await transcribeVoice(audio);
+    return result.transcript;
   }
 
   return (
@@ -102,8 +109,13 @@ export default function Chat() {
       </section>
 
       <footer className="chatFooter">
-        <ChatComposer onSend={handleSend} disabled={loading} />
-        <div className="footerHint">Tip: Enter to send • Shift+Enter for a new line</div>
+        <ChatComposer
+          onSend={handleSend}
+          disabled={loading}
+          onTranscribeAudio={handleTranscribeAudio}
+          onVoiceError={setError}
+        />
+        <div className="footerHint">Tip: Enter to send - Shift+Enter for a new line</div>
       </footer>
     </div>
   );

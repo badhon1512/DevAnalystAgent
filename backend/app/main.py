@@ -1,19 +1,36 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from langchain_core.messages import AIMessage, ToolMessage
-from app.agents.agent import ProductAgent
-from app.api.products import router as products_router
-from app.api.inventories import router as inventories_router
-from app.schemas.chat import AgentTrace, ChatRequest, ChatResponse, ToolCallTrace
-from app.schemas.chat import TokenUsageTrace
-from dotenv import load_dotenv
 import os
+import json
 from pathlib import Path
 import time
 import uuid
 
-load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=False)
+from dotenv import load_dotenv
+from fastapi.responses import FileResponse
+from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from langchain_core.messages import AIMessage, ToolMessage
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.agents.agent import ProductAgent
+from app.api.inventories import router as inventories_router
+from app.api.products import router as products_router
+from app.db.session import engine
+from app.deps import get_db
+from app.reports.storage import load_report, resolve_asset_path
+from app.schemas.chat import (
+    AgentTrace,
+    ChatRequest,
+    ChatResponse,
+    ToolArtifact,
+    TokenUsageTrace,
+    ToolCallTrace,
+)
+from app.schemas.report import GeneratedReport, ReportSummary
+from app.tools.db import get_db_info
+from app.tools.voice import VoiceTranscriptionUnavailable, transcribe_audio_bytes
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 
 
 app = FastAPI(title="ProductAI Backend")
@@ -36,13 +53,14 @@ app.include_router(inventories_router)
 
 @app.get("/health")
 async def read_root():
-
     return {"message": "Welcome to the ProductAI Backend!"}
 
 
 class ComputeRequest(BaseModel):
     x: int
     y: int
+
+
 @app.post("/compute")
 def compute(req: ComputeRequest):
     # call the function end-to-end
@@ -131,6 +149,30 @@ def _build_trace(
     pending_tools: dict[str, ToolCallTrace] = {}
     token_usage = TokenUsageTrace()
 
+    def attach_tool_artifacts(trace: ToolCallTrace, content: object) -> None:
+        if trace.name != "execute_python_code_tool" or not isinstance(content, str):
+            return
+
+        try:
+            payload = json.loads(content)
+        except json.JSONDecodeError:
+            return
+
+        for chart in payload.get("charts", []) or []:
+            filename = chart.get("filename")
+            if not filename:
+                continue
+            trace.artifacts.append(
+                ToolArtifact(
+                    type="chart",
+                    label=chart.get("label") or f"Chart: {filename}",
+                    filename=filename,
+                    content_type=chart.get("content_type", "image/png"),
+                    view_url=f"/charts/view/{filename}",
+                    download_url=f"/charts/download/{filename}",
+                )
+            )
+
     for message in messages:
         content = getattr(message, "content", "")
         if isinstance(message, AIMessage) and content in {"VALID_QUERY", "INVALID_QUERY"}:
@@ -154,6 +196,7 @@ def _build_trace(
             matching_trace = pending_tools.get(message.tool_call_id)
             if matching_trace:
                 matching_trace.result_preview = _preview(message.content)
+                attach_tool_artifacts(matching_trace, message.content)
 
     tools_used = list(dict.fromkeys(call.name for call in tool_calls))
     token_usage = _add_cost_estimate(token_usage)
@@ -168,6 +211,41 @@ def _build_trace(
         tool_calls=tool_calls,
         message_count=len(messages),
     )
+
+
+def _with_report_urls(report: ReportSummary | GeneratedReport) -> ReportSummary | GeneratedReport:
+    for asset in report.assets:
+        asset.view_url = f"/reports/{report.report_id}/assets/{asset.filename}"
+        asset.download_url = f"/reports/{report.report_id}/download/{asset.filename}"
+    return report
+
+
+def _extract_report_from_response(response: dict) -> ReportSummary | None:
+    messages = response.get("messages", [])
+
+    for message in messages:
+        if not isinstance(message, ToolMessage):
+            continue
+
+        tool_name = getattr(message, "name", "") or ""
+        if tool_name != "generate_report_tool":
+            continue
+
+        content = getattr(message, "content", "")
+        if not isinstance(content, str) or not content.strip():
+            continue
+
+        try:
+            report = ReportSummary.model_validate_json(content)
+        except Exception:
+            try:
+                report = ReportSummary.model_validate(json.loads(content))
+            except Exception:
+                continue
+
+        return _with_report_urls(report)
+
+    return None
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -190,14 +268,9 @@ def chat(req: ChatRequest):
     if "INVALID_QUERY" in answer:
         answer = "Sorry, I can't assist with that request."
 
-    return ChatResponse(answer=answer, final_answer=answer, trace=trace)
+    report = _extract_report_from_response(response)
 
-from sqlalchemy.orm import Session
-
-from app.deps import get_db
-from app.db.session import engine
-from app.tools.db import get_db_info
-from fastapi import Depends, Query
+    return ChatResponse(answer=answer, final_answer=answer, trace=trace, report=report)
 
 
 @app.get("/db-info")
@@ -206,3 +279,101 @@ def db_info(
     include_row_counts: bool = Query(default=True),
 ):
     return get_db_info(db=db, engine=engine, include_row_counts=include_row_counts).model_dump()
+
+
+@app.post("/voice/transcribe")
+async def transcribe_voice(file: UploadFile = File(...)):
+    content_type = file.content_type or ""
+    if not content_type.startswith("audio/"):
+        raise HTTPException(status_code=400, detail="Upload an audio file.")
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Uploaded audio file is empty.")
+
+    suffix = Path(file.filename or "recording.webm").suffix or ".webm"
+    try:
+        return transcribe_audio_bytes(content, suffix=suffix).model_dump()
+    except VoiceTranscriptionUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {exc}") from exc
+
+
+@app.get("/reports/{report_id}", response_model=GeneratedReport)
+def get_report(report_id: str):
+    try:
+        report = load_report(report_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Report not found.") from exc
+    return _with_report_urls(report)
+
+
+@app.get("/reports/{report_id}/assets/{filename}")
+def view_report_asset(report_id: str, filename: str):
+    try:
+        asset_path = resolve_asset_path(report_id, filename)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Report asset not found.") from exc
+
+    if not asset_path.exists():
+        raise HTTPException(status_code=404, detail="Report asset not found.")
+
+    media_type = "text/plain"
+    if asset_path.suffix == ".md":
+        media_type = "text/markdown; charset=utf-8"
+    elif asset_path.suffix == ".html":
+        media_type = "text/html; charset=utf-8"
+    elif asset_path.suffix == ".json":
+        media_type = "application/json"
+    elif asset_path.suffix == ".pdf":
+        media_type = "application/pdf"
+    elif asset_path.suffix == ".png":
+        media_type = "image/png"
+
+    return FileResponse(asset_path, media_type=media_type)
+
+
+@app.get("/reports/{report_id}/download/{filename}")
+def download_report_asset(report_id: str, filename: str):
+    try:
+        asset_path = resolve_asset_path(report_id, filename)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Report asset not found.") from exc
+
+    if not asset_path.exists():
+        raise HTTPException(status_code=404, detail="Report asset not found.")
+
+    return FileResponse(asset_path, filename=asset_path.name)
+
+
+@app.get("/charts/view/{filename}")
+def view_chart(filename: str):
+    charts_dir = Path("sandbox_charts").resolve()
+    asset_path = (charts_dir / filename).resolve()
+
+    try:
+        asset_path.relative_to(charts_dir)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid chart path.") from exc
+
+    if not asset_path.exists():
+        raise HTTPException(status_code=404, detail="Chart not found.")
+
+    return FileResponse(asset_path, media_type="image/png")
+
+
+@app.get("/charts/download/{filename}")
+def download_chart(filename: str):
+    charts_dir = Path("sandbox_charts").resolve()
+    asset_path = (charts_dir / filename).resolve()
+
+    try:
+        asset_path.relative_to(charts_dir)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid chart path.") from exc
+
+    if not asset_path.exists():
+        raise HTTPException(status_code=404, detail="Chart not found.")
+
+    return FileResponse(asset_path, media_type="image/png", filename=asset_path.name)

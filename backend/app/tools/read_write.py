@@ -19,6 +19,20 @@ def _safe_chart_path(filename: str) -> Path:
     return output_path
 
 
+def get_chart_output_path(filename: str = "chart.png") -> Path:
+    return _safe_chart_path(filename)
+
+
+def build_chart_metadata(path: Path) -> dict[str, str]:
+    resolved_path = path.resolve()
+    return {
+        "filename": resolved_path.name,
+        "path": str(resolved_path),
+        "relative_path": str(resolved_path.relative_to(CHART_OUTPUT_DIR)),
+        "content_type": "image/png",
+    }
+
+
 @tool
 def save_chart_tool(chart_png_base64: str, filename: str = "chart.png") -> dict[str, Any]:
     """Save a base64-encoded PNG chart into the allowed chart output folder."""
@@ -38,6 +52,5 @@ def save_chart_tool(chart_png_base64: str, filename: str = "chart.png") -> dict[
 
     return {
         "saved": True,
-        "filename": output_path.name,
-        "path": str(output_path),
+        **build_chart_metadata(output_path),
     }
