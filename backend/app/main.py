@@ -1,6 +1,7 @@
 import os
 import json
 from pathlib import Path
+from datetime import datetime
 import time
 import uuid
 
@@ -8,13 +9,15 @@ from dotenv import load_dotenv
 from fastapi.responses import FileResponse
 from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from langchain_core.messages import AIMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.agents.agent import ProductAgent
+from app.api.conversations import router as conversations_router
 from app.api.inventories import router as inventories_router
 from app.api.products import router as products_router
+from app.db.models import Conversation, ConversationMessage
 from app.db.session import engine
 from app.deps import get_db
 from app.reports.storage import load_report, resolve_asset_path
@@ -49,6 +52,7 @@ app.add_middleware(
 
 app.include_router(products_router)
 app.include_router(inventories_router)
+app.include_router(conversations_router)
 
 
 @app.get("/health")
@@ -248,18 +252,56 @@ def _extract_report_from_response(response: dict) -> ReportSummary | None:
     return None
 
 
+def _get_or_create_conversation(db: Session, conversation_id: str | None, first_query: str) -> Conversation:
+    conversation = None
+    if conversation_id:
+        try:
+            conversation = db.get(Conversation, uuid.UUID(conversation_id))
+        except ValueError:
+            conversation = None
+
+    if conversation:
+        return conversation
+
+    title = first_query.strip()[:48] or "New chat"
+    conversation = Conversation(title=title)
+    db.add(conversation)
+    db.commit()
+    db.refresh(conversation)
+    return conversation
+
+
+def _build_agent_messages(conversation: Conversation, latest_query: str) -> list:
+    messages: list = []
+
+    for stored_message in conversation.messages:
+        if stored_message.role == "user":
+            messages.append(HumanMessage(content=stored_message.content))
+        elif stored_message.role == "assistant":
+            messages.append(AIMessage(content=stored_message.content))
+
+    messages.append(HumanMessage(content=latest_query))
+    return messages
+
+
 @app.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest):
+def chat(req: ChatRequest, db: Session = Depends(get_db)):
     print("Received chat request:", req.query)
     started = time.perf_counter()
     trace_id = str(uuid.uuid4())
-    config = {"configurable": {"thread_id": req.conversation_id or trace_id}}
+    conversation = _get_or_create_conversation(db, req.conversation_id, req.query)
+    conversation_id = str(conversation.conversation_id)
+    config = {"configurable": {"thread_id": conversation_id}}
+    if agent.has_checkpoint(conversation_id):
+        agent_messages = [HumanMessage(content=req.query)]
+    else:
+        agent_messages = _build_agent_messages(conversation, req.query)
 
-    response = agent.agent.invoke({"messages": [req.query]}, config=config)
+    response = agent.agent.invoke({"messages": agent_messages}, config=config)
     latency_ms = int((time.perf_counter() - started) * 1000)
     trace = _build_trace(
         response=response,
-        conversation_id=req.conversation_id,
+        conversation_id=conversation_id,
         latency_ms=latency_ms,
         trace_id=trace_id,
     )
@@ -270,7 +312,31 @@ def chat(req: ChatRequest):
 
     report = _extract_report_from_response(response)
 
-    return ChatResponse(answer=answer, final_answer=answer, trace=trace, report=report)
+    user_message = ConversationMessage(
+        conversation_id=conversation.conversation_id,
+        role="user",
+        content=req.query,
+    )
+    assistant_message = ConversationMessage(
+        conversation_id=conversation.conversation_id,
+        role="assistant",
+        content=answer,
+        trace=trace.model_dump(mode="json"),
+        report=report.model_dump(mode="json") if report else None,
+    )
+    db.add_all([user_message, assistant_message])
+    conversation.updated_at = datetime.utcnow()
+    if conversation.title == "New chat":
+        conversation.title = req.query.strip()[:48] or "New chat"
+    db.commit()
+
+    return ChatResponse(
+        conversation_id=conversation_id,
+        answer=answer,
+        final_answer=answer,
+        trace=trace,
+        report=report,
+    )
 
 
 @app.get("/db-info")

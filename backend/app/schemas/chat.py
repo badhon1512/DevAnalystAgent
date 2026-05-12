@@ -48,6 +48,7 @@ class ChatRequest(BaseModel):
 
 
 class ChatResponse(BaseModel):
+    conversation_id: str
     answer: str
     final_answer: str
     trace: AgentTrace

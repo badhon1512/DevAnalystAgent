@@ -176,6 +176,10 @@ Python analytics workflow:
         #print("LLM response:", llm_response)
         return {"messages": [llm_response]}
 
+    def has_checkpoint(self, thread_id: str) -> bool:
+        config = {"configurable": {"thread_id": thread_id}}
+        return checkpointer.get_tuple(config) is not None
+
 
 
 

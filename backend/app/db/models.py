@@ -1,4 +1,4 @@
-from sqlalchemy import String, Boolean, Numeric, Integer, DateTime, ForeignKey, CheckConstraint, UniqueConstraint, Text
+from sqlalchemy import String, Boolean, Numeric, Integer, DateTime, ForeignKey, CheckConstraint, UniqueConstraint, Text, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
@@ -82,3 +82,36 @@ class Return(Base):
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     reason: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    conversation_id: Mapped[uuid.UUID] = uuid_pk()
+    title: Mapped[str] = mapped_column(String, default="New chat", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    messages: Mapped[list["ConversationMessage"]] = relationship(
+        back_populates="conversation",
+        cascade="all, delete-orphan",
+        order_by="ConversationMessage.created_at",
+    )
+
+
+class ConversationMessage(Base):
+    __tablename__ = "conversation_messages"
+
+    message_id: Mapped[uuid.UUID] = uuid_pk()
+    conversation_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("conversations.conversation_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    role: Mapped[str] = mapped_column(String, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    trace: Mapped[dict | None] = mapped_column(JSON)
+    report: Mapped[dict | None] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    conversation: Mapped[Conversation] = relationship(back_populates="messages")
