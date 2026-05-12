@@ -1,5 +1,7 @@
 import type {
+  ChatThread,
   ChatResponse,
+  ChatMessage,
   InventoryRow,
   ListResponse,
   Product,
@@ -37,6 +39,97 @@ export async function sendChat(query: string, conversationId: string): Promise<C
   }
 
   return res.json();
+}
+
+export async function listConversations(): Promise<ChatThread[]> {
+  const conversations = await getJSON<
+    {
+      conversation_id: string;
+      title: string;
+      created_at: string;
+      updated_at: string;
+      message_count: number;
+    }[]
+  >(`${API_BASE}/conversations`);
+
+  return conversations.map((conversation) => ({
+    id: conversation.conversation_id,
+    title: conversation.title,
+    createdAt: new Date(conversation.created_at).getTime(),
+    updatedAt: new Date(conversation.updated_at).getTime(),
+    messages: [],
+  }));
+}
+
+export async function getConversation(conversationId: string): Promise<ChatThread> {
+  const conversation = await getJSON<{
+    conversation_id: string;
+    title: string;
+    created_at: string;
+    updated_at: string;
+    messages: Array<{
+      message_id: string;
+      role: "user" | "assistant";
+      content: string;
+      created_at: string;
+      trace?: ChatMessage["trace"];
+      report?: ChatMessage["report"];
+    }>;
+  }>(`${API_BASE}/conversations/${conversationId}`);
+
+  return {
+    id: conversation.conversation_id,
+    title: conversation.title,
+    createdAt: new Date(conversation.created_at).getTime(),
+    updatedAt: new Date(conversation.updated_at).getTime(),
+    messages: conversation.messages.map((message) => ({
+      id: message.message_id,
+      role: message.role,
+      content: message.content,
+      createdAt: new Date(message.created_at).getTime(),
+      trace: message.trace,
+      report: message.report,
+    })),
+  };
+}
+
+export async function createConversation(title?: string): Promise<ChatThread> {
+  const conversation = await fetch(`${API_BASE}/conversations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title }),
+  });
+
+  if (!conversation.ok) {
+    const text = await conversation.text();
+    throw new Error(`Backend error (${conversation.status}): ${text}`);
+  }
+
+  const data = (await conversation.json()) as {
+    conversation_id: string;
+    title: string;
+    created_at: string;
+    updated_at: string;
+  };
+
+  return {
+    id: data.conversation_id,
+    title: data.title,
+    createdAt: new Date(data.created_at).getTime(),
+    updatedAt: new Date(data.updated_at).getTime(),
+    messages: [],
+  };
+}
+
+export async function deleteConversation(conversationId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/conversations/${conversationId}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Backend error (${res.status}): ${text}`);
+  }
 }
 
 export async function transcribeVoice(audio: Blob): Promise<VoiceTranscriptionResponse> {

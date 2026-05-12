@@ -9,7 +9,16 @@ export type ChatMessage = {
   report?: ReportSummary;
 };
 
+export type ChatThread = {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+  messages: ChatMessage[];
+};
+
 export type ChatResponse = {
+  conversation_id: string;
   answer?: string;
   message_id?: string;
   final_answer?: string;
