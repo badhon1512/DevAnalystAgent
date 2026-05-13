@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.agents.agent import ProductAgent
 from app.api.conversations import router as conversations_router
+from app.api.documents import router as documents_router
 from app.api.inventories import router as inventories_router
 from app.api.products import router as products_router
 from app.db.models import Conversation, ConversationMessage
@@ -53,6 +54,7 @@ app.add_middleware(
 app.include_router(products_router)
 app.include_router(inventories_router)
 app.include_router(conversations_router)
+app.include_router(documents_router)
 
 
 @app.get("/health")

@@ -15,6 +15,7 @@ thread = {"configurable": {"thread_id": "5"}}
 from app.tools.db import get_db_info_tool, get_sql_database_toolkit_tools, run_readonly_sql_tool
 from app.tools.file_system import get_file_management_toolkit
 from app.tools.python_sandbox import execute_python_code_tool
+from app.tools.rag import search_company_docs_tool
 from app.tools.read_write import save_chart_tool
 from app.tools.reporting import generate_report_tool
 
@@ -35,6 +36,7 @@ class ProductAgent():
             *sql_tools,
             run_readonly_sql_tool,
             execute_python_code_tool,
+            search_company_docs_tool,
             save_chart_tool,
             generate_report_tool,
             *get_file_management_toolkit(),
@@ -76,6 +78,7 @@ General rules:
 4. Keep answers grounded only in tool results.
 5. If a tool fails or required data is unavailable, explain that briefly and do not fabricate an answer.
 6. Never response with simulated data, only give give answer based on database data.
+7. Use company document search for policies, SOPs, supplier terms, warehouse procedures, internal FAQs, and other unstructured company knowledge.
 
 Database access policy:
 1. The database connection is managed by the system.
@@ -93,6 +96,7 @@ Required workflow:
 4. If the request needs data retrieval, calculations, aggregations, rankings, time-series summaries, or comparisons, express them in read-only SQL and call `run_readonly_sql_tool`.
 5. Return only results that were actually retrieved or computed from tool outputs.
 6. If the request needs a derived calculation, trend analysis, transformation, or visualization that is easier in Python, use `execute_python_code_tool`.
+7. If the request asks about company policies, SOPs, supplier rules, warehouse procedures, or internal documentation, use `search_company_docs_tool`.
 
 SQL tool policy:
 1. Use SQLDatabaseToolkit only for table listing, schema inspection, and query checking.
@@ -110,8 +114,16 @@ Tool usage guidance:
 5. `sql_db_query_checker`: validate SQL before execution.
 6. `run_readonly_sql_tool`: execute checked read-only SQL.
 7. `execute_python_code_tool`: use for Python-based analysis, transformations, and chart generation after you have the needed data.
-8. `save_chart_tool`: use only if you explicitly need to save a base64 PNG chart produced outside the Python sandbox.
-9. `generate_report_tool`: use only if the user explicitly asks for a report, export, downloadable summary, or saved document.
+8. `search_company_docs_tool`: search indexed company policies, SOPs, supplier terms, warehouse playbooks, and internal documentation.
+9. `save_chart_tool`: use only if you explicitly need to save a base64 PNG chart produced outside the Python sandbox.
+10. `generate_report_tool`: use only if the user explicitly asks for a report, export, downloadable summary, or saved document.
+
+RAG workflow:
+1. Use SQL tools for live structured facts about products, inventory, sales, returns, and warehouses.
+2. Use `search_company_docs_tool` for company policies, SOPs, supplier rules, warehouse procedures, return policies, and internal knowledge.
+3. If a question needs both business data and policy context, use both SQL and document search.
+4. Cite document titles or source paths when using retrieved company documents.
+5. Never invent policy details that were not present in retrieved document chunks.
 
 Report workflow:
 1. First complete the grounded analysis using the database tools.
