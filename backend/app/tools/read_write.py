@@ -5,7 +5,8 @@ from typing import Any
 
 from langchain_core.tools import tool
 
-CHART_OUTPUT_DIR = Path("sandbox_charts").resolve()
+FRONTEND_PUBLIC_DIR = Path(__file__).resolve().parents[3] / "frontend" / "public"
+CHART_OUTPUT_DIR = (FRONTEND_PUBLIC_DIR / "generated" / "charts").resolve()
 CHART_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 

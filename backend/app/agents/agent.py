@@ -4,6 +4,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, ToolMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from datetime import datetime
+from pathlib import Path
 from langchain.tools import tool
 from app.agents.guardrails import is_valid_query
 from app.agents.state import State
@@ -20,7 +21,7 @@ from app.tools.read_write import save_chart_tool
 from app.tools.reporting import generate_report_tool
 
 
-base_llm = ChatOpenAI(model="gpt-5.4-nano")
+base_llm = ChatOpenAI(model="gpt-5.4")
 @tool
 def datetime_now() -> str:
     """Get the current date and time in ISO format."""
@@ -61,7 +62,8 @@ class ProductAgent():
         #Lets save the graph
         try:
             png_bytes = self.agent.get_graph().draw_mermaid_png()
-            with open("agent_graph.png", "wb") as f:
+            graph_path = Path(".") / "agent_graph.png"
+            with open(graph_path, "wb") as f:
                 f.write(png_bytes)
         except Exception as e:
             print(f"[WARN] Graph render skipped: {e}")
@@ -117,6 +119,9 @@ Tool usage guidance:
 8. `search_company_docs_tool`: search indexed company policies, SOPs, supplier terms, warehouse playbooks, and internal documentation.
 9. `save_chart_tool`: use only if you explicitly need to save a base64 PNG chart produced outside the Python sandbox.
 10. `generate_report_tool`: use only if the user explicitly asks for a report, export, downloadable summary, or saved document.
+11. File tools are scoped to the frontend folder only. Use them for frontend  (./frontend) component, UI, styling, API-integration questions, and generated frontend-public assets. Do not assume file-tool access to backend files, environment files, database files, or arbitrary project paths.
+12. Do not delete, wipe, or overwrite frontend files unless the user explicitly asks for that exact change. Prefer reading files first, explaining findings, and making narrow edits only when requested.
+13. Generated chart and report assets are saved under `frontend/public/generated` by backend tools, so they are inside the frontend folder. The agent graph image is saved by backend code to the current working directory; do not use file tools to manage graph image output.
 
 RAG workflow:
 1. Use SQL tools for live structured facts about products, inventory, sales, returns, and warehouses.
@@ -151,10 +156,8 @@ Python analytics workflow:
         #print("Guardrail check result for message:", last_message)
         if "INVALID_QUERY" in last_message.content:
             print("Query is invalid, ending conversation.")
-            #return END
-            return "call_llm"
-        else:
-            return "call_llm"
+            return END
+        return "call_llm"
         
 
     def route_tool_calls(self, state: State):
