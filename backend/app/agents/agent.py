@@ -13,10 +13,15 @@ checkpointer = InMemorySaver()
 thread = {"configurable": {"thread_id": "5"}}
 
 
-from app.tools.db import get_db_info_tool, get_sql_database_toolkit_tools, run_readonly_sql_tool
+from app.tools.db import get_sql_database_toolkit_tools
 from app.tools.file_system import get_file_management_toolkit
+from app.tools.mcp_tools import (
+    get_inventory_schema,
+    run_readonly_inventory_sql,
+    search_company_documents,
+    tracestock_mcp_status,
+)
 from app.tools.python_sandbox import execute_python_code_tool
-from app.tools.rag import search_company_docs_tool
 from app.tools.read_write import save_chart_tool
 from app.tools.reporting import generate_report_tool
 
@@ -30,14 +35,19 @@ def datetime_now() -> str:
 class ProductAgent():
 
     def __init__(self):
-        sql_tools = get_sql_database_toolkit_tools(base_llm)
+        sql_tools = [
+            sql_tool
+            for sql_tool in get_sql_database_toolkit_tools(base_llm)
+            if sql_tool.name == "sql_db_query_checker"
+        ]
         self.tools = [
             datetime_now,
-            get_db_info_tool,
+            tracestock_mcp_status,
+            get_inventory_schema,
             *sql_tools,
-            run_readonly_sql_tool,
+            run_readonly_inventory_sql,
             execute_python_code_tool,
-            search_company_docs_tool,
+            search_company_documents,
             save_chart_tool,
             generate_report_tool,
             *get_file_management_toolkit(),
@@ -48,15 +58,15 @@ class ProductAgent():
 
         self.agent_graph.add_node("guardrail_check", is_valid_query)
         self.agent_graph.add_node("call_llm", self.call_llm)
-        self.agent_graph.add_node("handle_tool_calls", ToolNode(self.tools))
+        self.agent_graph.add_node("mcp_and_tool_calls", ToolNode(self.tools))
 
         self.agent_graph.add_edge(START, "guardrail_check")
         self.agent_graph.add_conditional_edges("guardrail_check", self.route_guardrail_check,
                                                {END: END, "call_llm": "call_llm"})
         
         self.agent_graph.add_conditional_edges("call_llm", self.route_tool_calls, 
-                                               {END: END, "handle_tool_calls": "handle_tool_calls"} )
-        self.agent_graph.add_edge("handle_tool_calls", "call_llm")
+                                               {END: END, "mcp_and_tool_calls": "mcp_and_tool_calls"} )
+        self.agent_graph.add_edge("mcp_and_tool_calls", "call_llm")
         self.agent = self.agent_graph.compile(checkpointer=checkpointer)
 
         #Lets save the graph
@@ -92,40 +102,38 @@ Database access policy:
 7. Only query tables and columns that are confirmed by schema inspection.
 
 Required workflow:
-1. First call `get_db_info_tool` to inspect the schema and understand available tables and columns.
-2. Use `sql_db_list_tables` and `sql_db_schema` from SQLDatabaseToolkit to confirm table names and columns before querying.
-3. Use `sql_db_query_checker` before executing a SQL query.
-4. If the request needs data retrieval, calculations, aggregations, rankings, time-series summaries, or comparisons, express them in read-only SQL and call `run_readonly_sql_tool`.
-5. Return only results that were actually retrieved or computed from tool outputs.
-6. If the request needs a derived calculation, trend analysis, transformation, or visualization that is easier in Python, use `execute_python_code_tool`.
-7. If the request asks about company policies, SOPs, supplier rules, warehouse procedures, or internal documentation, use `search_company_docs_tool`.
+1. First call `get_inventory_schema` to inspect the schema and understand available tables and columns through MCP.
+2. Use `sql_db_query_checker` before executing a SQL query.
+3. If the request needs data retrieval, calculations, aggregations, rankings, time-series summaries, or comparisons, express them in read-only SQL and call `run_readonly_inventory_sql`.
+4. Return only results that were actually retrieved or computed from tool outputs.
+5. If the request needs a derived calculation, trend analysis, transformation, or visualization that is easier in Python, use `execute_python_code_tool`.
+6. If the request asks about company policies, SOPs, supplier rules, warehouse procedures, or internal documentation, use `search_company_documents`.
 
 SQL tool policy:
-1. Use SQLDatabaseToolkit only for table listing, schema inspection, and query checking.
+1. Use `get_inventory_schema` for table and schema inspection.
 2. Never request INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, COPY, or other write/DDL operations.
-3. Keep queries scoped to tables and columns confirmed by `get_db_info_tool` or `sql_db_schema`.
+3. Keep queries scoped to tables and columns confirmed by `get_inventory_schema`.
 4. Prefer SQL aggregation over fetching large raw row sets.
 5. Always add a small LIMIT when returning raw rows.
-6. Never call or request `sql_db_query`; actual query execution must use `run_readonly_sql_tool`.
+6. Never call or request `sql_db_query`; actual query execution must use `run_readonly_inventory_sql`.
 
 Tool usage guidance:
 1. `datetime_now`: use when the current date or time is needed.
-2. `get_db_info_tool`: use first for project-specific schema inspection and row counts.
-3. `sql_db_list_tables`: list available SQL tables.
-4. `sql_db_schema`: inspect SQL table schemas.
-5. `sql_db_query_checker`: validate SQL before execution.
-6. `run_readonly_sql_tool`: execute checked read-only SQL.
-7. `execute_python_code_tool`: use for Python-based analysis, transformations, and chart generation after you have the needed data.
-8. `search_company_docs_tool`: search indexed company policies, SOPs, supplier terms, warehouse playbooks, and internal documentation.
-9. `save_chart_tool`: use only if you explicitly need to save a base64 PNG chart produced outside the Python sandbox.
-10. `generate_report_tool`: use only if the user explicitly asks for a report, export, downloadable summary, or saved document.
-11. File tools are scoped to the frontend folder only. Use them for frontend  (./frontend) component, UI, styling, API-integration questions, and generated frontend-public assets. Do not assume file-tool access to backend files, environment files, database files, or arbitrary project paths.
-12. Do not delete, wipe, or overwrite frontend files unless the user explicitly asks for that exact change. Prefer reading files first, explaining findings, and making narrow edits only when requested.
-13. Generated chart and report assets are saved under `frontend/public/generated` by backend tools, so they are inside the frontend folder. The agent graph image is saved by backend code to the current working directory; do not use file tools to manage graph image output.
+2. `tracestock_mcp_status`: use only when asked to verify MCP connectivity or list MCP tools.
+3. `get_inventory_schema`: use first for project-specific schema inspection and row counts through MCP.
+4. `sql_db_query_checker`: validate SQL before execution.
+5. `run_readonly_inventory_sql`: execute checked read-only SQL through MCP.
+6. `execute_python_code_tool`: use for Python-based analysis, transformations, and chart generation after you have the needed data.
+7. `search_company_documents`: search indexed company policies, SOPs, supplier terms, warehouse playbooks, and internal documentation through MCP.
+8. `save_chart_tool`: use only if you explicitly need to save a base64 PNG chart produced outside the Python sandbox.
+9. `generate_report_tool`: use only if the user explicitly asks for a report, export, downloadable summary, or saved document.
+10. File tools are scoped to the frontend folder only. Use them for frontend  (./frontend) component, UI, styling, API-integration questions, and generated frontend-public assets. Do not assume file-tool access to backend files, environment files, database files, or arbitrary project paths.
+11. Do not delete, wipe, or overwrite frontend files unless the user explicitly asks for that exact change. Prefer reading files first, explaining findings, and making narrow edits only when requested.
+12. Generated chart and report assets are saved under `frontend/public/generated` by backend tools, so they are inside the frontend folder. The agent graph image is saved by backend code to the current working directory; do not use file tools to manage graph image output.
 
 RAG workflow:
 1. Use SQL tools for live structured facts about products, inventory, sales, returns, and warehouses.
-2. Use `search_company_docs_tool` for company policies, SOPs, supplier rules, warehouse procedures, return policies, and internal knowledge.
+2. Use `search_company_documents` for company policies, SOPs, supplier rules, warehouse procedures, return policies, and internal knowledge.
 3. If a question needs both business data and policy context, use both SQL and document search.
 4. Cite document titles or source paths when using retrieved company documents.
 5. Never invent policy details that were not present in retrieved document chunks.
@@ -167,7 +175,7 @@ Python analytics workflow:
         #print("Routing tool calls for message:", last_message)
         tool_calls = last_message.tool_calls or []
         if len(tool_calls) > 0:
-            return "handle_tool_calls"
+            return "mcp_and_tool_calls"
         else:
             print("No tool calls found, ending conversation.")
             return END

@@ -6,7 +6,8 @@ from uuid import uuid4
 
 from app.schemas.report import GeneratedReport, ReportAsset, ReportSummary
 
-REPORTS_ROOT = Path("generated_reports").resolve()
+FRONTEND_PUBLIC_DIR = Path(__file__).resolve().parents[3] / "frontend" / "public"
+REPORTS_ROOT = (FRONTEND_PUBLIC_DIR / "generated" / "reports").resolve()
 
 
 def ensure_reports_root() -> Path:

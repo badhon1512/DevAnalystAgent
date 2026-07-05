@@ -1,4 +1,9 @@
+import asyncio
+import sys
 from pathlib import Path
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from dotenv import load_dotenv
 from fastapi.responses import FileResponse
@@ -18,6 +23,7 @@ from app.reports.links import with_report_urls
 from app.reports.storage import load_report, resolve_asset_path
 from app.schemas.report import GeneratedReport
 from app.tools.db import get_db_info
+from app.tools.mcp_tools import close_mcp_server, start_mcp_server
 from app.tools.read_write import CHART_OUTPUT_DIR
 from app.tools.voice import VoiceTranscriptionUnavailable, transcribe_audio_bytes
 
@@ -43,6 +49,16 @@ app.include_router(inventories_router)
 app.include_router(conversations_router)
 app.include_router(documents_router)
 app.include_router(chat_router)
+
+
+@app.on_event("startup")
+def startup_mcp_server():
+    start_mcp_server()
+
+
+@app.on_event("shutdown")
+def shutdown_mcp_server():
+    close_mcp_server()
 
 
 @app.get("/health")

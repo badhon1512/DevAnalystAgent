@@ -2,14 +2,23 @@ import ast
 import builtins
 import io
 import json
+import math
 import os
+import statistics
 from contextlib import redirect_stdout
+from datetime import datetime
 from typing import Any, Dict, Optional
 
+import matplotlib
+import numpy as np
+import pandas as pd
 from langchain_core.tools import tool
 from sqlalchemy import create_engine, text
 
 from app.tools.read_write import build_chart_metadata, get_chart_output_path
+
+matplotlib.use("Agg")  # headless backend
+import matplotlib.pyplot as plt
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL)
@@ -114,17 +123,6 @@ def run_python_analytics(
         _check_ast(tree)
     except (SyntaxError, UnsafeCodeError, ValueError) as exc:
         return _error_response(str(exc))
-
-    # Import allowed libs here (host-controlled)
-    import math
-    import statistics
-    import numpy as np
-    import pandas as pd
-    import matplotlib
-
-    matplotlib.use("Agg")  # headless backend
-    import matplotlib.pyplot as plt
-    from datetime import datetime
 
     # Very small/controlled builtins
     safe_builtins = {

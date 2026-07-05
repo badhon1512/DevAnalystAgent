@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache
 
 from langchain_openai import OpenAIEmbeddings
 
@@ -7,8 +8,9 @@ EMBEDDING_MODEL = os.getenv("RAG_EMBEDDING_MODEL", "text-embedding-3-small")
 EMBEDDING_DIMENSIONS = 1536
 
 
+@lru_cache(maxsize=1)
 def get_embeddings_client() -> OpenAIEmbeddings:
-    return OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    return OpenAIEmbeddings(model=EMBEDDING_MODEL, timeout=2, max_retries=0)
 
 
 def embed_query(text: str) -> list[float]:
