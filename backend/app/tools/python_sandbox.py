@@ -1,91 +1,17 @@
-import ast
-import builtins
-import io
 import json
-import math
 import os
-import statistics
-from contextlib import redirect_stdout
-from datetime import datetime
+import shutil
+import subprocess
+import sys
+from pathlib import Path
 from typing import Any, Dict, Optional
 
-import matplotlib
-import numpy as np
-import pandas as pd
 from langchain_core.tools import tool
-from sqlalchemy import create_engine, text
 
-from app.tools.read_write import build_chart_metadata, get_chart_output_path
+from app.tools.read_write import CHART_OUTPUT_DIR
 
-matplotlib.use("Agg")  # headless backend
-import matplotlib.pyplot as plt
-
-DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL)
-
-
-def run_readonly_sql(query: str):
-    with engine.connect() as conn:
-        result = conn.execute(text(query))
-        return [dict(row._mapping) for row in result]
-
-
-# Block these names even if user tries clever tricks
-BANNED_NAMES = {
-    "open", "eval", "exec", "compile",
-    "input", "globals", "locals", "vars", "dir",
-}
-
-# Block risky modules
-BANNED_IMPORT_PREFIXES = {
-    "sys", "subprocess", "socket", "requests", "http", "urllib",
-    "pathlib", "shutil", "pickle",
-}
-
-
-class UnsafeCodeError(Exception):
-    pass
-
-
-def _check_ast(tree: ast.AST) -> None:
-    # 1) Validate imports
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            if isinstance(node, ast.Import):
-                names = [n.name for n in node.names]
-            else:
-                mod = node.module or ""
-                names = [mod]
-
-            for name in names:
-                # ban prefixes like os, sys, etc.
-                prefix = name.split(".")[0]
-                if prefix in BANNED_IMPORT_PREFIXES:
-                    raise UnsafeCodeError(f"Import blocked: {name}")
-
-                # allowlist
-                # if name not in ALLOWED_IMPORTS and prefix not in ALLOWED_IMPORTS:
-                #     raise UnsafeCodeError(f"Import not allowed: {name}")
-
-        # 2) Block dangerous builtins by name usage
-        if isinstance(node, ast.Name) and node.id in BANNED_NAMES:
-            raise UnsafeCodeError(f"Use of '{node.id}' is not allowed")
-
-        # 3) Block attribute access that commonly escapes sandbox
-        # e.g., object.__class__, __dict__, __mro__, etc.
-        if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
-            raise UnsafeCodeError("Dunder attribute access is not allowed")
-
-
-def _safe_json(obj: Any) -> Any:
-    """
-    Ensure result is JSON serializable (best-effort).
-    """
-    try:
-        json.dumps(obj)
-        return obj
-    except Exception:
-        return str(obj)
+SANDBOX_TIMEOUT_SECONDS = int(os.getenv("PYTHON_SANDBOX_TIMEOUT_SECONDS", "10"))
+MAX_PAYLOAD_CHARS = int(os.getenv("PYTHON_SANDBOX_MAX_PAYLOAD_CHARS", "500000"))
 
 
 def _error_response(message: str, stdout: str = "") -> Dict[str, Any]:
@@ -97,110 +23,141 @@ def _error_response(message: str, stdout: str = "") -> Dict[str, Any]:
     }
 
 
+def _runner_working_dir() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def _sandbox_runtime_dir() -> Path:
+    runtime_dir = (_runner_working_dir() / ".sandbox_runtime").resolve()
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    return runtime_dir
+
+
+def _sandbox_chart_dir(runtime_dir: Path) -> Path:
+    chart_dir = (runtime_dir / "charts").resolve()
+    chart_dir.mkdir(parents=True, exist_ok=True)
+    return chart_dir
+
+
 def run_python_analytics(
     code: str,
     file_name: str = "chart.png",
     input_data: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
-    Execute restricted Python analytics code.
+    Execute restricted Python analytics code in a separate runner process.
 
     Contract for agent:
     - Put final outputs in a variable named `result` (dict recommended).
-    - If creating a chart, use matplotlib.pyplot and leave the current figure.
+    - Use the preloaded `np`, `pd`, and `plt` objects instead of filesystem/network imports.
+    - If creating a chart, leave the current matplotlib figure active.
     - The tool always returns `stdout`, `result`, `charts`, and `error`.
-    Args:
-    - code: Python code to execute (string).  
-    - file_name: Optional filename for saving charts (if generated).                                                  
-    - input_data: Optional dict of input data to be used by the code.
-
     """
     if not isinstance(code, str) or not code.strip():
-        raise ValueError("code must be a non-empty string")
+        return _error_response("code must be a non-empty string")
 
-    try:
-        tree = ast.parse(code, mode="exec")
-        _check_ast(tree)
-    except (SyntaxError, UnsafeCodeError, ValueError) as exc:
-        return _error_response(str(exc))
+    runtime_dir = _sandbox_runtime_dir()
+    sandbox_chart_dir = _sandbox_chart_dir(runtime_dir)
+    temp_dir = runtime_dir / "tmp"
+    matplotlib_dir = runtime_dir / "matplotlib"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    matplotlib_dir.mkdir(parents=True, exist_ok=True)
 
-    # Very small/controlled builtins
-    safe_builtins = {
-        "str": str,
-        "int": int,
-        "float": float,
-        "bool": bool,
-        "list": list,
-        "dict": dict,
-        "set": set,
-        "tuple": tuple,
-        "enumerate": enumerate,
-        "range": range,
-        "zip": zip,
-        "len": len,
-        "sum": sum,
-        "min": min,
-        "max": max,
-        "sorted": sorted,
-        "abs": abs,
-        "round": round,
-        "print": print,
-        "Exception": Exception,
-        "ValueError": ValueError,
-        "TypeError": TypeError,
-        "KeyError": KeyError,
-        "IndexError": IndexError,
-        "ZeroDivisionError": ZeroDivisionError,
-        "__import__": builtins.__import__,
-    }
-
-    # Execution globals/locals
-    env: Dict[str, Any] = {
-        "__builtins__": safe_builtins,
-        "math": math,
-        "statistics": statistics,
-        "np": np,
-        "pd": pd,
-        "plt": plt,
+    payload = {
+        "code": code,
+        "file_name": file_name or "chart.png",
         "input_data": input_data or {},
-        "result": None,
-        "datetime": datetime,
-        "run_readonly_sql": run_readonly_sql,
+        "output_dir": str(sandbox_chart_dir),
+    }
+    payload_json = json.dumps(payload, default=str)
+    if len(payload_json) > MAX_PAYLOAD_CHARS:
+        return _error_response(f"Python sandbox payload exceeded {MAX_PAYLOAD_CHARS} characters")
+
+    env = {
+        "MPLBACKEND": "Agg",
+        "MPLCONFIGDIR": str(matplotlib_dir),
+        "PATH": os.environ.get("PATH", ""),
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONPATH": str(_runner_working_dir()),
+        "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
+        "TEMP": str(temp_dir),
+        "TMP": str(temp_dir),
+        "WINDIR": os.environ.get("WINDIR", ""),
     }
 
-    stdout_buf = io.StringIO()
-    plt.close("all")  # clear previous figures
+    try:
+        completed = subprocess.run(
+            [sys.executable, "-m", "app.sandbox.python_runner"],
+            input=payload_json,
+            text=True,
+            capture_output=True,
+            timeout=SANDBOX_TIMEOUT_SECONDS,
+            cwd=runtime_dir,
+            env=env,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return _error_response(
+            f"Python execution exceeded {SANDBOX_TIMEOUT_SECONDS} seconds and was stopped"
+        )
+    except Exception as exc:
+        return _error_response(f"Python sandbox failed to start: {exc}")
+
+    if completed.returncode != 0:
+        stderr = completed.stderr.strip()
+        return _error_response(stderr or f"Python sandbox exited with code {completed.returncode}")
 
     try:
-        with redirect_stdout(stdout_buf):
-            exec(compile(tree, filename="<agent_code>", mode="exec"), env, env)
-    except Exception as exc:
-        return _error_response(str(exc), stdout=stdout_buf.getvalue())
-
-    stdout = stdout_buf.getvalue()
-    charts: list[Dict[str, Any]] = []
-
-    if plt.get_fignums():
-        fig = plt.gcf()
-        fig.tight_layout()
-        output_path = get_chart_output_path(file_name or "chart.png")
-        fig.savefig(
-            output_path,
-            format="png",
-            dpi=150,
-            bbox_inches="tight",
-            facecolor="white",
-            edgecolor="white",
+        response = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        return _error_response(
+            "Python sandbox returned invalid JSON",
+            stdout=completed.stdout[-20000:],
         )
-        plt.close(fig)
-        charts.append(build_chart_metadata(output_path))
+
+    if not isinstance(response, dict):
+        return _error_response("Python sandbox returned an invalid response shape")
 
     return {
-        "stdout": stdout,
-        "result": _safe_json(env.get("result")),
-        "charts": charts,
-        "error": None,
+        "stdout": response.get("stdout", ""),
+        "result": response.get("result"),
+        "charts": _promote_charts(response.get("charts", []), sandbox_chart_dir),
+        "error": response.get("error"),
     }
+
+
+def _promote_charts(charts: Any, sandbox_chart_dir: Path) -> list[dict[str, str]]:
+    if not isinstance(charts, list):
+        return []
+
+    promoted: list[dict[str, str]] = []
+    for chart in charts:
+        if not isinstance(chart, dict) or not chart.get("path"):
+            continue
+
+        source = Path(str(chart["path"])).resolve()
+        try:
+            source.relative_to(sandbox_chart_dir)
+        except ValueError:
+            continue
+
+        destination = (CHART_OUTPUT_DIR / source.name).resolve()
+        try:
+            destination.relative_to(CHART_OUTPUT_DIR)
+            shutil.copyfile(source, destination)
+        except Exception:
+            destination = source
+
+        promoted.append(
+            {
+                "filename": destination.name,
+                "path": str(destination),
+                "relative_path": destination.name,
+                "content_type": "image/png",
+            }
+        )
+
+    return promoted
 
 
 @tool
@@ -216,8 +173,4 @@ def execute_python_code_tool(
     Prefer professional chart styling: clear title, labeled axes, readable legend, restrained colors,
     appropriate figure size, and tidy layout.
     """
-    with open("python_sandbox.log", "a") as log_file:
-        log_file.write(
-            f"Executing code:\n{code}\nWith input_data:\n{json.dumps(input_data, default=str)}\n\n"
-        )
-    return run_python_analytics(code=code, input_data=input_data, file_name=file_name)
+    return run_python_analytics(code=code, input_data=input_data, file_name=file_name or "chart.png")

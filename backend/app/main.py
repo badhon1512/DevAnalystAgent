@@ -1,4 +1,5 @@
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -32,13 +33,18 @@ load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 
 app = FastAPI(title="ProductAI Backend")
 
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,6 +55,8 @@ app.include_router(inventories_router)
 app.include_router(conversations_router)
 app.include_router(documents_router)
 app.include_router(chat_router)
+
+SANDBOX_CHART_OUTPUT_DIR = (Path(__file__).resolve().parents[1] / ".sandbox_runtime" / "charts").resolve()
 
 
 @app.on_event("startup")
@@ -153,14 +161,7 @@ def download_report_asset(report_id: str, filename: str):
 
 @app.get("/charts/view/{filename}")
 def view_chart(filename: str):
-    charts_dir = CHART_OUTPUT_DIR
-    asset_path = (charts_dir / filename).resolve()
-
-    try:
-        asset_path.relative_to(charts_dir)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail="Invalid chart path.") from exc
-
+    asset_path = resolve_chart_path(filename)
     if not asset_path.exists():
         raise HTTPException(status_code=404, detail="Chart not found.")
 
@@ -169,15 +170,21 @@ def view_chart(filename: str):
 
 @app.get("/charts/download/{filename}")
 def download_chart(filename: str):
-    charts_dir = CHART_OUTPUT_DIR
-    asset_path = (charts_dir / filename).resolve()
-
-    try:
-        asset_path.relative_to(charts_dir)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail="Invalid chart path.") from exc
-
+    asset_path = resolve_chart_path(filename)
     if not asset_path.exists():
         raise HTTPException(status_code=404, detail="Chart not found.")
 
     return FileResponse(asset_path, media_type="image/png", filename=asset_path.name)
+
+
+def resolve_chart_path(filename: str) -> Path:
+    safe_name = Path(filename).name
+    for charts_dir in (CHART_OUTPUT_DIR, SANDBOX_CHART_OUTPUT_DIR):
+        asset_path = (charts_dir / safe_name).resolve()
+        try:
+            asset_path.relative_to(charts_dir)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Invalid chart path.") from exc
+        if asset_path.exists():
+            return asset_path
+    return (CHART_OUTPUT_DIR / safe_name).resolve()
