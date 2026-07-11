@@ -1,7 +1,7 @@
-from sqlalchemy import func, join, or_, select
+from sqlalchemy import func, join, or_, outerjoin, select
 from sqlalchemy.orm import Session
 
-from app.db.models import Inventory, Product, Warehouse
+from app.db.models import Inventory, Product, ProductVariant, Warehouse
 from app.schemas.common import ObjectResponse
 from app.schemas.inventories import InventoryOut
 
@@ -15,7 +15,14 @@ def _apply_inventory_filters(
 ):
     if search:
         like = f"%{search}%"
-        stmt = stmt.where(or_(Product.sku.ilike(like), Product.name.ilike(like)))
+        stmt = stmt.where(
+            or_(
+                Product.sku.ilike(like),
+                Product.name.ilike(like),
+                ProductVariant.sku.ilike(like),
+                ProductVariant.title.ilike(like),
+            )
+        )
 
     if warehouse_code:
         stmt = stmt.where(Warehouse.code == warehouse_code)
@@ -38,7 +45,11 @@ def list_inventories(
     limit: int = 50,
     offset: int = 0,
 ) -> ObjectResponse[InventoryOut]:
-    base_from = join(Inventory, Product, Inventory.product_id == Product.product_id).join(
+    base_from = outerjoin(
+        join(Inventory, Product, Inventory.product_id == Product.product_id),
+        ProductVariant,
+        Inventory.variant_id == ProductVariant.variant_id,
+    ).join(
         Warehouse,
         Inventory.warehouse_id == Warehouse.warehouse_id,
     )
@@ -46,13 +57,20 @@ def list_inventories(
     stmt = select(
         Inventory.inventory_id,
         Inventory.product_id,
+        Inventory.variant_id,
         Inventory.warehouse_id,
         Inventory.stock_on_hand,
         Inventory.reorder_point,
         Inventory.updated_at,
         Product.sku,
+        ProductVariant.sku.label("variant_sku"),
         Product.name.label("product_name"),
+        ProductVariant.title.label("variant_title"),
         Warehouse.code.label("warehouse_name"),
+        Warehouse.city.label("warehouse_city"),
+        Warehouse.postal_code.label("warehouse_postal_code"),
+        Warehouse.region.label("warehouse_region"),
+        Warehouse.country.label("warehouse_country"),
     ).select_from(base_from)
     stmt = _apply_inventory_filters(
         stmt,

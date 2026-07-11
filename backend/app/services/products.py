@@ -20,7 +20,16 @@ def list_products(
 
     if search:
         like = f"%{search}%"
-        stmt = stmt.where(or_(Product.sku.ilike(like), Product.name.ilike(like)))
+        stmt = stmt.where(
+            or_(
+                Product.sku.ilike(like),
+                Product.name.ilike(like),
+                Product.brand.ilike(like),
+                Product.model_number.ilike(like),
+                Product.short_description.ilike(like),
+                Product.long_description.ilike(like),
+            )
+        )
     if category:
         stmt = stmt.where(Product.category == category)
     if brand:
