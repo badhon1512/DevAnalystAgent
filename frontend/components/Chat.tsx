@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -218,6 +219,16 @@ export default function Chat() {
 
   return (
     <div className="chatWorkspace">
+      <nav className="chatTopNav">
+        <Link className="chatTopBrand" href="/">
+          StoreWise AI
+        </Link>
+        <div className="chatTopLinks">
+          <Link href="/storefront">Storefront</Link>
+          <Link href="/merchant">Merchant Portal</Link>
+        </div>
+      </nav>
+
       <aside className="threadSidebar">
         <div className="threadSidebarHeader">
           <div>

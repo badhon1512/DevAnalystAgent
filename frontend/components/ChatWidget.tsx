@@ -158,7 +158,7 @@ export default function ChatWidget({ pageContext }: Props) {
 
   const headerTitle = useMemo(() => {
     if (!pageContext) return "ProductAI Assistant";
-    return `ProductAI Assistant • ${pageContext}`;
+    return `ProductAI Assistant - ${pageContext}`;
   }, [pageContext]);
 
   async function onSend() {
@@ -234,7 +234,7 @@ export default function ChatWidget({ pageContext }: Props) {
         }}
         title="Chat"
       >
-        💬
+        AI
       </button>
 
       {/* Panel */}
@@ -326,9 +326,9 @@ export default function ChatWidget({ pageContext }: Props) {
               <div style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.4 }}>
                 Try:
                 <div style={{ marginTop: 8 }}>
-                  • “Show low-stock items in WH-MUC” <br />
-                  • “Top 10 products by revenue last 30 days” <br />
-                  • “Any unusual return reasons this week?”
+                  - Which variant is best for travel? <br />
+                  - Compare this product with similar items <br />
+                  - What should I know before buying?
                 </div>
               </div>
             )}
@@ -368,7 +368,7 @@ export default function ChatWidget({ pageContext }: Props) {
                   fontSize: 13,
                 }}
               >
-                Thinking…
+                Thinking...
               </div>
             )}
           </div>
@@ -386,7 +386,7 @@ export default function ChatWidget({ pageContext }: Props) {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message…"
+              placeholder="Type a message..."
               onKeyDown={(e) => {
                 if (e.key === "Enter") onSend();
               }}

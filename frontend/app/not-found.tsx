@@ -11,10 +11,10 @@ export default function NotFound() {
         </p>
         <div className="notFoundActions">
           <Link className="notFoundPrimaryAction" href="/">
-            Back to chat
+            Back home
           </Link>
-          <Link className="notFoundSecondaryAction" href="/dashboard">
-            Open dashboard
+          <Link className="notFoundSecondaryAction" href="/merchant">
+            Open Merchant Portal
           </Link>
         </div>
       </section>

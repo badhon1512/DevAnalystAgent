@@ -87,16 +87,95 @@ export type AgentTrace = {
 
 export type Product = {
   product_id: string;
+  category_id?: string | null;
   sku: string;
   name: string;
+  slug?: string | null;
+  short_description?: string | null;
+  long_description?: string | null;
   category?: string | null;
   brand?: string | null;
+  manufacturer?: string | null;
+  model_number?: string | null;
+  tags?: string[] | null;
+  use_cases?: string[] | null;
+  target_audience?: string | null;
+  warranty_months?: number | null;
+  return_window_days?: number | null;
+  care_instructions?: string | null;
+  compatibility_notes?: string | null;
+  included_accessories?: string[] | null;
+  safety_notes?: string | null;
   currency: string;
   price: string | number;
   cost?: string | number | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type ProductVariant = {
+  variant_id: string;
+  product_id: string;
+  sku: string;
+  title: string;
+  color?: string | null;
+  size?: string | null;
+  material?: string | null;
+  ram_gb?: number | null;
+  storage_gb?: number | null;
+  storage_type?: string | null;
+  processor?: string | null;
+  gpu?: string | null;
+  display_size?: string | null;
+  battery_life_hours?: string | number | null;
+  option_values?: Record<string, string | number | boolean | null> | null;
+  price: string | number;
+  cost?: string | number | null;
+  currency: string;
+  barcode?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProductImage = {
+  image_id: string;
+  product_id: string;
+  variant_id?: string | null;
+  url: string;
+  alt_text?: string | null;
+  position: number;
+  is_primary: boolean;
+};
+
+export type ProductSpec = {
+  spec_id: string;
+  product_id: string;
+  variant_id?: string | null;
+  group_name: string;
+  name: string;
+  value: string;
+  unit?: string | null;
+  position: number;
+};
+
+export type ProductReview = {
+  review_id: string;
+  product_id: string;
+  variant_id?: string | null;
+  rating: number;
+  title: string;
+  body: string;
+  sentiment?: string | null;
+  created_at: string;
+};
+
+export type ProductDetail = Product & {
+  variants: ProductVariant[];
+  images: ProductImage[];
+  specs: ProductSpec[];
+  reviews: ProductReview[];
 };
 
 export type Warehouse = {

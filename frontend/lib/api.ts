@@ -5,6 +5,7 @@ import type {
   InventoryRow,
   ListResponse,
   Product,
+  ProductDetail,
   VoiceTranscriptionResponse,
 } from "./types";
 
@@ -176,6 +177,9 @@ export function buildQuery(params: Record<string, string | number | undefined>) 
 export const api = {
   products: (q?: { search?: string; category?: string; brand?: string; limit?: number; offset?: number }) =>
     getJSON<ListResponse<Product>>(`${API_BASE}/products${buildQuery(q || {})}`),
+
+  product: (productId: string) =>
+    getJSON<ProductDetail>(`${API_BASE}/products/${productId}`),
 
   warehouses: (q?: { search?: string; limit?: number; offset?: number }) =>
     getJSON(`${API_BASE}/warehouses${buildQuery(q || {})}`),
