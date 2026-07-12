@@ -2,6 +2,8 @@ import type {
   ChatThread,
   ChatResponse,
   ChatMessage,
+  AdminConversationDetail,
+  AdminConversationSummary,
   InventoryRow,
   ListResponse,
   Product,
@@ -27,11 +29,15 @@ export async function callCompute(x: number, y: number) {
 }
 
 
-export async function sendChat(query: string, conversationId: string): Promise<ChatResponse> {
+export async function sendChat(
+  query: string,
+  conversationId: string,
+  username: string,
+): Promise<ChatResponse> {
   const res = await fetch(`${API_BASE}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, conversation_id: conversationId }),
+    body: JSON.stringify({ query, conversation_id: conversationId, username }),
   });
 
   if (!res.ok) {
@@ -42,7 +48,22 @@ export async function sendChat(query: string, conversationId: string): Promise<C
   return res.json();
 }
 
-export async function listConversations(): Promise<ChatThread[]> {
+export async function resolveChatUser(username: string): Promise<{ user_id: string; username: string }> {
+  const res = await fetch(`${API_BASE}/users/resolve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Username setup failed (${res.status}): ${text}`);
+  }
+
+  return res.json();
+}
+
+export async function listConversations(username: string): Promise<ChatThread[]> {
   const conversations = await getJSON<
     {
       conversation_id: string;
@@ -51,7 +72,7 @@ export async function listConversations(): Promise<ChatThread[]> {
       updated_at: string;
       message_count: number;
     }[]
-  >(`${API_BASE}/conversations`);
+  >(`${API_BASE}/conversations${buildQuery({ username })}`);
 
   return conversations.map((conversation) => ({
     id: conversation.conversation_id,
@@ -62,7 +83,10 @@ export async function listConversations(): Promise<ChatThread[]> {
   }));
 }
 
-export async function getConversation(conversationId: string): Promise<ChatThread> {
+export async function getConversationForUser(
+  conversationId: string,
+  username: string,
+): Promise<ChatThread> {
   const conversation = await getJSON<{
     conversation_id: string;
     title: string;
@@ -76,7 +100,7 @@ export async function getConversation(conversationId: string): Promise<ChatThrea
       trace?: ChatMessage["trace"];
       report?: ChatMessage["report"];
     }>;
-  }>(`${API_BASE}/conversations/${conversationId}`);
+  }>(`${API_BASE}/conversations/${conversationId}${buildQuery({ username })}`);
 
   return {
     id: conversation.conversation_id,
@@ -94,8 +118,8 @@ export async function getConversation(conversationId: string): Promise<ChatThrea
   };
 }
 
-export async function createConversation(title?: string): Promise<ChatThread> {
-  const conversation = await fetch(`${API_BASE}/conversations`, {
+export async function createConversation(title: string | undefined, username: string): Promise<ChatThread> {
+  const conversation = await fetch(`${API_BASE}/conversations${buildQuery({ username })}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title }),
@@ -122,14 +146,87 @@ export async function createConversation(title?: string): Promise<ChatThread> {
   };
 }
 
-export async function deleteConversation(conversationId: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/conversations/${conversationId}`, {
+export async function deleteConversation(conversationId: string, username: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/conversations/${conversationId}${buildQuery({ username })}`, {
     method: "DELETE",
   });
 
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Backend error (${res.status}): ${text}`);
+  }
+}
+
+export async function adminLogin(secret: string, password: string): Promise<string> {
+  const res = await fetch(`${API_BASE}/admin/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ secret, password }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Admin login failed (${res.status}): ${text}`);
+  }
+
+  const data = (await res.json()) as { token: string };
+  return data.token;
+}
+
+function adminHeaders(token: string) {
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+export async function adminListConversations(token: string): Promise<AdminConversationSummary[]> {
+  return getJSONWithHeaders<AdminConversationSummary[]>(
+    `${API_BASE}/admin/conversations?include_inactive=true`,
+    adminHeaders(token),
+  );
+}
+
+export async function adminGetConversation(
+  token: string,
+  conversationId: string,
+): Promise<AdminConversationDetail> {
+  return getJSONWithHeaders<AdminConversationDetail>(
+    `${API_BASE}/admin/conversations/${conversationId}`,
+    adminHeaders(token),
+  );
+}
+
+export async function adminSetConversationActive(
+  token: string,
+  conversationId: string,
+  isActive: boolean,
+): Promise<AdminConversationSummary> {
+  const res = await fetch(`${API_BASE}/admin/conversations/${conversationId}`, {
+    method: "PATCH",
+    headers: {
+      ...adminHeaders(token),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ is_active: isActive }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Admin update failed (${res.status}): ${text}`);
+  }
+
+  return res.json();
+}
+
+export async function adminDeleteConversation(token: string, conversationId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/admin/conversations/${conversationId}`, {
+    method: "DELETE",
+    headers: adminHeaders(token),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Admin delete failed (${res.status}): ${text}`);
   }
 }
 
@@ -157,6 +254,15 @@ export async function transcribeVoice(audio: Blob): Promise<VoiceTranscriptionRe
 async function getJSON<T>(url: string): Promise<T> {
   console.log("FETCH URL:", url);
   const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API error (${res.status}): ${text}`);
+  }
+  return res.json();
+}
+
+async function getJSONWithHeaders<T>(url: string, headers: Record<string, string>): Promise<T> {
+  const res = await fetch(url, { cache: "no-store", headers });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`API error (${res.status}): ${text}`);

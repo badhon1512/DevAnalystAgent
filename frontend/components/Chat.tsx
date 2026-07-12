@@ -1,21 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   createConversation,
   deleteConversation,
-  getConversation,
+  getConversationForUser,
   listConversations,
   sendChat,
   transcribeVoice,
 } from "../lib/api";
 import { buildThreadTitle } from "../lib/chatThreads";
+import { DEMO_QUERIES } from "../lib/demoQueries";
 import type { ChatMessage, ChatThread } from "../lib/types";
 import { uuidv4 } from "../lib/uuid";
 import ChatComposer from "./ChatComposer";
 import ChatMessageView from "./ChatMessage";
+import UsernameGate from "./UsernameGate";
 
 function formatThreadTime(timestamp: number) {
   return new Date(timestamp).toLocaleDateString([], {
@@ -34,7 +37,14 @@ function buildWelcomeMessage(): ChatMessage {
   };
 }
 
+function readStoredUsername() {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("productai-username") || "";
+}
+
 export default function Chat() {
+  const router = useRouter();
+  const [username, setUsername] = useState<string | null>(() => readStoredUsername());
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [activeThreadId, setActiveThreadId] = useState("");
   const [activeMessages, setActiveMessages] = useState<ChatMessage[]>([]);
@@ -46,11 +56,23 @@ export default function Chat() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    if (username === null) {
+      const savedUsername = readStoredUsername() || "";
+      setUsername(savedUsername);
+      if (!savedUsername) setInitializing(false);
+    } else if (!username) {
+      setInitializing(false);
+    }
+  }, [username]);
+
+  useEffect(() => {
+    if (!username) return;
+    const activeUsername = username;
     async function loadInitialData() {
       try {
-        const existingThreads = await listConversations();
+        const existingThreads = await listConversations(activeUsername);
         if (existingThreads.length === 0) {
-          const newThread = await createConversation("New chat");
+          const newThread = await createConversation("New chat", activeUsername);
           setThreads([newThread]);
           setActiveThreadId(newThread.id);
           setActiveTitle(newThread.title);
@@ -67,13 +89,14 @@ export default function Chat() {
     }
 
     void loadInitialData();
-  }, []);
+  }, [username]);
 
   useEffect(() => {
     async function loadThread() {
-      if (!activeThreadId) return;
+      if (!activeThreadId || !username) return;
+      const activeUsername = username;
       try {
-        const thread = await getConversation(activeThreadId);
+        const thread = await getConversationForUser(activeThreadId, activeUsername);
         setActiveTitle(thread.title);
         setActiveMessages(
           thread.messages.length > 0 ? thread.messages : [buildWelcomeMessage()]
@@ -97,7 +120,7 @@ export default function Chat() {
     }
 
     void loadThread();
-  }, [activeThreadId]);
+  }, [activeThreadId, username]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -114,10 +137,24 @@ export default function Chat() {
     setHistoryOpen(false);
   }
 
+  function handleSwitchUser() {
+    localStorage.removeItem("productai-username");
+    setUsername("");
+    setThreads([]);
+    setActiveThreadId("");
+    setActiveMessages([]);
+    setActiveTitle("ProductAI");
+    setError("");
+    setInitializing(false);
+    router.push("/");
+  }
+
   async function handleNewThread() {
+    if (!username) return;
+    const activeUsername = username;
     setError("");
     try {
-      const thread = await createConversation("New chat");
+      const thread = await createConversation("New chat", activeUsername);
       setThreads((current) => [thread, ...current]);
       setActiveThreadId(thread.id);
       setActiveTitle(thread.title);
@@ -128,12 +165,14 @@ export default function Chat() {
   }
 
   async function handleDeleteThread(threadId: string) {
+    if (!username) return;
+    const activeUsername = username;
     setError("");
     try {
-      await deleteConversation(threadId);
+      await deleteConversation(threadId, activeUsername);
       const remaining = threads.filter((thread) => thread.id !== threadId);
       if (remaining.length === 0) {
-        const replacement = await createConversation("New chat");
+        const replacement = await createConversation("New chat", activeUsername);
         setThreads([replacement]);
         setActiveThreadId(replacement.id);
         setActiveTitle(replacement.title);
@@ -150,7 +189,8 @@ export default function Chat() {
   }
 
   async function handleSend(text: string) {
-    if (!activeThreadId) return;
+    if (!activeThreadId || !username) return;
+    const activeUsername = username;
     setError("");
 
     const userMsg: ChatMessage = {
@@ -175,7 +215,7 @@ export default function Chat() {
 
     setLoading(true);
     try {
-      const data = await sendChat(text, activeThreadId);
+      const data = await sendChat(text, activeThreadId, activeUsername);
       const assistantText =
         data?.final_answer ??
         data?.finalAnswer ??
@@ -219,6 +259,27 @@ export default function Chat() {
     return result.transcript;
   }
 
+  if (!username) {
+    if (username === null) {
+      return (
+        <div className="chatWorkspace userSetupWorkspace">
+          <section className="userSetupPanel userSetupLoading">
+            <div className="userSetupIntro">
+              <div className="userSetupBrand">
+                <span>AI</span>
+                <strong>ProductAI</strong>
+              </div>
+              <p className="userSetupEyebrow">Preparing workspace</p>
+              <h1>Loading your AI workspace</h1>
+            </div>
+          </section>
+        </div>
+      );
+    }
+
+    return <UsernameGate onResolved={setUsername} submitLabel="Continue to chat" />;
+  }
+
   return (
     <div className="chatWorkspace">
       <nav className="chatTopNav">
@@ -231,6 +292,9 @@ export default function Chat() {
           <span className="chatTopLinkDisabled" aria-disabled="true" title="Storefront view is coming soon">
             Storefront view - coming soon
           </span>
+          <button className="chatUserButton" type="button" onClick={handleSwitchUser}>
+            @{username}
+          </button>
         </div>
       </nav>
 
@@ -329,6 +393,7 @@ export default function Chat() {
             disabled={loading || initializing}
             onTranscribeAudio={handleTranscribeAudio}
             onVoiceError={setError}
+            suggestions={DEMO_QUERIES}
           />
           <div className="footerHint">
             Use natural language or voice. ProductAI can research demand, inspect data, run tools,

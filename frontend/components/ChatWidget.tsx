@@ -5,6 +5,7 @@ import Link from "next/link";
 import { uuidv4 } from "../lib/uuid";
 import type { ChatMessage } from "../lib/types";
 import { sendChat } from "../lib/api";
+import { DEMO_QUERIES } from "../lib/demoQueries";
 import MarkdownContent from "./MarkdownContent";
 
 type Props = {
@@ -198,7 +199,9 @@ export default function ChatWidget({ pageContext }: Props) {
     setLoading(true);
 
     try {
-      const reply = await sendChat(input, "y");
+      const username =
+        localStorage.getItem("productai-username") || "widget-user";
+      const reply = await sendChat(text, "", username);
       console.log("Received reply:", reply);
 
       const assistantMsg: ChatMessage = {
@@ -367,9 +370,7 @@ export default function ChatWidget({ pageContext }: Props) {
               <div style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.4 }}>
                 Try an AI task:
                 <div style={{ marginTop: 8 }}>
-                  - Find inventory risk from recent sales <br />
-                  - Generate a demand outlook report <br />
-                  - Compare products with RAG context
+                  Use a demo query below, or ask in your own words.
                 </div>
               </div>
             )}
@@ -420,42 +421,56 @@ export default function ChatWidget({ pageContext }: Props) {
               padding: 12,
               borderTop: "1px solid rgba(255,255,255,0.10)",
               background: "rgba(15,23,42,0.65)",
-              display: "flex",
+              display: "grid",
               gap: 10,
             }}
           >
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message..."
-              onKeyDown={(e) => {
-                if (e.key === "Enter") onSend();
-              }}
-              style={{
-                flex: 1,
-                padding: 10,
-                borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.12)",
-                background: "rgba(2,6,23,0.35)",
-                color: "white",
-              }}
-            />
-            <button
-              onClick={onSend}
-              disabled={loading}
-              style={{
-                padding: "0 14px",
-                borderRadius: 12,
-                border: "1px solid rgba(37,99,235,0.35)",
-                background: "rgba(37,99,235,0.35)",
-                color: "white",
-                fontWeight: 800,
-                cursor: loading ? "not-allowed" : "pointer",
-                opacity: loading ? 0.6 : 1,
-              }}
-            >
-              Send
-            </button>
+            <div className="widgetDemoQueries">
+              {DEMO_QUERIES.map((suggestion) => (
+                <button
+                  key={suggestion.label}
+                  type="button"
+                  onClick={() => setInput(suggestion.query)}
+                  disabled={loading}
+                >
+                  {suggestion.label}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type a message..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") onSend();
+                }}
+                style={{
+                  flex: 1,
+                  padding: 10,
+                  borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: "rgba(2,6,23,0.35)",
+                  color: "white",
+                }}
+              />
+              <button
+                onClick={onSend}
+                disabled={loading}
+                style={{
+                  padding: "0 14px",
+                  borderRadius: 12,
+                  border: "1px solid rgba(37,99,235,0.35)",
+                  background: "rgba(37,99,235,0.35)",
+                  color: "white",
+                  fontWeight: 800,
+                  cursor: loading ? "not-allowed" : "pointer",
+                  opacity: loading ? 0.6 : 1,
+                }}
+              >
+                Send
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -29,11 +29,13 @@ export default function ChatComposer({
   disabled,
   onTranscribeAudio,
   onVoiceError,
+  suggestions = [],
 }: {
   onSend: (text: string) => void;
   disabled?: boolean;
   onTranscribeAudio?: (audio: Blob) => Promise<string>;
   onVoiceError?: (message: string) => void;
+  suggestions?: Array<{ label: string; query: string }>;
 }) {
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
@@ -48,6 +50,11 @@ export default function ChatComposer({
     if (!t) return;
     onSend(t);
     setText("");
+  }
+
+  function fillSuggestion(query: string) {
+    setText(query);
+    requestAnimationFrame(() => textareaRef.current?.focus());
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -137,36 +144,53 @@ export default function ChatComposer({
   }, []);
 
   return (
-    <div className="composer">
-      {onTranscribeAudio && (
+    <div className="composerShell">
+      {suggestions.length > 0 ? (
+        <div className="composerSuggestions" aria-label="Demo queries">
+          <span>Try:</span>
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion.label}
+              type="button"
+              onClick={() => fillSuggestion(suggestion.query)}
+              disabled={disabled || transcribing}
+            >
+              {suggestion.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <div className="composer">
+        {onTranscribeAudio && (
+          <button
+            className={`composerBtn composerIconBtn${recording ? " composerIconBtnRecording" : ""}`}
+            onClick={toggleRecording}
+            disabled={transcribing || (!recording && disabled)}
+            title={recording ? "Stop recording" : "Record voice question"}
+            aria-label={recording ? "Stop recording" : "Record voice question"}
+            type="button"
+          >
+            {transcribing ? <span className="composerIconLabel">...</span> : <MicIcon active={recording} />}
+          </button>
+        )}
+        <textarea
+          ref={textareaRef}
+          className="composerInput"
+          placeholder='Ask ProductAI: "Show top-selling products last 7 days"'
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={onKeyDown}
+          rows={1}
+          disabled={disabled || transcribing}
+        />
         <button
-          className={`composerBtn composerIconBtn${recording ? " composerIconBtnRecording" : ""}`}
-          onClick={toggleRecording}
-          disabled={transcribing || (!recording && disabled)}
-          title={recording ? "Stop recording" : "Record voice question"}
-          aria-label={recording ? "Stop recording" : "Record voice question"}
-          type="button"
+          className="composerBtn"
+          onClick={send}
+          disabled={disabled || transcribing || recording || !text.trim()}
         >
-          {transcribing ? <span className="composerIconLabel">...</span> : <MicIcon active={recording} />}
+          Send
         </button>
-      )}
-      <textarea
-        ref={textareaRef}
-        className="composerInput"
-        placeholder='Ask ProductAI: "Show top-selling products last 7 days"'
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={onKeyDown}
-        rows={1}
-        disabled={disabled || transcribing}
-      />
-      <button
-        className="composerBtn"
-        onClick={send}
-        disabled={disabled || transcribing || recording || !text.trim()}
-      >
-        Send
-      </button>
+      </div>
     </div>
   );
 }

@@ -12,9 +12,32 @@ export type ChatMessage = {
 export type ChatThread = {
   id: string;
   title: string;
+  isActive?: boolean;
   createdAt: number;
   updatedAt: number;
   messages: ChatMessage[];
+};
+
+export type AdminConversationSummary = {
+  conversation_id: string;
+  username?: string | null;
+  title: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+  last_message_preview?: string | null;
+};
+
+export type AdminConversationDetail = AdminConversationSummary & {
+  messages: Array<{
+    message_id: string;
+    role: "user" | "assistant";
+    content: string;
+    created_at: string;
+    trace?: AgentTrace | null;
+    report?: ReportSummary | null;
+  }>;
 };
 
 export type ChatResponse = {

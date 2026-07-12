@@ -167,6 +167,25 @@ body {
   text-decoration: none;
 }
 
+.merchantUserButton {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 10px;
+  background: rgba(20, 184, 166, 0.12);
+  color: #ccfbf1;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.merchantUserButton:hover {
+  border-color: rgba(45, 212, 191, 0.42);
+  background: rgba(20, 184, 166, 0.18);
+}
+
 .chatTopLinkDisabled {
   cursor: not-allowed;
   opacity: 0.58;
@@ -1203,6 +1222,80 @@ body {
   padding: 14px;
   border-top: 1px solid rgba(45, 212, 191, 0.14);
   background: linear-gradient(0deg, rgba(2,6,23,0.94), rgba(15,23,42,0.68));
+}
+
+.composerShell {
+  display: grid;
+  gap: 10px;
+}
+
+.composerSuggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.composerSuggestions span {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.composerSuggestions button {
+  min-height: 32px;
+  max-width: min(420px, 100%);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  border-radius: 12px;
+  background: rgba(20, 184, 166, 0.1);
+  color: #ccfbf1;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+
+.composerSuggestions button:hover {
+  border-color: rgba(45, 212, 191, 0.42);
+  background: rgba(20, 184, 166, 0.16);
+}
+
+.composerSuggestions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.widgetDemoQueries {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.widgetDemoQueries button {
+  min-height: 28px;
+  max-width: 100%;
+  border: 1px solid rgba(45, 212, 191, 0.18);
+  border-radius: 11px;
+  background: rgba(20, 184, 166, 0.1);
+  color: #ccfbf1;
+  padding: 6px 9px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+
+.widgetDemoQueries button:hover {
+  border-color: rgba(45, 212, 191, 0.38);
+  background: rgba(20, 184, 166, 0.16);
+}
+
+.widgetDemoQueries button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .composer {
@@ -2992,4 +3085,650 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.2);
   background: rgba(15, 23, 42, 0.64);
   color: #dbeafe;
+}
+
+.userSetupWorkspace,
+.adminPage {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(37, 99, 235, 0.18), transparent 30rem),
+    radial-gradient(circle at 88% 12%, rgba(16, 185, 129, 0.13), transparent 26rem),
+    linear-gradient(135deg, #0f172a 0%, #172033 52%, #111827 100%);
+  color: #f8fafc;
+}
+
+.chatWorkspace.userSetupWorkspace {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: none;
+  margin: 0;
+  padding: 24px;
+}
+
+.userSetupPanel,
+.adminLoginPanel {
+  width: min(980px, calc(100% - 32px));
+  margin: 0 auto;
+  transform: translateY(10vh);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(17, 24, 39, 0.82)),
+    radial-gradient(circle at 12% 18%, rgba(37, 99, 235, 0.2), transparent 22rem);
+  box-shadow: 0 34px 120px rgba(2, 6, 23, 0.46);
+  padding: 12px;
+}
+
+.adminLoginPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.72fr);
+  gap: 12px;
+}
+
+.userSetupPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.8fr);
+  gap: 14px;
+  width: min(960px, calc(100% - 32px));
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  transform: none;
+  padding: 12px;
+  background:
+    linear-gradient(145deg, rgba(15, 23, 42, 0.94), rgba(17, 24, 39, 0.86)),
+    radial-gradient(circle at 82% 12%, rgba(20, 184, 166, 0.16), transparent 20rem);
+}
+
+.userSetupLoading {
+  grid-template-columns: 1fr;
+  width: min(620px, calc(100% - 32px));
+}
+
+.userSetupLoading .userSetupIntro {
+  min-height: 240px;
+}
+
+.userSetupPanel::after {
+  content: "";
+  position: absolute;
+  right: -76px;
+  top: -86px;
+  width: 230px;
+  height: 230px;
+  border: 1px solid rgba(147, 197, 253, 0.16);
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 38px rgba(37, 99, 235, 0.06),
+    0 0 0 78px rgba(20, 184, 166, 0.04);
+  pointer-events: none;
+}
+
+.userSetupIntro {
+  min-height: 430px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 76% 12%, rgba(45, 212, 191, 0.16), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.72));
+  padding: 34px;
+}
+
+.userSetupBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 58px;
+  color: #e0f2fe;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.userSetupBrand span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(147, 197, 253, 0.3);
+  border-radius: 13px;
+  background: rgba(37, 99, 235, 0.24);
+  color: #bfdbfe;
+  font-size: 12px;
+}
+
+.userSetupBenefits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.userSetupBenefits span {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.48);
+  color: #dbeafe;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.adminLoginCopy,
+.adminLoginForm {
+  border-radius: 22px;
+}
+
+.adminLoginCopy {
+  position: relative;
+  overflow: hidden;
+  min-height: 520px;
+  padding: 34px;
+  background:
+    radial-gradient(circle at 72% 8%, rgba(20, 184, 166, 0.2), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.72));
+}
+
+.adminLoginCopy::after {
+  content: "";
+  position: absolute;
+  right: -90px;
+  bottom: -110px;
+  width: 280px;
+  height: 280px;
+  border: 1px solid rgba(147, 197, 253, 0.16);
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 42px rgba(59, 130, 246, 0.05),
+    0 0 0 92px rgba(20, 184, 166, 0.04);
+}
+
+.adminLoginBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 64px;
+  color: #e0f2fe;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.adminLoginBrand span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(147, 197, 253, 0.3);
+  border-radius: 13px;
+  background: rgba(37, 99, 235, 0.24);
+  color: #bfdbfe;
+  font-size: 12px;
+}
+
+.adminLoginHighlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.adminLoginHighlights span {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.48);
+  color: #dbeafe;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.userSetupEyebrow,
+.adminEyebrow {
+  margin: 0;
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.userSetupPanel h1,
+.adminLoginPanel h1,
+.adminHeader h1 {
+  margin: 10px 0 0;
+  color: #ffffff;
+  font-size: clamp(30px, 5vw, 48px);
+  line-height: 1.04;
+}
+
+.adminLoginPanel h2 {
+  margin: 8px 0 0;
+  color: #ffffff;
+  font-size: 24px;
+  line-height: 1.16;
+}
+
+.userSetupPanel p,
+.adminLoginPanel p,
+.adminHeader p {
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+
+.userSetupPanel .userSetupNote {
+  margin: 8px 0 0;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.userSetupForm,
+.adminLoginForm {
+  display: grid;
+  gap: 14px;
+  margin-top: 0;
+}
+
+.userSetupForm {
+  position: relative;
+  z-index: 1;
+  align-content: center;
+  margin-top: 0;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)),
+    rgba(2, 6, 23, 0.2);
+  padding: 28px;
+}
+
+.userSetupFormHeader {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.userSetupFormHeader > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgba(96, 165, 250, 0.34);
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.16);
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.userSetupFormHeader strong {
+  display: block;
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.userSetupFormHeader small {
+  display: block;
+  margin-top: 5px;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.adminLoginForm {
+  align-content: center;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)),
+    rgba(2, 6, 23, 0.26);
+  padding: 30px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.adminLoginHint {
+  margin: 8px 0 8px;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.adminLoginForm label {
+  display: grid;
+  gap: 8px;
+  color: #dbeafe;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.userSetupForm label {
+  display: grid;
+  gap: 8px;
+  color: #dbeafe;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.userSetupForm small {
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.userSetupForm input,
+.adminLoginForm input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #ffffff;
+  padding: 0 14px;
+  font-size: 15px;
+}
+
+.adminLoginForm input:focus {
+  border-color: rgba(96, 165, 250, 0.86);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
+  outline: none;
+}
+
+.userSetupForm input:focus {
+  border-color: rgba(96, 165, 250, 0.86);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
+  outline: none;
+}
+
+.userSetupForm input::placeholder,
+.adminLoginForm input::placeholder {
+  color: rgba(203, 213, 225, 0.42);
+}
+
+.userSetupForm button,
+.adminLoginForm button,
+.adminHeaderActions button,
+.adminConversationActions button,
+.chatUserButton {
+  min-height: 42px;
+  border: 1px solid rgba(59, 130, 246, 0.38);
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.22);
+  color: #eff6ff;
+  padding: 0 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.chatUserButton {
+  min-height: 36px;
+  background: rgba(15, 23, 42, 0.56);
+}
+
+.adminLoginForm button {
+  min-height: 48px;
+  margin-top: 4px;
+  border-color: rgba(96, 165, 250, 0.42);
+  background: linear-gradient(135deg, #2563eb, #0f766e);
+  box-shadow: 0 18px 38px rgba(37, 99, 235, 0.22);
+}
+
+.userSetupForm button {
+  min-height: 48px;
+  margin-top: 2px;
+  border-color: rgba(96, 165, 250, 0.42);
+  background: linear-gradient(135deg, #2563eb, #0f766e);
+  box-shadow: 0 18px 38px rgba(37, 99, 235, 0.22);
+}
+
+.adminWorkspace {
+  padding: 28px;
+}
+
+.adminHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.adminHeaderActions {
+  display: flex;
+  gap: 10px;
+}
+
+.adminGhostButton,
+.adminConversationActions .adminDangerButton {
+  border-color: rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.adminConversationActions .adminDangerButton {
+  border-color: rgba(248, 113, 113, 0.42);
+  color: #fecaca;
+}
+
+.adminError {
+  margin-top: 12px;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 12px;
+  background: rgba(127, 29, 29, 0.25);
+  color: #fecaca;
+  padding: 12px 14px;
+}
+
+.adminStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.adminStats div,
+.adminConversationList,
+.adminConversationDetail {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.72);
+  box-shadow: 0 24px 70px rgba(2, 6, 23, 0.24);
+}
+
+.adminStats div {
+  padding: 18px;
+}
+
+.adminStats span {
+  display: block;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.adminStats p {
+  margin: 4px 0 0;
+  color: #94a3b8;
+}
+
+.adminGrid {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.9fr) minmax(0, 1.3fr);
+  gap: 16px;
+}
+
+.adminConversationList,
+.adminConversationDetail {
+  min-height: 560px;
+  padding: 16px;
+}
+
+.adminPanelTitle {
+  color: #dbeafe;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.adminConversationItem {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  background: rgba(30, 41, 59, 0.48);
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.adminConversationItem.isSelected {
+  border-color: rgba(96, 165, 250, 0.7);
+  background: rgba(37, 99, 235, 0.18);
+}
+
+.adminConversationItem > button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.adminConversationItem span,
+.adminDetailHeader h2 {
+  display: block;
+  color: #ffffff;
+  font-weight: 850;
+}
+
+.adminConversationItem small,
+.adminConversationItem em,
+.adminDetailHeader p {
+  display: block;
+  margin-top: 5px;
+  color: #94a3b8;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.adminConversationActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.adminStatusActive,
+.adminStatusInactive {
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.adminStatusActive {
+  background: rgba(34, 197, 94, 0.16);
+  color: #bbf7d0;
+}
+
+.adminStatusInactive {
+  background: rgba(148, 163, 184, 0.18);
+  color: #cbd5e1;
+}
+
+.adminDetailHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+
+.adminMessages {
+  display: grid;
+  gap: 12px;
+  max-height: 620px;
+  overflow: auto;
+}
+
+.adminMessage {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.adminMessage.user {
+  background: rgba(37, 99, 235, 0.16);
+}
+
+.adminMessage div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #bfdbfe;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.adminMessage p {
+  margin: 10px 0 0;
+  white-space: pre-wrap;
+  color: #e5e7eb;
+  line-height: 1.55;
+}
+
+.adminEmpty {
+  border: 1px dashed rgba(148, 163, 184, 0.3);
+  border-radius: 14px;
+  color: #94a3b8;
+  padding: 18px;
+}
+
+@media (max-width: 900px) {
+  .userSetupPanel {
+    grid-template-columns: 1fr;
+    width: min(680px, calc(100% - 24px));
+  }
+
+  .userSetupIntro {
+    min-height: auto;
+    padding: 28px;
+  }
+
+  .userSetupBrand {
+    margin-bottom: 34px;
+  }
+
+  .userSetupForm {
+    padding: 24px;
+  }
+
+  .adminLoginPanel {
+    grid-template-columns: 1fr;
+    transform: translateY(24px);
+  }
+
+  .adminLoginCopy {
+    min-height: auto;
+    padding: 28px;
+  }
+
+  .adminLoginBrand {
+    margin-bottom: 38px;
+  }
+
+  .adminLoginForm {
+    padding: 24px;
+  }
+
+  .adminHeader,
+  .adminGrid {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .adminStats {
+    grid-template-columns: 1fr;
+  }
 }
