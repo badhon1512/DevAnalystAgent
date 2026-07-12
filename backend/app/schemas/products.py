@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -32,3 +32,75 @@ class ProductOut(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+
+
+class ProductVariantOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    variant_id: UUID
+    product_id: UUID
+    sku: str
+    title: str
+    color: Optional[str] = None
+    size: Optional[str] = None
+    material: Optional[str] = None
+    ram_gb: Optional[int] = None
+    storage_gb: Optional[int] = None
+    storage_type: Optional[str] = None
+    processor: Optional[str] = None
+    gpu: Optional[str] = None
+    display_size: Optional[str] = None
+    battery_life_hours: Optional[float] = None
+    option_values: Optional[dict] = None
+    price: float
+    cost: Optional[float] = None
+    currency: str
+    barcode: Optional[str] = None
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class ProductImageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    image_id: UUID
+    product_id: UUID
+    variant_id: Optional[UUID] = None
+    url: str
+    alt_text: Optional[str] = None
+    position: int
+    is_primary: bool
+
+
+class ProductSpecOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    spec_id: UUID
+    product_id: UUID
+    variant_id: Optional[UUID] = None
+    group_name: str
+    name: str
+    value: str
+    unit: Optional[str] = None
+    position: int
+
+
+class ProductReviewOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    review_id: UUID
+    product_id: UUID
+    variant_id: Optional[UUID] = None
+    rating: int
+    title: str
+    body: str
+    sentiment: Optional[str] = None
+    created_at: datetime
+
+
+class ProductDetailOut(ProductOut):
+    variants: list[ProductVariantOut] = Field(default_factory=list)
+    images: list[ProductImageOut] = Field(default_factory=list)
+    specs: list[ProductSpecOut] = Field(default_factory=list)
+    reviews: list[ProductReviewOut] = Field(default_factory=list)

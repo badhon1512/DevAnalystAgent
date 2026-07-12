@@ -251,3 +251,17 @@ def search_company_documents(query: str, top_k: int = 5) -> str:
         "search_company_documents",
         {"query": query, "top_k": top_k},
     )
+
+
+@tool
+def get_weather_forecast(location: str, days: int = 7, units: str = "metric") -> str:
+    """
+    Get current and daily weather forecast for a city/location through the MCP server.
+
+    Use this for weather-aware product demand, branch planning, seasonal recommendations,
+    and questions about heat, cold, rain, wind, or UV impact.
+    """
+    return _call_mcp_tool_json(
+        "get_weather_forecast",
+        {"location": location, "days": days, "units": units},
+    )

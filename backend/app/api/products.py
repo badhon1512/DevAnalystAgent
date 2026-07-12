@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 from app.deps import get_db
 from app.schemas.common import ObjectResponse
-from app.schemas.products import ProductOut
+from app.schemas.products import ProductDetailOut, ProductOut
+from app.services.products import get_product_detail as get_product_detail_service
 from app.services.products import list_products as list_products_service
 
 router = APIRouter(prefix="/products", tags=["products"])
@@ -28,3 +30,8 @@ def list_products(
         limit=limit,
         offset=offset,
     )
+
+
+@router.get("/{product_id}", response_model=ProductDetailOut)
+def get_product_detail(product_id: UUID, db: Session = Depends(get_db)):
+    return get_product_detail_service(db=db, product_id=product_id)
