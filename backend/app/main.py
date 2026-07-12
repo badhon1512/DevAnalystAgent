@@ -14,10 +14,12 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.chat import router as chat_router
+from app.api.admin import router as admin_router
 from app.api.conversations import router as conversations_router
 from app.api.documents import router as documents_router
 from app.api.inventories import router as inventories_router
 from app.api.products import router as products_router
+from app.api.users import router as users_router
 from app.db.session import engine
 from app.deps import get_db
 from app.reports.links import with_report_urls
@@ -51,9 +53,11 @@ app.add_middleware(
 )
 
 app.include_router(products_router)
+app.include_router(users_router)
 app.include_router(inventories_router)
 app.include_router(conversations_router)
 app.include_router(documents_router)
+app.include_router(admin_router)
 app.include_router(chat_router)
 
 SANDBOX_CHART_OUTPUT_DIR = (Path(__file__).resolve().parents[1] / ".sandbox_runtime" / "charts").resolve()

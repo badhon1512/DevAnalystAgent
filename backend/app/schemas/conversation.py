@@ -18,6 +18,8 @@ class ConversationMessageRead(BaseModel):
 class ConversationSummary(BaseModel):
     conversation_id: str
     title: str
+    is_active: bool = True
+    username: str | None = None
     created_at: datetime
     updated_at: datetime
     message_count: int = 0

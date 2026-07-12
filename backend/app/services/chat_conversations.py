@@ -3,10 +3,15 @@ import uuid
 from langchain_core.messages import AIMessage, HumanMessage
 from sqlalchemy.orm import Session
 
-from app.db.models import Conversation
+from app.db.models import ChatUser, Conversation
 
 
-def get_or_create_conversation(db: Session, conversation_id: str | None, first_query: str) -> Conversation:
+def get_or_create_conversation(
+    db: Session,
+    user: ChatUser,
+    conversation_id: str | None,
+    first_query: str,
+) -> Conversation:
     conversation = None
     if conversation_id:
         try:
@@ -14,11 +19,11 @@ def get_or_create_conversation(db: Session, conversation_id: str | None, first_q
         except ValueError:
             conversation = None
 
-    if conversation:
+    if conversation and conversation.is_active and conversation.user_id == user.user_id:
         return conversation
 
     title = first_query.strip()[:48] or "New chat"
-    conversation = Conversation(title=title)
+    conversation = Conversation(title=title, user_id=user.user_id)
     db.add(conversation)
     db.commit()
     db.refresh(conversation)

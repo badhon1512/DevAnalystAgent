@@ -236,14 +236,32 @@ class Return(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
 
+class ChatUser(Base):
+    __tablename__ = "chat_users"
+
+    user_id: Mapped[uuid.UUID] = uuid_pk()
+    username: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    conversations: Mapped[list["Conversation"]] = relationship(back_populates="user")
+
+
 class Conversation(Base):
     __tablename__ = "conversations"
 
     conversation_id: Mapped[uuid.UUID] = uuid_pk()
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("chat_users.user_id", ondelete="SET NULL"),
+        nullable=True,
+    )
     title: Mapped[str] = mapped_column(String, default="New chat", nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
+    user: Mapped[ChatUser | None] = relationship(back_populates="conversations")
     messages: Mapped[list["ConversationMessage"]] = relationship(
         back_populates="conversation",
         cascade="all, delete-orphan",

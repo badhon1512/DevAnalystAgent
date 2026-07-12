@@ -12,6 +12,7 @@ from app.deps import get_db
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.chat_conversations import build_agent_messages, get_or_create_conversation
 from app.services.chat_trace import build_trace, extract_report_from_response
+from app.services.users import get_or_create_user
 
 router = APIRouter(tags=["chat"])
 agent = ProductAgent()
@@ -22,7 +23,8 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
     print("Received chat request:", req.query)
     started = time.perf_counter()
     trace_id = str(uuid.uuid4())
-    conversation = get_or_create_conversation(db, req.conversation_id, req.query)
+    user = get_or_create_user(db, req.username)
+    conversation = get_or_create_conversation(db, user, req.conversation_id, req.query)
     conversation_id = str(conversation.conversation_id)
     config = {"configurable": {"thread_id": conversation_id}}
     if agent.has_checkpoint(conversation_id):
