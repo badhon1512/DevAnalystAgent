@@ -1,0 +1,113 @@
+flowchart LR
+    start(("START")):::startstate
+    user["User request"]:::entry
+    guardrails{"guardrail_check<br/>valid query?"}:::condition
+    orchestrator["call_llm<br/>ProductAI orchestrator"]:::agent
+    route_tools{"route_tool_calls<br/>tool calls?"}:::condition
+    router["mcp_and_tool_calls<br/>Agentic tool execution layer"]:::router
+    tool_result["ToolMessage results<br/>returned to messages"]:::router
+    answer["Final answer<br/>grounded response + trace"]:::entry
+    blocked["Blocked response<br/>guardrail rejection"]:::guardrail
+    end_state(("END")):::endstate
+
+    start --> user
+    user --> guardrails
+    guardrails -.->|valid| orchestrator
+    guardrails -.->|invalid| blocked
+    orchestrator --> route_tools
+    route_tools -.->|tool calls| router
+    route_tools -.->|no tool calls| answer
+    tool_result --> orchestrator
+    blocked --> end_state
+    answer --> end_state
+
+    subgraph mcp_group["MCP server tools"]
+        tool_get_inventory_schema["get inventory schema"]:::mcp
+        tool_get_weather_forecast["get weather forecast"]:::mcp
+        tool_run_readonly_inventory_sql["run readonly inventory sql"]:::mcp
+        tool_search_company_documents["search company documents"]:::mcp
+        tool_tracestock_mcp_status["tracestock mcp status"]:::mcp
+    end
+
+    router --> tool_get_inventory_schema
+    tool_get_inventory_schema --> tool_result
+    router --> tool_get_weather_forecast
+    tool_get_weather_forecast --> tool_result
+    router --> tool_run_readonly_inventory_sql
+    tool_run_readonly_inventory_sql --> tool_result
+    router --> tool_search_company_documents
+    tool_search_company_documents --> tool_result
+    router --> tool_tracestock_mcp_status
+    tool_tracestock_mcp_status --> tool_result
+
+    subgraph research_group["Research sub-agent"]
+        tool_researcher_agent["researcher agent"]:::research
+    end
+
+    router --> tool_researcher_agent
+    tool_researcher_agent --> tool_result
+
+    subgraph analysis_group["Analytics and artifacts"]
+        tool_execute_python_code_tool["execute python code tool"]:::analysis
+        tool_generate_report_tool["generate report tool"]:::analysis
+        tool_save_chart_tool["save chart tool"]:::analysis
+    end
+
+    router --> tool_execute_python_code_tool
+    tool_execute_python_code_tool --> tool_result
+    router --> tool_generate_report_tool
+    tool_generate_report_tool --> tool_result
+    router --> tool_save_chart_tool
+    tool_save_chart_tool --> tool_result
+
+    subgraph files_group["Frontend file tools"]
+        tool_list_directory["list directory"]:::files
+        tool_read_file["read file"]:::files
+        tool_write_file["write file"]:::files
+    end
+
+    router --> tool_list_directory
+    tool_list_directory --> tool_result
+    router --> tool_read_file
+    tool_read_file --> tool_result
+    router --> tool_write_file
+    tool_write_file --> tool_result
+
+    subgraph utility_group["Utility and validation"]
+        tool_datetime_now["datetime now"]:::utility
+        tool_sql_db_query_checker["sql db query checker"]:::utility
+    end
+
+    router --> tool_datetime_now
+    tool_datetime_now --> tool_result
+    router --> tool_sql_db_query_checker
+    tool_sql_db_query_checker --> tool_result
+
+    subgraph research_inner["Researcher agent internal loop"]
+        research_plan["Focused research plan"]:::research
+        research_db["DB schema + read-only SQL"]:::mcp
+        research_weather["Weather and season context"]:::mcp
+        research_brief["Concise evidence brief"]:::research
+        research_plan --> research_db
+        research_plan --> research_weather
+        research_db --> research_brief
+        research_weather --> research_brief
+    end
+
+    tool_researcher_agent --> research_plan
+    research_brief --> tool_result
+
+    classDef startstate fill:#2563eb,stroke:#1d4ed8,color:#ffffff,stroke-width:2px
+    classDef endstate fill:#0f172a,stroke:#0f172a,color:#ffffff,stroke-width:2px
+    classDef entry fill:#e0f2fe,stroke:#0284c7,color:#082f49,stroke-width:1.5px
+    classDef condition fill:#fff7ed,stroke:#f97316,color:#431407,stroke-width:2px
+    classDef guardrail fill:#fef3c7,stroke:#f59e0b,color:#3b2600,stroke-width:1.5px
+    classDef agent fill:#eef2ff,stroke:#4f46e5,color:#111827,stroke-width:2px
+    classDef router fill:#f8fafc,stroke:#475569,color:#0f172a,stroke-width:1.5px
+    classDef mcp fill:#dcfce7,stroke:#16a34a,color:#052e16,stroke-width:1.5px
+    classDef research fill:#f3e8ff,stroke:#9333ea,color:#2e1065,stroke-width:1.5px
+    classDef analysis fill:#ffe4e6,stroke:#e11d48,color:#4c0519,stroke-width:1.5px
+    classDef files fill:#e0f2fe,stroke:#0284c7,color:#082f49,stroke-width:1.5px
+    classDef utility fill:#fef9c3,stroke:#ca8a04,color:#422006,stroke-width:1.5px
+    classDef other fill:#e2e8f0,stroke:#64748b,color:#0f172a,stroke-width:1.5px
+    linkStyle default stroke:#64748b,stroke-width:1.6px

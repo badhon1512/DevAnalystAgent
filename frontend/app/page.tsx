@@ -17,7 +17,7 @@ export default function Page() {
           <span>AI</span>
           <div>
             <strong>ProductAI</strong>
-            <small>DevAnalyst SaaS for agentic commerce</small>
+            <small>COSS platform for self-hosted agentic commerce</small>
           </div>
         </Link>
         <div className="landingNavLinks">
