@@ -2,48 +2,49 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import ChatWidget from "../../components/ChatWidget";
 import UsernameGate from "../../components/UsernameGate";
 import MerchantSidebar from "./MerchantSidebar";
 
-function readStoredUsername() {
-  if (typeof window === "undefined") return null;
+function readStoredUsernameSnapshot() {
+  if (typeof window === "undefined") return "";
   return localStorage.getItem("productai-username") || "";
+}
+
+function subscribeStoredUsername(onStoreChange: () => void) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener("productai-username-change", onStoreChange);
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener("productai-username-change", onStoreChange);
+  };
+}
+
+function notifyStoredUsernameChange() {
+  window.dispatchEvent(new Event("productai-username-change"));
 }
 
 export default function MerchantShell({ title, children }: { title: string; children: React.ReactNode }) {
   const router = useRouter();
-  const [username, setUsername] = useState<string | null>(() => readStoredUsername());
+  const username = useSyncExternalStore(
+    subscribeStoredUsername,
+    readStoredUsernameSnapshot,
+    () => "",
+  );
 
-  useEffect(() => {
-    if (username === null) setUsername(readStoredUsername() || "");
-  }, [username]);
-
-  if (username === null) {
-    return (
-      <div className="chatWorkspace userSetupWorkspace">
-        <section className="userSetupPanel userSetupLoading">
-          <div className="userSetupIntro">
-            <div className="userSetupBrand">
-              <span>AI</span>
-              <strong>ProductAI</strong>
-            </div>
-            <p className="userSetupEyebrow">Preparing workspace</p>
-            <h1>Loading your merchant dashboard</h1>
-          </div>
-        </section>
-      </div>
-    );
+  function handleUsernameResolved() {
+    notifyStoredUsernameChange();
   }
 
   if (!username) {
-    return <UsernameGate onResolved={setUsername} />;
+    return <UsernameGate onResolved={handleUsernameResolved} />;
   }
 
   function handleSwitchUser() {
     localStorage.removeItem("productai-username");
-    setUsername("");
+    notifyStoredUsernameChange();
     router.push("/");
   }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -67,7 +68,13 @@ export default function StorefrontProductDetailPage() {
           <section className="productDetailHero">
             <div className="productDetailMedia">
               {primaryImage ? (
-                <img src={primaryImage.url} alt={primaryImage.alt_text || product.name} />
+                <Image
+                  className="productDetailImage"
+                  src={primaryImage.url}
+                  alt={primaryImage.alt_text || product.name}
+                  fill
+                  sizes="(max-width: 900px) 100vw, 45vw"
+                />
               ) : (
                 <div className="productDetailPlaceholder">{product.category || "Product"}</div>
               )}
