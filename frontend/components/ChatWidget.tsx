@@ -410,7 +410,7 @@ export default function ChatWidget({ pageContext }: Props) {
                   fontSize: 13,
                 }}
               >
-                Thinking...
+                ✨ AI orchestrating...
               </div>
             )}
           </div>

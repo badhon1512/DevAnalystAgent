@@ -1,21 +1,27 @@
 # ProductAI Core
 
-**ProductAI Core** is a COSS, self-hosted agentic commerce platform for small teams that want to connect an AI agent to their own database, documents, and internal tools.
+**ProductAI Core** is a COSS, self-hosted agentic commerce platform for small teams that want to connect AI agents to their own business data, documents, code workspace, and internal tools.
 
-It is built as a reusable backend-first product, not only a demo chatbot. Teams can run it locally, point it at their commerce data, index trusted company knowledge, and use agentic workflows for product analytics, demand research, reporting, customer-support knowledge, and operational decision support.
+It is built as a reusable backend-first product, not only a demo chatbot. Teams can run it locally, point it at their data, index trusted company knowledge, and use agentic workflows for analytics, demand research, reporting, customer support knowledge, and operational decision support.
+
+The current ProductAI commerce demo highlights practical roles that ProductAI can perform:
+
+- **DevAnalyst Agent:** performs junior software engineering and data analysis tasks, including merchant questions about revenue, sales, demand, inventory risk, returns, branch performance, charts, and business reports.
+- **Customer Support Agent:** uses product context and trusted policy documents to answer product, return, refund, fulfillment, and support questions.
 
 The system keeps execution transparent with guardrails, tool traces, token usage, estimated cost, response metadata, and generated artifacts that can be reviewed after each answer.
 
-ProductAI Core combines agent orchestration, MCP-backed tools, guarded read-only SQL, PostgreSQL/pgvector RAG, sandboxed Python analytics, report generation, scoped file tools, and a Next.js merchant UI with visible traces.
+ProductAI Core combines agent orchestration, MCP-backed tools, guarded read-only SQL, PostgreSQL/pgvector RAG, sandboxed Python analytics, report generation, scoped file tools, and a Next.js ProductAI merchant UI with visible traces.
 
 ## Product Overview
 
-- **COSS and self-hosted:** designed so small organizations can run the core locally and integrate it with their own database, documents, and internal systems.
-- **Agentic commerce analyst:** reasons over product, inventory, warehouse, sales, returns, market-signal, weather, and policy data.
+- **COSS and self-hosted:** designed so small organizations can run the core locally and integrate it with their own data, documents, and internal systems.
+- **DevAnalyst Agent:** performs software and data analysis tasks, reasons over product, inventory, branch, sales, revenue, returns, market-signal, weather, and policy data, and can inspect scoped frontend files for safe UI work.
+- **Customer Support Agent:** answers product, return, refund, fulfillment, and policy questions using trusted product and company knowledge.
 - **Tool-first workflow:** the model plans, while MCP/tools execute schema inspection, read-only SQL, RAG retrieval, analytics, charting, reports, and scoped file actions.
 - **Grounded outputs:** answers are based on inspected schemas, retrieved rows, trusted documents, sandboxed Python results, and saved artifacts.
 - **Interpretable execution:** each response can expose selected tools, arguments, evidence, latency, token usage, estimated cost, guardrail status, and trace IDs.
-- **Extensible backend:** organizations can add custom MCP tools, database adapters, knowledge sources, and UI modules without rewriting the agent core.
+- **Extensible backend:** organizations can add custom MCP tools, data adapters, knowledge sources, and UI modules without rewriting the agent core.
 
 ## What The Agent Can Do
 
@@ -29,10 +35,10 @@ Compare returns by category and create a short report.
 Which warehouses have the highest inventory pressure?
 Estimate next-week product demand by branch using sales, inventory, season, and weather context.
 Search company SOPs and explain the policy behind a product return.
-Generate a business report from database evidence and attach it to the chat.
+Generate a business report from data evidence and attach it to the chat.
 ```
 
-For large analytics requests, the system should aggregate in the database before plotting. For example, "plot all sales for the last five years" should not send millions of raw rows to the LLM. PostgreSQL groups the data by day/week/month, Python plots the compact result, and the LLM explains the chart.
+For large analytics requests, the system should aggregate in the data layer before plotting. For example, "plot all sales for the last five years" should not send millions of raw rows to the LLM. PostgreSQL groups the data by day/week/month, Python plots the compact result, and the LLM explains the chart.
 
 ## Agent Architecture
 
@@ -45,7 +51,7 @@ flowchart LR
     start(("START")):::startstate
     user["User request"]:::entry
     guardrails{"guardrail_check<br/>valid query?"}:::condition
-    orchestrator["call_llm<br/>ProductAI orchestrator"]:::agent
+    orchestrator["ProductAI orchestrator<br/>DevAnalyst agent"]:::agent
     route_tools{"route_tool_calls<br/>tool calls?"}:::condition
     router["mcp_and_tool_calls<br/>Agentic tool execution layer"]:::router
     tool_result["ToolMessage results<br/>returned to messages"]:::router
@@ -128,7 +134,7 @@ flowchart LR
 
     subgraph research_inner["Researcher agent internal loop"]
         research_plan["Focused research plan"]:::research
-        research_db["DB schema + read-only SQL"]:::mcp
+        research_db["Data schema + read-only SQL"]:::mcp
         research_weather["Weather and season context"]:::mcp
         research_brief["Concise evidence brief"]:::research
         research_plan --> research_db
@@ -175,12 +181,14 @@ Main agent responsibilities:
 - Keep company policy answers grounded in retrieved document chunks.
 - Use Python for computation and visualization after data has been prepared.
 - Return final answers with visible trace metadata, including tool usage, latency, token usage, and estimated cost.
+- Serve as a **DevAnalyst Agent** for junior software engineering, data analysis, charts, reports, and demand/stock insights.
+- Serve as a **Customer Support Agent** for product, return, refund, fulfillment, and policy answers.
 
 LLM tool calls and usage:
 
 - `datetime_now`: gets the current date/time when the answer depends on today's date.
 - `tracestock_mcp_status`: checks MCP connectivity and lists available MCP tools.
-- `get_inventory_schema`: inspects database tables, columns, keys, indexes, and optional row counts through MCP.
+- `get_inventory_schema`: inspects data tables, columns, keys, indexes, and optional row counts through MCP.
 - `sql_db_query_checker`: validates SQL before execution.
 - `run_readonly_inventory_sql`: executes approved read-only `SELECT`/`WITH` queries through MCP for inventory, sales, returns, products, and warehouses.
 - `search_company_documents`: searches indexed company policies, SOPs, return rules, supplier terms, and warehouse playbooks through MCP-backed RAG.
@@ -193,7 +201,7 @@ Tool and safety design:
 
 - **MCP boundary:** selected capabilities are exposed through the MCP server, then wrapped as LangChain tools for the LangGraph agent.
 - **Guardrails first:** requests are validated before execution so unrelated, destructive, or sensitive actions can be rejected early.
-- **Read-only data access:** SQL tools are designed for inspection and analysis, not arbitrary database mutation.
+- **Read-only data access:** SQL tools are designed for inspection and analysis, not arbitrary data mutation.
 - **Sandboxed analytics:** Python is used for calculations and charts inside a restricted execution path.
 - **Traceable tool use:** tool names, inputs, outputs, timing, tokens, cost, and trace IDs remain visible instead of being hidden inside the final answer.
 
@@ -230,7 +238,7 @@ Agentic RAG responsibilities:
 - **Report and chart artifacts:** generated outputs are saved and surfaced in the chat UI.
 - **Traceability and observability:** every important agent step can be inspected through trace metadata, including tool usage, token usage, latency, and estimated cost.
 - **Conversation persistence:** chat threads and messages are stored in PostgreSQL and can be rehydrated after restart.
-- **Large-data strategy:** raw data stays in the database; compact aggregates are sent to Python/LLM for charting and explanation.
+- **Large-data strategy:** raw data stays in the data layer; compact aggregates are sent to Python/LLM for charting and explanation.
 - **Optional voice input:** browser recording can be transcribed through the FastAPI backend when voice support is enabled.
 
 ## Project Structure
@@ -238,12 +246,12 @@ Agentic RAG responsibilities:
 The project follows a layered architecture so the UI, API transport, agent reasoning, tool execution, RAG, data access, and reporting concerns stay separate.
 
 **Frontend Layer**
-- `frontend/components/Chat.tsx`: threaded chat experience backed by database conversation APIs.
+- `frontend/components/Chat.tsx`: threaded chat experience backed by data-persisted conversation APIs.
 - `frontend/components/ChatMessage.tsx`: response rendering, report cards, chart cards, and expandable agent trace UI.
 
 **API Layer**
 - `backend/app/main.py`: FastAPI application entrypoint with chat, trace metadata, report/chart links, and conversation rehydration.
-- `backend/app/api/conversations.py`: database-backed conversation and message APIs.
+- `backend/app/api/conversations.py`: data-backed conversation and message APIs.
 - `backend/app/api/documents.py`: document indexing, listing, deletion, and search APIs.
 
 **Agent Orchestration Layer**
@@ -253,8 +261,8 @@ The project follows a layered architecture so the UI, API transport, agent reaso
 
 **MCP And Tool Layer**
 - `backend/app/mcp/server.py`: MCP server exposing schema inspection, guarded read-only SQL, and company document search.
-- `backend/app/tools/mcp_tools.py`: LangChain tool wrappers that let the agent call MCP tools.
-- `backend/app/tools/db.py`: read-only database schema inspection, SQL toolkit setup, and guarded SQL execution.
+- `backend/app/tools/mcp_tools.py`: LangChain tool wrappers that let the agent orchestrate MCP tools.
+- `backend/app/tools/db.py`: read-only data schema inspection, SQL toolkit setup, and guarded SQL execution.
 - `backend/app/tools/rag.py`: company document search tool for policies, SOPs, and internal documentation.
 - `backend/app/tools/python_sandbox.py`: restricted Python analytics execution with chart metadata output.
 - `backend/app/tools/reporting.py`: report generation tool wrapper used by the main agent.
@@ -274,7 +282,8 @@ The project follows a layered architecture so the UI, API transport, agent reaso
 
 High-impact next steps:
 
-- Extend the architecture into a customer-support agent for FAQ handling, order-status questions, return-policy guidance, and real-time return/order support workflows.
+- Extend the Customer Support Agent for FAQ handling, order-status questions, return-policy guidance, and real-time return/order support workflows.
+- Extend the DevAnalyst Agent with forecasting, anomaly detection, branch-level planning, and stronger executive reporting.
 - Add eval datasets for expected tool usage, answer grounding, and guardrail behavior.
 - Add streaming agent timeline events to the frontend.
 - Add persistent LangGraph checkpointing.

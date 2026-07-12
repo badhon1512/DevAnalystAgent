@@ -378,7 +378,7 @@ export default function Chat() {
           {loading && (
             <div className="msgRow msgRowAssistant">
               <div className="bubble bubbleAssistant">
-                <div className="bubbleContent">Typing...</div>
+                <div className="bubbleContent">✨ AI orchestrating...</div>
               </div>
             </div>
           )}

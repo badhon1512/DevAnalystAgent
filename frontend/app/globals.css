@@ -1696,7 +1696,7 @@ body {
 
 .landingPage {
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
   position: relative;
   padding: 18px 24px;
   background:
@@ -1717,7 +1717,8 @@ body {
 }
 
 .landingNav,
-.landingHero {
+.landingHero,
+.landingFooter {
   position: relative;
   z-index: 1;
   width: min(1180px, 100%);
@@ -1831,8 +1832,9 @@ body {
   border-radius: 999px;
   background: rgba(45, 212, 191, 0.16);
   color: #f0fdfa;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
+  box-shadow: 0 0 16px rgba(45, 212, 191, 0.34);
 }
 
 .landingCopy h1 {
@@ -2275,6 +2277,54 @@ body {
   margin-top: 5px;
   font-size: 13px;
   line-height: 1.45;
+}
+
+.landingFooter {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  color: #94a3b8;
+  padding: 14px 0 4px;
+}
+
+.landingFooter strong {
+  display: block;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+.landingFooter span {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+.landingFooterLinks {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.landingFooterLinks a {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.48);
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 0 12px;
+  text-decoration: none;
+}
+
+.landingFooterLinks a:hover {
+  border-color: rgba(45, 212, 191, 0.34);
+  color: #ccfbf1;
 }
 
 @keyframes landingScan {
@@ -2812,6 +2862,11 @@ body {
 
   .landingPathOverview {
     grid-template-columns: 1fr;
+  }
+
+  .landingFooter {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .landingPreview {

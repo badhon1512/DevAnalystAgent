@@ -29,14 +29,14 @@ export default function Page() {
       <section className="landingHero" aria-labelledby="landing-title">
         <div className="landingCopy">
           <div className="landingBadge">
-            <span>MA</span>
+            <span aria-hidden="true">✨</span>
             Multi-agent AI product system
           </div>
           <h1 id="landing-title">Multi-agent AI for product intelligence and business action</h1>
           <p>
             ProductAI coordinates specialized agents for product support, merchant analytics,
             market research, demand forecasting, safe tool execution, and business reporting.
-            It can call MCP tools, retrieve knowledge for LLMs, generate reports, visualize
+            It can orchestrate MCP tools, retrieve knowledge for LLMs, generate reports, visualize
             insight charts, create webpages, explain reasoning, and show cost and guardrail status.
           </p>
 
@@ -122,6 +122,21 @@ export default function Page() {
           </div>
         </div>
       </section>
+
+      <footer className="landingFooter">
+        <div>
+          <strong>ProductAI</strong>
+          <span>Copyright (c) 2026 ProductAI. Open-source agentic commerce demo.</span>
+        </div>
+        <div className="landingFooterLinks">
+          <a href="https://github.com/badhon1512/DevAnalystAgent" target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+          <a href="https://github.com/badhon1512" target="_blank" rel="noreferrer">
+            Contact
+          </a>
+        </div>
+      </footer>
     </main>
   );
 }
