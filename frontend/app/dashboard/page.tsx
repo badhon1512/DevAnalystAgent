@@ -1,38 +1,120 @@
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
 
-const cards = [
-  { href: "/merchant/products", title: "Products", desc: "Browse products, category/brand filters" },
-  { href: "/merchant/warehouses", title: "Branches", desc: "Branch and warehouse master data" },
-  { href: "/merchant/inventory", title: "Inventory", desc: "Stock levels, low-stock risk" },
-  { href: "/merchant/sales", title: "Sales", desc: "Transactions, channel/region filters" },
-  { href: "/merchant/returns", title: "Returns", desc: "Returns, reasons, trends" },
+const workflowCards = [
+  {
+    href: "/merchant/products",
+    icon: "PR",
+    title: "Catalog Intelligence",
+    desc: "Inspect product records, categories, brands, variants, pricing, and AI-ready product context.",
+  },
+  {
+    href: "/merchant/inventory",
+    icon: "IN",
+    title: "Inventory Risk",
+    desc: "Track stock, branch availability, reorder pressure, and low-stock signals for operational decisions.",
+  },
+  {
+    href: "/merchant/sales",
+    icon: "SA",
+    title: "Sales Insights",
+    desc: "Ask natural-language questions about sales patterns, channels, branches, and product demand.",
+  },
+  {
+    href: "/merchant/warehouses",
+    icon: "BR",
+    title: "Branch Network",
+    desc: "Review branch and warehouse context for city-level demand analysis and local fulfillment.",
+  },
+  {
+    href: "/merchant/returns",
+    icon: "RT",
+    title: "Returns Analysis",
+    desc: "Explore return reasons, product friction, quality signals, and customer experience patterns.",
+  },
+];
+
+const aiCapabilities = [
+  "Voice or natural-language analysis",
+  "MCP tools and RAG grounding",
+  "Guardrailed Python execution",
+  "Reports, charts, and action summaries",
 ];
 
 export default function Page() {
   return (
     <AppShell title="Merchant Overview">
-      <div style={{ padding: 16 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
-          {cards.map((c) => (
-            <Link
-              key={c.href}
-              href={c.href}
-              style={{
-                display: "block",
-                padding: 14,
-                borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.08)",
-                background: "rgba(17,24,39,0.45)",
-                textDecoration: "none",
-                color: "inherit",
-              }}
-            >
-              <div style={{ fontWeight: 800 }}>{c.title}</div>
-              <div style={{ marginTop: 6, color: "#94a3b8", fontSize: 13 }}>{c.desc}</div>
-            </Link>
-          ))}
-        </div>
+      <div className="merchantHome">
+        <section className="merchantHomeHero">
+          <div>
+            <p className="merchantHomeEyebrow">Agentic merchant workspace</p>
+            <h1>Analyze products, demand, inventory, and actions with ProductAI.</h1>
+            <p>
+              Use natural language or voice to ask business questions, research market demand,
+              inspect catalog data, generate reports, visualize insights, and execute safe tool-backed
+              workflows with traces and cost visibility.
+            </p>
+          </div>
+          <div className="merchantHomeAgentCard">
+            <span>AI</span>
+            <strong>Ready for analysis</strong>
+            <small>Ask about sales, stock, demand factors, branch risk, or product performance.</small>
+            <Link href="/chat">Open AI Workspace</Link>
+          </div>
+        </section>
+
+        <section className="merchantHomeStats" aria-label="Merchant Portal AI pillars">
+          <div>
+            <span>MCP</span>
+            <strong>Tool orchestration</strong>
+            <small>Weather, database, documents, charts, and safe actions.</small>
+          </div>
+          <div>
+            <span>RAG</span>
+            <strong>Knowledge grounding</strong>
+            <small>Retrieve trusted product and business context for LLM answers.</small>
+          </div>
+          <div>
+            <span>SAFE</span>
+            <strong>Guardrails</strong>
+            <small>Policy checks, sandboxed execution, and traceable outputs.</small>
+          </div>
+          <div>
+            <span>TRACE</span>
+            <strong>Interpretability</strong>
+            <small>Tool calls, token usage, latency, costs, and evidence.</small>
+          </div>
+        </section>
+
+        <section className="merchantHomeBody">
+          <div className="merchantHomeWorkflows">
+            <div className="merchantHomeSectionHeader">
+              <div>
+                <p>Workspace modules</p>
+                <h2>Move from question to decision</h2>
+              </div>
+            </div>
+            <div className="merchantHomeGrid">
+              {workflowCards.map((card) => (
+                <Link className="merchantHomeTile" href={card.href} key={card.href}>
+                  <span>{card.icon}</span>
+                  <strong>{card.title}</strong>
+                  <small>{card.desc}</small>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <aside className="merchantHomeAside">
+            <p>What ProductAI can do</p>
+            <h2>Agentic workflows</h2>
+            <ul>
+              {aiCapabilities.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </aside>
+        </section>
       </div>
     </AppShell>
   );

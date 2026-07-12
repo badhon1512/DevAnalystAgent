@@ -37,7 +37,7 @@ export default function StorefrontCatalogPage() {
     <main className="customerPage">
       <nav className="customerNav">
         <Link className="customerBrand" href="/">
-          StoreWise AI
+          ProductAI
         </Link>
         <div className="customerNavLinks">
           <Link href="/merchant">Merchant Portal</Link>
@@ -79,7 +79,7 @@ export default function StorefrontCatalogPage() {
               </div>
               <div className="customerProductBody">
                 <div className="customerProductMeta">
-                  {product.brand || "StoreWise"} / {product.category || "Catalog"}
+                  {product.brand || "ProductAI"} / {product.category || "Catalog"}
                 </div>
                 <h2>{product.name}</h2>
                 <p>{product.short_description || "Rich product details are available for AI support."}</p>

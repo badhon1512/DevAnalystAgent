@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { uuidv4 } from "../lib/uuid";
 import type { ChatMessage } from "../lib/types";
 import { sendChat } from "../lib/api";
@@ -11,6 +12,26 @@ type Props = {
 };
 
 const STORAGE_KEY = "productai_chat_v1";
+
+function ChatBubbleIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6A8.4 8.4 0 0 1 12.5 3H13a8 8 0 0 1 8 8v.5z" />
+      <path d="M8 10h8" />
+      <path d="M8 14h5" />
+    </svg>
+  );
+}
 
 function formatCost(cost?: number | null) {
   if (cost == null) return "n/a";
@@ -221,20 +242,22 @@ export default function ChatWidget({ pageContext }: Props) {
           position: "fixed",
           right: 18,
           bottom: 18,
-          width: 54,
-          height: 54,
+          width: 58,
+          height: 58,
           borderRadius: 999,
-          border: "1px solid rgba(255,255,255,0.14)",
-          background: "rgba(37,99,235,0.30)",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
-          color: "white",
-          fontWeight: 800,
+          border: "1px solid rgba(45,212,191,0.42)",
+          background:
+            "radial-gradient(circle at 35% 25%, rgba(204,251,241,0.22), transparent 34%), linear-gradient(135deg, rgba(20,184,166,0.96), rgba(37,99,235,0.92))",
+          boxShadow: "0 18px 44px rgba(20,184,166,0.26), 0 0 0 7px rgba(45,212,191,0.08)",
+          color: "#f8fafc",
+          fontWeight: 900,
+          letterSpacing: "0.02em",
           cursor: "pointer",
           zIndex: 9999,
         }}
         title="Chat"
       >
-        AI
+        <ChatBubbleIcon />
       </button>
 
       {/* Panel */}
@@ -248,10 +271,11 @@ export default function ChatWidget({ pageContext }: Props) {
             maxWidth: "calc(100vw - 36px)",
             height: 520,
             maxHeight: "calc(100vh - 140px)",
-            borderRadius: 16,
-            border: "1px solid rgba(255,255,255,0.12)",
-            background: "rgba(2,6,23,0.92)",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.55)",
+            borderRadius: 18,
+            border: "1px solid rgba(45,212,191,0.18)",
+            background:
+              "linear-gradient(155deg, rgba(15,23,42,0.98), rgba(2,6,23,0.94)), radial-gradient(circle at 20% 0%, rgba(20,184,166,0.16), transparent 48%)",
+            boxShadow: "0 28px 80px rgba(0,0,0,0.58), 0 0 44px rgba(20,184,166,0.12)",
             overflow: "hidden",
             zIndex: 9999,
             display: "flex",
@@ -265,18 +289,35 @@ export default function ChatWidget({ pageContext }: Props) {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              borderBottom: "1px solid rgba(255,255,255,0.10)",
-              background: "rgba(15,23,42,0.75)",
+              borderBottom: "1px solid rgba(45,212,191,0.14)",
+              background: "linear-gradient(90deg, rgba(20,184,166,0.14), rgba(15,23,42,0.82))",
             }}
           >
             <div>
-              <div style={{ fontWeight: 800, fontSize: 13 }}>{headerTitle}</div>
-              <div style={{ color: "#94a3b8", fontSize: 11 }}>
-                Ask about data, metrics, or actions
+              <div style={{ fontWeight: 900, fontSize: 13, color: "#f8fafc" }}>{headerTitle}</div>
+              <div style={{ color: "#99f6e4", fontSize: 11, marginTop: 3 }}>
+                Agentic answers, tools, traces, and actions
               </div>
             </div>
 
             <div style={{ display: "flex", gap: 8 }}>
+              <Link
+                href="/chat"
+                style={{
+                  borderRadius: 10,
+                  padding: "6px 10px",
+                  border: "1px solid rgba(45,212,191,0.18)",
+                  background: "rgba(20,184,166,0.12)",
+                  color: "#ccfbf1",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  textDecoration: "none",
+                }}
+                title="Open AI workspace"
+              >
+                Open workspace
+              </Link>
               <button
                 onClick={clearChat}
                 style={{
@@ -305,7 +346,7 @@ export default function ChatWidget({ pageContext }: Props) {
                 }}
                 title="Close"
               >
-                ✕
+                x
               </button>
             </div>
           </div>
@@ -324,11 +365,11 @@ export default function ChatWidget({ pageContext }: Props) {
           >
             {messages.length === 0 && (
               <div style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.4 }}>
-                Try:
+                Try an AI task:
                 <div style={{ marginTop: 8 }}>
-                  - Which variant is best for travel? <br />
-                  - Compare this product with similar items <br />
-                  - What should I know before buying?
+                  - Find inventory risk from recent sales <br />
+                  - Generate a demand outlook report <br />
+                  - Compare products with RAG context
                 </div>
               </div>
             )}

@@ -39,6 +39,7 @@ export default function Chat() {
   const [activeThreadId, setActiveThreadId] = useState("");
   const [activeMessages, setActiveMessages] = useState<ChatMessage[]>([]);
   const [activeTitle, setActiveTitle] = useState("ProductAI");
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState("");
@@ -110,6 +111,7 @@ export default function Chat() {
   function handleSelectThread(threadId: string) {
     setError("");
     setActiveThreadId(threadId);
+    setHistoryOpen(false);
   }
 
   async function handleNewThread() {
@@ -221,22 +223,34 @@ export default function Chat() {
     <div className="chatWorkspace">
       <nav className="chatTopNav">
         <Link className="chatTopBrand" href="/">
-          StoreWise AI
+          <span>AI</span>
+          ProductAI
         </Link>
         <div className="chatTopLinks">
-          <Link href="/storefront">Storefront</Link>
           <Link href="/merchant">Merchant Portal</Link>
+          <span className="chatTopLinkDisabled" aria-disabled="true" title="Storefront view is coming soon">
+            Storefront view - coming soon
+          </span>
         </div>
       </nav>
 
-      <aside className="threadSidebar">
+      {historyOpen && (
+        <button
+          className="threadMobileBackdrop"
+          aria-label="Close conversation history"
+          onClick={() => setHistoryOpen(false)}
+          type="button"
+        />
+      )}
+
+      <aside className={`threadSidebar${historyOpen ? " threadSidebarOpen" : ""}`}>
         <div className="threadSidebarHeader">
           <div>
-            <div className="threadSidebarTitle">Chats</div>
-            <div className="threadSidebarSub">Stored in the database by thread</div>
+            <div className="threadSidebarTitle">Conversation History</div>
+            <div className="threadSidebarSub">Saved analysis threads and agent sessions</div>
           </div>
           <button className="threadNewButton" onClick={handleNewThread} type="button">
-            New
+            New chat
           </button>
         </div>
         <div className="threadList">
@@ -270,8 +284,18 @@ export default function Chat() {
 
       <div className="chatShell chatShellWide">
         <header className="chatHeader">
+          <button
+            className="chatHistoryToggle"
+            aria-label="Open conversation history"
+            onClick={() => setHistoryOpen(true)}
+            type="button"
+          >
+            <span />
+            <span />
+            <span />
+          </button>
           <div className="chatTitle">{activeTitle}</div>
-          <div className="chatSub">Agentic analyst for product sales & inventory</div>
+          <div className="chatSub">Ask ProductAI to analyze business data, call tools, create reports, and explain every action with traces and guardrails.</div>
         </header>
 
         <section className="chatBody">
@@ -306,7 +330,10 @@ export default function Chat() {
             onTranscribeAudio={handleTranscribeAudio}
             onVoiceError={setError}
           />
-          <div className="footerHint">Tip: Enter to send - Shift+Enter for a new line</div>
+          <div className="footerHint">
+            Use natural language or voice. ProductAI can research demand, inspect data, run tools,
+            visualize insights, and summarize actions with cost and trace details.
+          </div>
         </footer>
       </div>
     </div>

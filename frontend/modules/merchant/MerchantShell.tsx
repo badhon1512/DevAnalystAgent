@@ -1,33 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import ChatWidget from "../../components/ChatWidget";
 import MerchantSidebar from "./MerchantSidebar";
 
 export default function MerchantShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="merchantShell">
       <MerchantSidebar />
-      <main style={{ flex: 1, padding: 20 }}>
+      <main className="merchantMain">
         <div className="appShellHeader">
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 800 }}>{title}</div>
-            <div className="appShellSub">Merchant Portal</div>
+          <div className="merchantTitleGroup">
+            <span>{title.slice(0, 2).toUpperCase()}</span>
+            <div>
+              <div className="merchantPageTitle">{title}</div>
+              <div className="appShellSub">Merchant Portal</div>
+            </div>
           </div>
           <div className="viewSwitch">
             <Link href="/storefront">Storefront</Link>
-            <Link href="/chat">Full chat</Link>
+            <Link href="/chat">AI Workspace</Link>
           </div>
         </div>
-        <div
-          style={{
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 14,
-            overflow: "hidden",
-            background: "rgba(2,6,23,0.25)",
-          }}
-        >
+        <div className="merchantContentPanel">
           {children}
         </div>
+        <ChatWidget pageContext={`Merchant Portal - ${title}`} />
       </main>
     </div>
   );
