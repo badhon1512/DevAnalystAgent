@@ -3,4 +3,7 @@ node_modules
 .env.local
 npm-debug.log
 *.tsbuildinfo
-public/generated
+public/generated/*
+!public/generated/productai_agent_full_graph.html
+!public/generated/productai_agent_full_graph.mmd
+!public/generated/agent_graph.png

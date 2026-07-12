@@ -53,15 +53,42 @@
       box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
       overflow-x: auto;
     }
+    section {
+      margin: 20px 36px 36px;
+      padding: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.10);
+    }
+    h2 {
+      margin: 0 0 10px;
+      font-size: clamp(22px, 3vw, 32px);
+      color: #0f172a;
+    }
     .mermaid {
       min-width: 1220px;
       font-size: 18px;
+    }
+    .compact-graph {
+      display: block;
+      width: min(100%, 980px);
+      height: auto;
+      margin: 22px auto 0;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 14px;
+      background: #ffffff;
     }
     @media (max-width: 720px) {
       header {
         padding: 24px 18px 8px;
       }
       main {
+        margin: 14px 14px 24px;
+        padding: 16px;
+        border-radius: 18px;
+      }
+      section {
         margin: 14px 14px 24px;
         padding: 16px;
         border-radius: 18px;
@@ -199,6 +226,14 @@ flowchart LR
     linkStyle default stroke:#64748b,stroke-width:1.6px
 </pre>
   </main>
+  <section>
+    <h2>Compact Runtime View</h2>
+    <p>
+      The compact graph shows the actual runtime loop: guardrail validation,
+      model reasoning, approved tool execution, and final response.
+    </p>
+    <img class="compact-graph" src="/generated/agent_graph.png" alt="ProductAI compact runtime graph" />
+  </section>
   <script type="module">
     import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
     mermaid.initialize({
