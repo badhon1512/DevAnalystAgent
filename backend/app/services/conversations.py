@@ -65,6 +65,6 @@ def delete_conversation(db: Session, user: ChatUser, conversation_id: UUID) -> d
     if not conversation or conversation.user_id != user.user_id:
         raise HTTPException(status_code=404, detail="Conversation not found.")
 
-    db.delete(conversation)
+    conversation.is_active = False
     db.commit()
     return {"deleted": True}
