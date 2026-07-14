@@ -43,6 +43,10 @@ function formatSeconds(ms: number) {
   return `${(ms / 1000).toFixed(2)}s`;
 }
 
+function formatTraceModel(model?: string | null) {
+  return model?.trim() || "N/A";
+}
+
 function renderTraceSummary(message: ChatMessage) {
   if (message.role === "user" || !message.trace) return null;
 
@@ -79,7 +83,9 @@ function renderTraceSummary(message: ChatMessage) {
         }}
       >
         <span>Model</span>
-        <strong style={{ color: "#e2e8f0", fontWeight: 700 }}>{trace.model}</strong>
+        <strong style={{ color: "#e2e8f0", fontWeight: 700 }}>
+          {formatTraceModel(trace.model)}
+        </strong>
         <span>Guard</span>
         <strong style={{ color: "#e2e8f0", fontWeight: 700 }}>{trace.guardrail_status}</strong>
         <span>Trace</span>

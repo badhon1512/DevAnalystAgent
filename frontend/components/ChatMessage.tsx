@@ -19,6 +19,10 @@ function formatSeconds(ms: number) {
   return `${(ms / 1000).toFixed(2)}s`;
 }
 
+function formatTraceModel(model?: string | null) {
+  return model?.trim() || "N/A";
+}
+
 function toAbsoluteUrl(path?: string | null) {
   if (!path) return null;
   const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
@@ -186,7 +190,7 @@ export default function ChatMessageView({ message }: { message: Msg }) {
             </summary>
             <div className="traceGrid">
               <span>Model</span>
-              <strong>{trace.model}</strong>
+              <strong>{formatTraceModel(trace.model)}</strong>
               <span>Guardrail</span>
               <strong>{trace.guardrail_status}</strong>
               <span>Trace ID</span>

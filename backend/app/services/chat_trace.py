@@ -152,7 +152,7 @@ def build_trace(
         conversation_id=conversation_id,
         latency_ms=latency_ms,
         guardrail_status=guardrail_status,
-        model="gpt-5.4-nano",
+        model="n/a",
         token_usage=token_usage,
         tools_used=tools_used,
         tool_calls=tool_calls,
