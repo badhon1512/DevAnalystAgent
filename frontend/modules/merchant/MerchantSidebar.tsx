@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV = [
-  { href: "/merchant", label: "Overview", icon: "AI" },
+  { href: "/merchant", label: "BI Dashboard", icon: "BI" },
+  { href: "/merchant/ai-dashboard", label: "AI Dashboard", icon: "AD" },
+  { href: "/chat", label: "AI Analysis", icon: "AI" },
   { href: "/merchant/products", label: "Products", icon: "PR" },
   { href: "/merchant/warehouses", label: "Branches", icon: "BR" },
   { href: "/merchant/inventory", label: "Inventory", icon: "IN" },
@@ -27,7 +29,9 @@ export default function MerchantSidebar() {
 
       <nav className="merchantNav">
         {NAV.map((n) => {
-          const active = pathname === n.href || (n.href !== "/merchant" && pathname.startsWith(n.href));
+          const active =
+            pathname === n.href ||
+            (n.href !== "/merchant" && n.href !== "/chat" && pathname.startsWith(n.href));
           return (
             <Link
               key={n.href}
