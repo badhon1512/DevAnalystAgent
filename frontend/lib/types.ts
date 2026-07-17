@@ -242,6 +242,67 @@ export type ReturnRow = {
   reason?: string | null;
 };
 
+export type DashboardMetric = {
+  label: string;
+  value: string | number;
+  detail: string;
+  tone: "good" | "warn" | "danger" | "neutral" | string;
+};
+
+export type RevenuePoint = {
+  label: string;
+  revenue: number;
+};
+
+export type CategoryDemand = {
+  label: string;
+  units: number;
+  revenue: number;
+  share: number;
+};
+
+export type BranchRisk = {
+  branch: string;
+  city?: string | null;
+  stock_on_hand: number;
+  reorder_point: number;
+  coverage: number;
+  low_stock_skus: number;
+  risk: "High" | "Medium" | "Low" | string;
+};
+
+export type ProductInsight = {
+  product_id: string;
+  name: string;
+  category?: string | null;
+  units: number;
+  revenue: number;
+};
+
+export type ChannelInsight = {
+  channel: string;
+  revenue: number;
+  share: number;
+};
+
+export type ReturnInsight = {
+  returned_units: number;
+  sold_units: number;
+  return_rate: number;
+  top_reasons: DashboardMetric[];
+};
+
+export type DashboardAnalytics = {
+  generated_at: string;
+  metrics: DashboardMetric[];
+  revenue_trend: RevenuePoint[];
+  category_demand: CategoryDemand[];
+  branch_risk: BranchRisk[];
+  top_products: ProductInsight[];
+  channel_mix: ChannelInsight[];
+  returns: ReturnInsight;
+};
+
 export type ListResponse<T> = {
   items: T[];
   total: number;

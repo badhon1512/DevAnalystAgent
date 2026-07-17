@@ -4,6 +4,7 @@ import type {
   ChatMessage,
   AdminConversationDetail,
   AdminConversationSummary,
+  DashboardAnalytics,
   InventoryRow,
   ListResponse,
   Product,
@@ -281,6 +282,8 @@ export function buildQuery(params: Record<string, string | number | undefined>) 
 
 // ---- table endpoints (we’ll implement on backend soon) ----
 export const api = {
+  dashboard: () => getJSON<DashboardAnalytics>(`${API_BASE}/analytics/dashboard`),
+
   products: (q?: { search?: string; category?: string; brand?: string; limit?: number; offset?: number }) =>
     getJSON<ListResponse<Product>>(`${API_BASE}/products${buildQuery(q || {})}`),
 
