@@ -248,6 +248,636 @@ body {
   display: none;
 }
 
+.chatWorkspaceEmbedded {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: 252px minmax(0, 1fr);
+  gap: 12px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chatWorkspaceEmbedded::before,
+.chatWorkspaceEmbedded::after {
+  display: none;
+}
+
+.chatWorkspaceEmbedded .threadSidebar,
+.chatWorkspaceEmbedded .chatShellWide {
+  height: 100%;
+  min-height: 0;
+}
+
+.chatWorkspaceEmbedded .threadSidebar {
+  border-color: rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+}
+
+.chatWorkspaceEmbedded .threadSidebarHeader {
+  padding: 13px 12px 11px;
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(20, 184, 166, 0.08)),
+    #ffffff;
+}
+
+.chatWorkspaceEmbedded .threadSidebarTitle {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.chatWorkspaceEmbedded .threadSidebarSub,
+.chatWorkspaceEmbedded .threadItemMeta {
+  color: #64748b;
+}
+
+.chatWorkspaceEmbedded .threadNewButton {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-color: rgba(37, 99, 235, 0.22);
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.chatWorkspaceEmbedded .threadList {
+  gap: 6px;
+  padding: 8px;
+}
+
+.chatWorkspaceEmbedded .threadSelectButton {
+  padding: 9px;
+}
+
+.chatWorkspaceEmbedded .threadListItem {
+  border-color: rgba(15, 23, 42, 0.07);
+  background: #f8fafc;
+}
+
+.chatWorkspaceEmbedded .threadListItemActive {
+  border-color: rgba(37, 99, 235, 0.2);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.chatWorkspaceEmbedded .threadItemTitle {
+  color: #0f172a;
+}
+
+.chatWorkspaceEmbedded .threadDeleteButton {
+  background: #ffffff;
+  color: #64748b;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+.chatWorkspaceEmbedded .threadDeleteButton:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+}
+
+.chatWorkspaceEmbedded .chatShell {
+  border-color: rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+}
+
+.chatWorkspaceEmbedded .chatHeader {
+  padding: 13px 16px 11px;
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+  background:
+    radial-gradient(420px 160px at 12% 0%, rgba(20, 184, 166, 0.12), transparent 62%),
+    linear-gradient(135deg, #ffffff, #f8fafc);
+}
+
+.chatWorkspaceEmbedded .chatHeader::after {
+  top: 11px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-color: rgba(37, 99, 235, 0.18);
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+}
+
+.chatWorkspaceEmbedded .chatTitle {
+  color: #0f172a;
+  font-size: 17px;
+}
+
+.chatWorkspaceEmbedded .chatSub {
+  color: #64748b;
+}
+
+.chatWorkspaceEmbedded .chatBody {
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  padding: 14px 16px;
+}
+
+.chatWorkspaceEmbedded .msgRow {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.chatWorkspaceEmbedded .msgRowUser {
+  justify-content: flex-end;
+}
+
+.chatWorkspaceEmbedded .msgRowAssistant {
+  justify-content: flex-start;
+}
+
+.chatWorkspaceEmbedded .bubble {
+  border-radius: 18px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.chatWorkspaceEmbedded .bubbleUser {
+  max-width: min(660px, 82%);
+  border: 0;
+  border-radius: 18px;
+  background: #f1f5f9;
+  color: #0f172a;
+  box-shadow: none;
+}
+
+.chatWorkspaceEmbedded .bubbleUser .markdownContent,
+.chatWorkspaceEmbedded .bubbleUser .markdownContent p,
+.chatWorkspaceEmbedded .bubbleUser .markdownContent li {
+  color: #0f172a;
+}
+
+.chatWorkspaceEmbedded .bubbleAssistant {
+  width: min(100%, 920px);
+  max-width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #0f172a;
+  box-shadow: none;
+  padding: 2px 0;
+}
+
+.chatWorkspaceEmbedded .markdownContent p,
+.chatWorkspaceEmbedded .markdownContent ul,
+.chatWorkspaceEmbedded .markdownContent ol,
+.chatWorkspaceEmbedded .markdownContent pre {
+  margin-bottom: 5px;
+}
+
+.chatWorkspaceEmbedded .markdownContent h3,
+.chatWorkspaceEmbedded .markdownContent h4,
+.chatWorkspaceEmbedded .markdownContent h5 {
+  margin-bottom: 5px;
+  line-height: 1.2;
+}
+
+.chatWorkspaceEmbedded .markdownContent h3 {
+  font-size: 15px;
+}
+
+.chatWorkspaceEmbedded .markdownContent h4 {
+  font-size: 14px;
+}
+
+.chatWorkspaceEmbedded .markdownContent h5 {
+  font-size: 13.5px;
+}
+
+.chatWorkspaceEmbedded .markdownContent li {
+  margin: 1px 0;
+}
+
+.chatWorkspaceEmbedded .markdownContent blockquote {
+  margin: 7px 0;
+  border-left: 3px solid #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  padding: 7px 10px;
+}
+
+.chatWorkspaceEmbedded .markdownContent blockquote > *:last-child {
+  margin-bottom: 0;
+}
+
+.chatWorkspaceEmbedded .markdownContent hr {
+  height: 1px;
+  margin: 10px 0;
+  border: 0;
+  background: #e5e7eb;
+}
+
+.chatWorkspaceEmbedded .markdownContent strong {
+  color: #111827;
+  font-weight: 700;
+}
+
+.chatWorkspaceEmbedded .markdownContent input[type="checkbox"] {
+  margin-right: 6px;
+  accent-color: #2563eb;
+}
+
+.chatWorkspaceEmbedded .markdownContent th,
+.chatWorkspaceEmbedded .markdownContent td {
+  padding: 5px 7px;
+}
+
+.chatWorkspaceEmbedded .bubbleAssistant .markdownContent,
+.chatWorkspaceEmbedded .bubbleAssistant .markdownContent p,
+.chatWorkspaceEmbedded .bubbleAssistant .markdownContent li {
+  color: #1f2937;
+}
+
+.chatWorkspaceEmbedded .markdownContent h3,
+.chatWorkspaceEmbedded .markdownContent h4,
+.chatWorkspaceEmbedded .markdownContent h5 {
+  color: #0f172a;
+}
+
+.chatWorkspaceEmbedded .markdownContent code {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.chatWorkspaceEmbedded .markdownContent pre {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: #f8fafc;
+}
+
+.chatWorkspaceEmbedded .markdownContent th {
+  background: #eef2ff;
+  color: #0f172a;
+}
+
+.chatWorkspaceEmbedded .markdownContent td,
+.chatWorkspaceEmbedded .markdownContent th {
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+.chatWorkspaceEmbedded .markdownContent a {
+  color: #1d4ed8;
+}
+
+.chatWorkspaceEmbedded .bubbleMeta,
+.chatWorkspaceEmbedded .traceGrid span,
+.chatWorkspaceEmbedded .footerHint {
+  color: #64748b;
+}
+
+.chatWorkspaceEmbedded .bubbleMeta {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 0;
+}
+
+.chatWorkspaceEmbedded .bubbleUser .bubbleMeta {
+  margin-left: auto;
+  color: #64748b;
+  text-align: right;
+}
+
+.chatWorkspaceEmbedded .traceGrid strong {
+  color: #0f172a;
+}
+
+.chatWorkspaceEmbedded .tracePanel {
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top-color: rgba(15, 23, 42, 0.1);
+}
+
+.chatWorkspaceEmbedded .tracePanel summary,
+.chatWorkspaceEmbedded .reportPreview summary {
+  color: #1d4ed8;
+}
+
+.chatWorkspaceEmbedded .toolTrace,
+.chatWorkspaceEmbedded .reportCard,
+.chatWorkspaceEmbedded .chartCard,
+.chatWorkspaceEmbedded .reportLinkGroup,
+.chatWorkspaceEmbedded .chartArtifactCard {
+  border-color: rgba(15, 23, 42, 0.1);
+  background: #f8fafc;
+}
+
+.chatWorkspaceEmbedded .reportCard,
+.chatWorkspaceEmbedded .chartCard {
+  margin-top: 8px;
+  padding: 9px;
+}
+
+.chatWorkspaceEmbedded .chartCardGrid,
+.chatWorkspaceEmbedded .toolTraceList {
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.chatWorkspaceEmbedded .chartCardGrid:has(.chartArtifactCard:nth-child(2)) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.chatWorkspaceEmbedded .chartCard {
+  width: min(100%, 680px);
+}
+
+.chatWorkspaceEmbedded .chartArtifactPreview {
+  width: 100%;
+  height: auto;
+  margin-top: 8px;
+  border-radius: 8px;
+}
+
+.chatWorkspaceEmbedded .toolTraceName,
+.chatWorkspaceEmbedded .reportCardEyebrow,
+.chatWorkspaceEmbedded .chartCardEyebrow,
+.chatWorkspaceEmbedded .chartArtifactActions a,
+.chatWorkspaceEmbedded .reportLinkActions a {
+  color: #1d4ed8;
+}
+
+.chatWorkspaceEmbedded .toolTrace pre,
+.chatWorkspaceEmbedded .toolTrace p,
+.chatWorkspaceEmbedded .reportCardSummary,
+.chatWorkspaceEmbedded .chartArtifactMeta {
+  color: #475569;
+}
+
+.chatWorkspaceEmbedded .reportCardTitle,
+.chatWorkspaceEmbedded .chartCardTitle,
+.chatWorkspaceEmbedded .chartArtifactLabel,
+.chatWorkspaceEmbedded .reportLinkLabel {
+  color: #0f172a;
+}
+
+.chatWorkspaceEmbedded .chatFooter {
+  padding: 10px;
+  border-top-color: rgba(15, 23, 42, 0.08);
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.72), #ffffff 42%),
+    #ffffff;
+}
+
+.chatWorkspaceEmbedded .composerShell {
+  width: 100%;
+  gap: 7px;
+  margin: 0;
+}
+
+.chatWorkspaceEmbedded .composerInput {
+  min-height: 40px;
+  padding: 10px;
+  font-size: 13px;
+  border-color: rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.chatWorkspaceEmbedded .composerInput:focus {
+  border-color: rgba(37, 99, 235, 0.42);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.chatWorkspaceEmbedded .composerSuggestions span {
+  color: #64748b;
+}
+
+.chatWorkspaceEmbedded .composerSuggestions button,
+.chatWorkspaceEmbedded .widgetDemoQueries button {
+  min-height: 28px;
+  padding: 5px 9px;
+  font-size: 11px;
+  border-color: rgba(37, 99, 235, 0.14);
+  background: #eef6ff;
+  color: #1d4ed8;
+}
+
+.chatWorkspaceEmbedded .composerSuggestions button:hover,
+.chatWorkspaceEmbedded .widgetDemoQueries button:hover {
+  border-color: rgba(37, 99, 235, 0.28);
+  background: #dbeafe;
+}
+
+.chatWorkspaceEmbedded .composerBtn {
+  height: 40px;
+  padding: 0 12px;
+  border-color: #0f172a;
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.chatWorkspaceEmbedded .composerIconBtn {
+  width: 40px;
+  min-width: 40px;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+/* Embedded AI workspace: one quiet, unified application surface. */
+.chatWorkspaceEmbedded {
+  grid-template-columns: 244px minmax(0, 1fr);
+  gap: 0;
+  background: #ffffff;
+}
+
+.chatWorkspaceEmbedded .threadSidebar {
+  border: 0;
+  border-right: 1px solid #e5e7eb;
+  border-radius: 0;
+  background: #f8fafc;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.chatWorkspaceEmbedded .threadSidebarHeader {
+  align-items: center;
+  padding: 15px 13px;
+  background: #f8fafc;
+}
+
+.chatWorkspaceEmbedded .threadSidebarTitle {
+  font-size: 13px;
+}
+
+.chatWorkspaceEmbedded .threadSidebarSub {
+  margin-top: 2px;
+  font-size: 11px;
+}
+
+.chatWorkspaceEmbedded .threadNewButton {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-color: #dbe2ea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0 9px;
+  font-size: 11px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.chatWorkspaceEmbedded .threadListItem {
+  border-color: transparent;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.chatWorkspaceEmbedded .threadListItemActive {
+  border-color: #dbe2ea;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.chatWorkspaceEmbedded .threadDeleteButton {
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.chatWorkspaceEmbedded .chatShell {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.chatWorkspaceEmbedded .chatHeader {
+  padding: 15px 20px 13px;
+  background: #ffffff;
+}
+
+.chatWorkspaceEmbedded .chatHeader::after {
+  display: none;
+}
+
+.chatWorkspaceEmbedded .chatTitle {
+  max-width: 100%;
+  font-size: 16px;
+}
+
+.chatWorkspaceEmbedded .chatSub {
+  max-width: 100%;
+  margin-top: 3px;
+  font-size: 11px;
+}
+
+.chatWorkspaceEmbedded .chatBody {
+  padding: 18px 24px;
+  background: #ffffff;
+}
+
+.chatWorkspaceEmbedded .bubbleUser {
+  max-width: min(620px, 72%);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 9px 11px;
+}
+
+.chatWorkspaceEmbedded .toolTrace,
+.chatWorkspaceEmbedded .reportCard,
+.chatWorkspaceEmbedded .chartCard,
+.chatWorkspaceEmbedded .reportLinkGroup,
+.chatWorkspaceEmbedded .chartArtifactCard {
+  border-color: #e5e7eb;
+  background: #ffffff;
+}
+
+.chatWorkspaceEmbedded .reportCard,
+.chatWorkspaceEmbedded .chartCard {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.chatWorkspaceEmbedded .chatFooter {
+  padding: 11px 18px 10px;
+  background: #ffffff;
+}
+
+.chatWorkspaceEmbedded .composerSuggestions {
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 1px;
+}
+
+.chatWorkspaceEmbedded .composerSuggestions::-webkit-scrollbar {
+  display: none;
+}
+
+.chatWorkspaceEmbedded .composerSuggestions span,
+.chatWorkspaceEmbedded .composerSuggestions button {
+  flex: 0 0 auto;
+}
+
+.chatWorkspaceEmbedded .composerSuggestions button {
+  white-space: nowrap;
+}
+
+.chatWorkspaceEmbedded .composerSuggestions button,
+.chatWorkspaceEmbedded .widgetDemoQueries button {
+  border-color: #dbe2ea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+}
+
+.chatWorkspaceEmbedded .composerSuggestions button:hover,
+.chatWorkspaceEmbedded .widgetDemoQueries button:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.chatWorkspaceEmbedded .composerInput {
+  border-color: #dbe2ea;
+  border-radius: 10px;
+  background: #f8fafc;
+  box-shadow: none;
+}
+
+.chatWorkspaceEmbedded .composerBtn {
+  border-radius: 10px;
+}
+
+.chatWorkspaceEmbedded .composerSendBtn {
+  width: 40px;
+  min-width: 40px;
+  padding: 0;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.chatWorkspaceEmbedded .footerHint {
+  margin-top: 6px;
+  font-size: 10px;
+  text-align: center;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .appShellHeader {
   display: flex;
   align-items: center;
@@ -417,10 +1047,941 @@ body {
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
 }
 
+.merchantShellChat {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.merchantShellChat .merchantSidebar {
+  flex-shrink: 0;
+}
+
+.merchantMainChat {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.merchantContentPanelChat {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
 .merchantHome {
   display: grid;
   gap: 18px;
   padding: 18px;
+}
+
+.merchantDashboard {
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+}
+
+.merchantDashboardHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  align-items: stretch;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background:
+    radial-gradient(560px 260px at 10% 0%, rgba(20, 184, 166, 0.12), transparent 62%),
+    linear-gradient(135deg, #ffffff, #f8fafc 56%, #eef6ff);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  padding: 22px;
+}
+
+.merchantDashboardHero h1 {
+  max-width: 780px;
+  margin: 10px 0 0;
+  color: #0f172a;
+  font-size: clamp(28px, 3.4vw, 46px);
+  line-height: 1.05;
+  font-weight: 900;
+  text-wrap: balance;
+}
+
+.merchantDashboardHero p:not(.merchantHomeEyebrow) {
+  max-width: 760px;
+  margin: 14px 0 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.merchantDashboardAction {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.9)),
+    #ffffff;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.07);
+  padding: 18px;
+}
+
+.merchantDashboardAction > span {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(37, 99, 235, 0.12));
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.merchantDashboardAction strong {
+  margin-top: 14px;
+  color: #0f172a;
+  font-size: 18px;
+}
+
+.merchantDashboardAction small {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.merchantDashboardAction a {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(37, 99, 235, 0.24);
+  border-radius: 11px;
+  background: linear-gradient(135deg, #2563eb, #0f766e);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  margin-top: 16px;
+  padding: 0 13px;
+  text-decoration: none;
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.18);
+}
+
+.merchantDashboardNotice {
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 14px;
+  background: rgba(37, 99, 235, 0.06);
+  color: #1e40af;
+  padding: 14px 16px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.merchantDashboardError {
+  border-color: rgba(244, 63, 94, 0.22);
+  background: rgba(244, 63, 94, 0.08);
+  color: #be123c;
+}
+
+.merchantInsightStats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.merchantInsightStat {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.06);
+  padding: 14px;
+}
+
+.merchantInsightStat span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.merchantInsightStat strong {
+  display: block;
+  margin-top: 10px;
+  color: #0f172a;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.merchantInsightStat small {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.merchantInsightStat-good {
+  border-color: rgba(20, 184, 166, 0.18);
+}
+
+.merchantInsightStat-warn {
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.merchantInsightStat-danger {
+  border-color: rgba(244, 63, 94, 0.18);
+}
+
+.merchantGraphGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  gap: 14px;
+}
+
+.merchantGraphCard {
+  min-height: 250px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 18px 54px rgba(15, 23, 42, 0.07);
+  padding: 16px;
+}
+
+.merchantGraphCardLarge {
+  grid-row: span 2;
+}
+
+.merchantGraphHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.merchantGraphHeader p {
+  margin: 0;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.merchantGraphHeader h2 {
+  margin: 5px 0 0;
+  color: #0f172a;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.merchantGraphHeader > span {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 0 10px;
+}
+
+.merchantBarChart {
+  display: grid;
+  gap: 18px;
+  padding-top: 4px;
+}
+
+.merchantBarRow {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr) 34px;
+  gap: 12px;
+  align-items: center;
+}
+
+.merchantBarRow > span {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.merchantBarRow > div {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.merchantBarRow i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2563eb, #14b8a6);
+}
+
+.merchantBarRow strong {
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.merchantLineChart {
+  position: relative;
+  height: 132px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 14px;
+  background:
+    linear-gradient(rgba(148, 163, 184, 0.16) 1px, transparent 1px),
+    linear-gradient(180deg, #f8fafc, #ffffff);
+  background-size: 100% 33px, auto;
+}
+
+.merchantLineChart span {
+  position: absolute;
+  bottom: 14px;
+  width: 9%;
+  min-height: 24px;
+  border-radius: 999px 999px 4px 4px;
+  background: linear-gradient(180deg, #2563eb, #14b8a6);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
+}
+
+.merchantChartAxis {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.merchantChartCaption {
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.merchantCircleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.merchantCircleMeter {
+  --value: 0;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at center, #ffffff 0 55%, transparent 56%),
+    conic-gradient(#14b8a6 calc(var(--value) * 1%), #e2e8f0 0);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08), 0 16px 36px rgba(15, 23, 42, 0.07);
+  text-align: center;
+}
+
+.merchantCircleMeter strong {
+  color: #0f172a;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.merchantCircleMeter span {
+  max-width: 80px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.merchantRiskList {
+  display: grid;
+  gap: 10px;
+}
+
+.merchantRiskItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 13px;
+  background: #f8fafc;
+  padding: 12px;
+}
+
+.merchantRiskItem strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.merchantRiskItem small {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.merchantRiskBadge {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 7px 9px;
+}
+
+.merchantRiskBadge-good {
+  background: rgba(20, 184, 166, 0.12);
+  color: #0f766e;
+}
+
+.merchantRiskBadge-warn {
+  background: rgba(245, 158, 11, 0.14);
+  color: #92400e;
+}
+
+.merchantRiskBadge-danger {
+  background: rgba(244, 63, 94, 0.12);
+  color: #be123c;
+}
+
+.merchantProductInsightList {
+  display: grid;
+  gap: 10px;
+}
+
+.merchantProductInsight {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 13px;
+  background: #f8fafc;
+  padding: 10px;
+}
+
+.merchantProductInsight > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.merchantProductInsight strong {
+  display: block;
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.merchantProductInsight small {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.merchantAiDashboard {
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+}
+
+.merchantAiDashboardHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 18px;
+  align-items: stretch;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background:
+    radial-gradient(560px 260px at 10% 0%, rgba(37, 99, 235, 0.11), transparent 62%),
+    radial-gradient(420px 220px at 94% 0%, rgba(20, 184, 166, 0.12), transparent 60%),
+    linear-gradient(135deg, #ffffff, #f8fafc 56%, #eef6ff);
+  padding: 22px;
+}
+
+.merchantAiDashboardHero h1 {
+  max-width: 780px;
+  margin: 10px 0 0;
+  color: #0f172a;
+  font-size: clamp(28px, 3.4vw, 46px);
+  line-height: 1.05;
+  font-weight: 900;
+  text-wrap: balance;
+}
+
+.merchantAiDashboardHero p:not(.merchantHomeEyebrow) {
+  max-width: 760px;
+  margin: 14px 0 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.merchantAiSyncCard {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.07);
+  padding: 18px;
+}
+
+.merchantAiSyncCard > span {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.13), rgba(20, 184, 166, 0.1));
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.merchantAiSyncCard strong {
+  margin-top: 14px;
+  color: #0f172a;
+  font-size: 18px;
+}
+
+.merchantAiSyncCard small {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.merchantAiSyncCard button {
+  min-height: 38px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 11px;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 900;
+  margin-top: 16px;
+  padding: 0 13px;
+  cursor: not-allowed;
+}
+
+.merchantAiDashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.merchantAiDashboardGrid div {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.06);
+  padding: 16px;
+}
+
+.merchantAiDashboardGrid span {
+  width: 38px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.merchantAiDashboardGrid strong {
+  display: block;
+  margin-top: 12px;
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.merchantAiDashboardGrid small {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.merchantAiDashboardFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.merchantAiDashboardFooter a {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 11px;
+  background: #ffffff;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 0 13px;
+  text-decoration: none;
+}
+
+.merchantAiDashboardCompact {
+  gap: 14px;
+}
+
+.aiDashboardTopBar,
+.aiBriefPanel,
+.aiActionsPanel,
+.aiReviewPanel,
+.aiRiskOpportunityPanel,
+.aiDashboardFooterPanel {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.06);
+}
+
+.aiDashboardTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px;
+}
+
+.aiDashboardTopBar h1 {
+  max-width: 780px;
+  margin: 7px 0 0;
+  color: #0f172a;
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.08;
+  font-weight: 900;
+  text-wrap: balance;
+}
+
+.aiDashboardTopBar span {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.aiDashboardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.aiDashboardActions button,
+.aiDashboardActions a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 0 14px;
+  text-decoration: none;
+}
+
+.aiDashboardActions button {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #e2e8f0;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.aiDashboardActions a {
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  background: linear-gradient(135deg, #2563eb, #0f766e);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.18);
+}
+
+.aiDashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.aiBriefPanel,
+.aiActionsPanel,
+.aiReviewPanel,
+.aiRiskOpportunityPanel {
+  padding: 16px;
+}
+
+.aiReviewPanel,
+.aiRiskOpportunityPanel {
+  grid-column: span 1;
+}
+
+.aiPanelHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-bottom: 14px;
+}
+
+.aiPanelHeader > span {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.aiPanelHeader p {
+  margin: 0;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.aiPanelHeader h2 {
+  margin: 4px 0 0;
+  color: #0f172a;
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.aiBriefPanel ul,
+.aiRiskOpportunityPanel ul {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+}
+
+.aiBriefPanel li,
+.aiRiskOpportunityPanel li {
+  list-style: none;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 10px 11px;
+}
+
+.aiActionsPanel ol {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  counter-reset: actions;
+}
+
+.aiActionsPanel li {
+  counter-increment: actions;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 10px 11px;
+}
+
+.aiActionsPanel li::before {
+  content: counter(actions);
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.12);
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.aiReviewList {
+  display: grid;
+  gap: 10px;
+}
+
+.aiReviewCard {
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: 13px;
+  background: #f8fafc;
+  padding: 12px;
+}
+
+.aiReviewCardTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.aiReviewScore {
+  --score: 0;
+  width: 72px;
+  min-width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at center, #ffffff 0 54%, transparent 55%),
+    conic-gradient(#2563eb calc(var(--score) * 1%), #dbeafe 0);
+  box-shadow: 0 14px 26px rgba(37, 99, 235, 0.1);
+  text-align: center;
+}
+
+.aiReviewScore strong {
+  display: block;
+  color: #0f172a;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.aiReviewScore span {
+  display: block;
+  margin-top: 2px;
+  border-radius: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.aiReviewTitleBlock {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.aiReviewTitleBlock strong {
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.aiReviewTitleBlock span {
+  width: fit-content;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.12);
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+
+.aiReviewTitleBlock small {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.aiReviewCard dl {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 7px 10px;
+  margin: 12px 0 0;
+}
+
+.aiReviewCard dt {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.aiReviewCard dd {
+  margin: 0;
+  color: #334155;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.aiRiskOpportunityGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.aiRiskOpportunityGrid strong {
+  display: block;
+  margin-bottom: 9px;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.aiDashboardFooterPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.5fr);
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.aiDashboardFooterPanel p {
+  margin: 0 0 10px;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.aiDashboardFooterPanel div div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.aiDashboardFooterPanel span {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 0 10px;
 }
 
 .merchantHomeHero {
@@ -725,12 +2286,46 @@ body {
   }
 
   .merchantHomeHero,
-  .merchantHomeBody {
+  .merchantHomeBody,
+  .merchantDashboardHero,
+  .merchantAiDashboardHero {
     grid-template-columns: 1fr;
   }
 
-  .merchantHomeStats {
+  .merchantHomeStats,
+  .merchantInsightStats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .merchantGraphGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .merchantGraphCardLarge {
+    grid-row: auto;
+  }
+
+  .merchantAiDashboardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .aiDashboardTopBar,
+  .aiDashboardFooterPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .aiDashboardTopBar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .aiDashboardGrid,
+  .aiRiskOpportunityGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .aiDashboardActions {
+    justify-content: flex-start;
   }
 
   .merchantHomeGrid {
@@ -2917,6 +4512,42 @@ body {
     padding: 14px;
   }
 
+  .chatWorkspaceEmbedded {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .chatWorkspaceEmbedded .threadSidebar {
+    background: #ffffff;
+    box-shadow: 0 28px 90px rgba(15, 23, 42, 0.2);
+  }
+
+  .chatWorkspaceEmbedded .threadMobileBackdrop {
+    background: rgba(15, 23, 42, 0.3);
+  }
+
+  .chatWorkspaceEmbedded .chatHistoryToggle {
+    border-color: rgba(37, 99, 235, 0.18);
+    background: #eef6ff;
+    color: #1d4ed8;
+  }
+
+  .chatWorkspaceEmbedded .chatHistoryToggle span {
+    background: #1d4ed8;
+    box-shadow: none;
+  }
+
+  .chatWorkspaceEmbedded .chatShellWide {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .chatWorkspaceEmbedded .msgRow {
+    margin: 10px 0;
+  }
+
   .bubble {
     max-width: 94%;
   }
@@ -3089,6 +4720,29 @@ body {
     min-height: 430px;
   }
 
+  .chatWorkspaceEmbedded {
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .chatWorkspaceEmbedded .chatShellWide {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .chatWorkspaceEmbedded .bubbleUser {
+    max-width: 88%;
+  }
+
+  .chatWorkspaceEmbedded .chatBody {
+    padding: 12px;
+  }
+
+  .chatWorkspaceEmbedded .chartCardGrid:has(.chartArtifactCard:nth-child(2)) {
+    grid-template-columns: 1fr;
+  }
+
   .chatHeader::after {
     right: 12px;
     top: 12px;
@@ -3126,7 +4780,9 @@ body {
     padding: 0 11px;
   }
 
-  .merchantHome {
+  .merchantHome,
+  .merchantDashboard,
+  .merchantAiDashboard {
     gap: 12px;
     padding: 10px;
   }
@@ -3160,24 +4816,52 @@ body {
     justify-content: center;
   }
 
-  .merchantHomeHero {
+  .merchantHomeHero,
+  .merchantDashboardHero,
+  .merchantAiDashboardHero {
     border-radius: 14px;
     padding: 14px;
   }
 
-  .merchantHomeHero h1 {
+  .merchantHomeHero h1,
+  .merchantDashboardHero h1,
+  .merchantAiDashboardHero h1 {
     font-size: 26px;
   }
 
-  .merchantHomeHero p:not(.merchantHomeEyebrow) {
+  .merchantHomeHero p:not(.merchantHomeEyebrow),
+  .merchantDashboardHero p:not(.merchantHomeEyebrow),
+  .merchantAiDashboardHero p:not(.merchantHomeEyebrow) {
     font-size: 13px;
   }
 
-  .merchantHomeAgentCard {
+  .merchantHomeAgentCard,
+  .merchantDashboardAction,
+  .merchantAiSyncCard {
     padding: 14px;
   }
 
-  .merchantHomeStats {
+  .aiDashboardActions,
+  .aiDashboardActions a,
+  .aiDashboardActions button {
+    width: 100%;
+  }
+
+  .aiDashboardActions a,
+  .aiDashboardActions button {
+    justify-content: center;
+  }
+
+  .aiReviewCardTop {
+    align-items: flex-start;
+  }
+
+  .aiReviewCard dl {
+    grid-template-columns: 1fr;
+  }
+
+  .merchantHomeStats,
+  .merchantInsightStats {
     grid-template-columns: 1fr;
   }
 
@@ -3187,6 +4871,11 @@ body {
 
   .merchantHomeTile {
     min-height: auto;
+  }
+
+  .merchantBarRow {
+    grid-template-columns: 74px minmax(0, 1fr) 30px;
+    gap: 8px;
   }
 }
 

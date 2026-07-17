@@ -32,7 +32,7 @@ function buildWelcomeMessage(): ChatMessage {
     id: uuidv4(),
     role: "assistant",
     content:
-      'Hi! I am ProductAI. Ask me about sales, stock, or returns (e.g., "Why did sales drop last week?").',
+      "Welcome. What would you like to analyze across sales, inventory, demand, or returns?",
     createdAt: Date.now(),
   };
 }
@@ -42,7 +42,7 @@ function readStoredUsername() {
   return localStorage.getItem("productai-username") || "";
 }
 
-export default function Chat() {
+export default function Chat({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [username, setUsername] = useState<string | null>(() => readStoredUsername());
   const [threads, setThreads] = useState<ChatThread[]>([]);
@@ -281,22 +281,24 @@ export default function Chat() {
   }
 
   return (
-    <div className="chatWorkspace">
-      <nav className="chatTopNav">
-        <Link className="chatTopBrand" href="/">
-          <span>AI</span>
-          ProductAI
-        </Link>
-        <div className="chatTopLinks">
-          <Link href="/merchant">Merchant Portal</Link>
-          <span className="chatTopLinkDisabled" aria-disabled="true" title="Storefront view is coming soon">
-            Storefront view - coming soon
-          </span>
-          <button className="chatUserButton" type="button" onClick={handleSwitchUser}>
-            @{username}
-          </button>
-        </div>
-      </nav>
+    <div className={`chatWorkspace${embedded ? " chatWorkspaceEmbedded" : ""}`}>
+      {!embedded && (
+        <nav className="chatTopNav">
+          <Link className="chatTopBrand" href="/">
+            <span>AI</span>
+            ProductAI
+          </Link>
+          <div className="chatTopLinks">
+            <Link href="/merchant">Merchant Portal</Link>
+            <span className="chatTopLinkDisabled" aria-disabled="true" title="Storefront view is coming soon">
+              Storefront view - coming soon
+            </span>
+            <button className="chatUserButton" type="button" onClick={handleSwitchUser}>
+              @{username}
+            </button>
+          </div>
+        </nav>
+      )}
 
       {historyOpen && (
         <button
@@ -310,11 +312,11 @@ export default function Chat() {
       <aside className={`threadSidebar${historyOpen ? " threadSidebarOpen" : ""}`}>
         <div className="threadSidebarHeader">
           <div>
-            <div className="threadSidebarTitle">Conversation History</div>
-            <div className="threadSidebarSub">Saved analysis threads and agent sessions</div>
+            <div className="threadSidebarTitle">Analysis history</div>
+            <div className="threadSidebarSub">Saved conversations</div>
           </div>
           <button className="threadNewButton" onClick={handleNewThread} type="button">
-            New chat
+            <span aria-hidden="true">+</span> New analysis
           </button>
         </div>
         <div className="threadList">
@@ -339,7 +341,8 @@ export default function Chat() {
                 title="Delete chat"
                 type="button"
               >
-                x
+                <span aria-hidden="true">&times;</span>
+                <span className="srOnly">Delete chat</span>
               </button>
             </div>
           ))}
@@ -359,7 +362,7 @@ export default function Chat() {
             <span />
           </button>
           <div className="chatTitle">{activeTitle}</div>
-          <div className="chatSub">Ask ProductAI to analyze business data, call tools, create reports, and explain every action with traces and guardrails.</div>
+          <div className="chatSub">Business intelligence workspace</div>
         </header>
 
         <section className="chatBody">
@@ -378,7 +381,7 @@ export default function Chat() {
           {loading && (
             <div className="msgRow msgRowAssistant">
               <div className="bubble bubbleAssistant">
-                <div className="bubbleContent">✨ AI orchestrating...</div>
+                <div className="bubbleContent">Orchestrating...</div>
               </div>
             </div>
           )}
@@ -396,8 +399,7 @@ export default function Chat() {
             suggestions={DEMO_QUERIES}
           />
           <div className="footerHint">
-            Use natural language or voice. ProductAI can research demand, inspect data, run tools,
-            visualize insights, and summarize actions with cost and trace details.
+            AI-generated insights may require review before business decisions.
           </div>
         </footer>
       </div>

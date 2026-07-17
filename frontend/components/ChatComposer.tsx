@@ -176,7 +176,7 @@ export default function ChatComposer({
         <textarea
           ref={textareaRef}
           className="composerInput"
-          placeholder='Ask ProductAI: "Show top-selling products last 7 days"'
+          placeholder="Ask about sales, inventory, demand, or returns"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
@@ -184,11 +184,13 @@ export default function ChatComposer({
           disabled={disabled || transcribing}
         />
         <button
-          className="composerBtn"
+          className="composerBtn composerSendBtn"
           onClick={send}
           disabled={disabled || transcribing || recording || !text.trim()}
+          title="Send message"
+          aria-label="Send message"
         >
-          Send
+          <span aria-hidden="true">&uarr;</span>
         </button>
       </div>
     </div>

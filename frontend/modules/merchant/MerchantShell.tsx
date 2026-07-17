@@ -26,7 +26,15 @@ function notifyStoredUsernameChange() {
   window.dispatchEvent(new Event("productai-username-change"));
 }
 
-export default function MerchantShell({ title, children }: { title: string; children: React.ReactNode }) {
+export default function MerchantShell({
+  title,
+  children,
+  showChatWidget = true,
+}: {
+  title: string;
+  children: React.ReactNode;
+  showChatWidget?: boolean;
+}) {
   const router = useRouter();
   const username = useSyncExternalStore(
     subscribeStoredUsername,
@@ -48,10 +56,12 @@ export default function MerchantShell({ title, children }: { title: string; chil
     router.push("/");
   }
 
+  const isChatLayout = !showChatWidget;
+
   return (
-    <div className="merchantShell">
+    <div className={`merchantShell${isChatLayout ? " merchantShellChat" : ""}`}>
       <MerchantSidebar />
-      <main className="merchantMain">
+      <main className={`merchantMain${isChatLayout ? " merchantMainChat" : ""}`}>
         <div className="appShellHeader">
           <div className="merchantTitleGroup">
             <span>{title.slice(0, 2).toUpperCase()}</span>
@@ -65,13 +75,13 @@ export default function MerchantShell({ title, children }: { title: string; chil
               @{username}
             </button>
             <Link href="/storefront">Storefront</Link>
-            <Link href="/chat">AI Workspace</Link>
+            <Link href="/chat">AI Analysis</Link>
           </div>
         </div>
-        <div className="merchantContentPanel">
+        <div className={`merchantContentPanel${isChatLayout ? " merchantContentPanelChat" : ""}`}>
           {children}
         </div>
-        <ChatWidget pageContext={`Merchant Portal - ${title}`} />
+        {showChatWidget && <ChatWidget pageContext={`Merchant Portal - ${title}`} />}
       </main>
     </div>
   );
