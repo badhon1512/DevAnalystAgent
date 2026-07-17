@@ -24,10 +24,11 @@ export default function DataTable<T extends object>({
                 style={{
                   textAlign: "left",
                   fontSize: 12,
-                  color: "#94a3b8",
+                  color: "#475569",
                   padding: "12px 12px",
-                  borderBottom: "1px solid rgba(255,255,255,0.08)",
-                  background: "rgba(15,23,42,0.6)",
+                  borderBottom: "1px solid rgba(15,23,42,0.08)",
+                  background: "#f8fafc",
+                  fontWeight: 800,
                 }}
               >
                 {c.label}
@@ -37,9 +38,9 @@ export default function DataTable<T extends object>({
         </thead>
         <tbody>
           {rows.map((r, idx) => (
-            <tr key={idx} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <tr key={idx} style={{ borderBottom: "1px solid rgba(15,23,42,0.06)" }}>
               {keys.map((k) => (
-                <td key={String(k)} style={{ padding: "12px 12px", fontSize: 13 }}>
+                <td key={String(k)} style={{ padding: "12px 12px", color: "#0f172a", fontSize: 13 }}>
                   {String(r[k] ?? "")}
                 </td>
               ))}
@@ -47,7 +48,7 @@ export default function DataTable<T extends object>({
           ))}
           {rows.length === 0 && (
             <tr>
-              <td colSpan={columns.length} style={{ padding: 16, color: "#94a3b8" }}>
+              <td colSpan={columns.length} style={{ padding: 16, color: "#64748b" }}>
                 No results
               </td>
             </tr>

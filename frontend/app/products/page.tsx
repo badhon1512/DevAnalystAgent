@@ -46,48 +46,58 @@ export default function Page() {
     []
   );
 
+  const labelStyle = { fontSize: 12, color: "#475569", marginBottom: 6, fontWeight: 800 };
+  const inputStyle = {
+    width: "100%",
+    padding: 10,
+    borderRadius: 10,
+    border: "1px solid rgba(15,23,42,0.12)",
+    background: "#ffffff",
+    color: "#0f172a",
+  };
+
   return (
     <AppShell title="Products">
       <div style={{ padding: 16, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "end" }}>
         <div style={{ flex: 1, minWidth: 220 }}>
-          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>Search</div>
+          <div style={labelStyle}>Search</div>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="SKU or name..."
-            style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(2,6,23,0.35)", color: "inherit" }}
+            style={inputStyle}
           />
         </div>
 
         <div style={{ minWidth: 180 }}>
-          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>Category</div>
+          <div style={labelStyle}>Category</div>
           <input
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             placeholder="e.g., Electronics"
-            style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(2,6,23,0.35)", color: "inherit" }}
+            style={inputStyle}
           />
         </div>
 
         <div style={{ minWidth: 180 }}>
-          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>Brand</div>
+          <div style={labelStyle}>Brand</div>
           <input
             value={brand}
             onChange={(e) => setBrand(e.target.value)}
             placeholder="e.g., NovaWorks"
-            style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(2,6,23,0.35)", color: "inherit" }}
+            style={inputStyle}
           />
         </div>
 
         <button
           onClick={load}
-          style={{ height: 42, padding: "0 14px", borderRadius: 10, border: "1px solid rgba(37,99,235,0.35)", background: "rgba(37,99,235,0.25)", color: "inherit", fontWeight: 700 }}
+          style={{ height: 42, padding: "0 14px", borderRadius: 10, border: "1px solid rgba(37,99,235,0.35)", background: "#2563eb", color: "#ffffff", fontWeight: 800 }}
         >
           Apply
         </button>
       </div>
 
-      <div style={{ padding: 16, paddingTop: 0, color: "#94a3b8", fontSize: 12 }}>
+      <div style={{ padding: 16, paddingTop: 0, color: "#64748b", fontSize: 12 }}>
         {loading ? "Loading..." : err ? `Error: ${err}` : data ? `Showing ${data.items.length} of ${data.total}` : ""}
       </div>
 

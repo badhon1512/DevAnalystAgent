@@ -65,6 +65,23 @@ export default function Page() {
   const total = data?.total ?? 0;
   const showingFrom = total === 0 ? 0 : offset + 1;
   const showingTo = Math.min(offset + (data?.items.length ?? 0), total);
+  const labelStyle = { fontSize: 12, color: "#475569", marginBottom: 6, fontWeight: 800 };
+  const controlStyle = {
+    width: "100%",
+    padding: 10,
+    borderRadius: 10,
+    border: "1px solid rgba(15,23,42,0.12)",
+    background: "#ffffff",
+    color: "#0f172a",
+  };
+  const secondaryButtonStyle = {
+    height: 38,
+    padding: "0 12px",
+    borderRadius: 10,
+    border: "1px solid rgba(15,23,42,0.12)",
+    background: "#ffffff",
+    color: "#0f172a",
+  };
 
   return (
     <AppShell title="Inventory">
@@ -80,40 +97,26 @@ export default function Page() {
       >
         {/* Search */}
         <div style={{ flex: 1, minWidth: 220 }}>
-          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>
+          <div style={labelStyle}>
             Search
           </div>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="SKU or product name..."
-            style={{
-              width: "100%",
-              padding: 10,
-              borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "rgba(2,6,23,0.35)",
-              color: "inherit",
-            }}
+            style={controlStyle}
           />
         </div>
 
         {/* Warehouse dropdown (static for now) */}
         <div style={{ minWidth: 180 }}>
-          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>
+          <div style={labelStyle}>
             Warehouse
           </div>
           <select
             value={warehouseCode}
             onChange={(e) => setWarehouseCode(e.target.value)}
-            style={{
-              width: "100%",
-              padding: 10,
-              borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "rgba(2,6,23,0.35)",
-              color: "inherit",
-            }}
+            style={controlStyle}
           >
             <option value="">All</option>
             <option value="WH-MUC">WH-MUC</option>
@@ -129,7 +132,8 @@ export default function Page() {
             alignItems: "center",
             gap: 8,
             paddingBottom: 6,
-            color: "#cbd5e1",
+            color: "#334155",
+            fontWeight: 700,
           }}
         >
           <input
@@ -148,9 +152,9 @@ export default function Page() {
             padding: "0 14px",
             borderRadius: 10,
             border: "1px solid rgba(37,99,235,0.35)",
-            background: "rgba(37,99,235,0.25)",
-            color: "inherit",
-            fontWeight: 700,
+            background: "#2563eb",
+            color: "#ffffff",
+            fontWeight: 800,
           }}
         >
           Apply
@@ -161,7 +165,7 @@ export default function Page() {
       <div
         style={{
           padding: "0 16px 12px",
-          color: "#94a3b8",
+          color: "#64748b",
           fontSize: 12,
         }}
       >
@@ -190,15 +194,7 @@ export default function Page() {
         <button
           onClick={() => load(Math.max(0, offset - PAGE_SIZE))}
           disabled={loading || offset === 0}
-          style={{
-            height: 38,
-            padding: "0 12px",
-            borderRadius: 10,
-            border: "1px solid rgba(255,255,255,0.12)",
-            background: "rgba(2,6,23,0.35)",
-            color: "inherit",
-            opacity: offset === 0 ? 0.5 : 1,
-          }}
+          style={{ ...secondaryButtonStyle, opacity: offset === 0 ? 0.5 : 1 }}
         >
           Prev
         </button>
@@ -206,15 +202,7 @@ export default function Page() {
         <button
           onClick={() => load(offset + PAGE_SIZE)}
           disabled={loading || offset + PAGE_SIZE >= total}
-          style={{
-            height: 38,
-            padding: "0 12px",
-            borderRadius: 10,
-            border: "1px solid rgba(255,255,255,0.12)",
-            background: "rgba(2,6,23,0.35)",
-            color: "inherit",
-            opacity: offset + PAGE_SIZE >= total ? 0.5 : 1,
-          }}
+          style={{ ...secondaryButtonStyle, opacity: offset + PAGE_SIZE >= total ? 0.5 : 1 }}
         >
           Next
         </button>
