@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.chat import router as chat_router
+from app.api.analytics import router as analytics_router
 from app.api.admin import router as admin_router
 from app.api.conversations import router as conversations_router
 from app.api.documents import router as documents_router
@@ -55,6 +56,7 @@ app.add_middleware(
 app.include_router(products_router)
 app.include_router(users_router)
 app.include_router(inventories_router)
+app.include_router(analytics_router)
 app.include_router(conversations_router)
 app.include_router(documents_router)
 app.include_router(admin_router)
