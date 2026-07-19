@@ -2,6 +2,7 @@ from langgraph.graph import StateGraph, END, START
 from langgraph.prebuilt import ToolNode
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, ToolMessage
+from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from datetime import datetime
 from pathlib import Path
@@ -28,7 +29,21 @@ from app.tools.research_agent import researcher_agent
 from app.tools.reporting import generate_report_tool
 
 
-base_llm = ChatOpenAI(model="gpt-5.4")
+DEFAULT_CHAT_MODEL = "gpt-5.4"
+SUPPORTED_CHAT_MODELS = {"gpt-5.4", "gpt-4.1", "gpt-5.4-nano"}
+base_llm = ChatOpenAI(model=DEFAULT_CHAT_MODEL)
+
+ANALYSIS_INSTRUCTIONS = {
+    "quick": "Use the shortest grounded path and avoid optional investigation.",
+    "balanced": "Balance speed with enough tool evidence to support the answer.",
+    "deep": "Investigate thoroughly, compare relevant evidence, and surface important limitations.",
+}
+
+ANSWER_INSTRUCTIONS = {
+    "concise": "Keep the final answer concise and focused on decisions and key evidence.",
+    "balanced": "Give a clear, moderately detailed answer with the most relevant evidence.",
+    "detailed": "Give a structured, detailed answer with evidence, assumptions, and limitations.",
+}
 @tool
 def datetime_now() -> str:
     """Get the current date and time in ISO format."""
@@ -56,8 +71,7 @@ class ProductAgent():
             generate_report_tool,
             *get_file_management_toolkit(),
         ]
-        self.llm = base_llm.bind_tools(self.tools)
-        self.finalize_llm = base_llm
+        self.model_clients = {}
         self.agent_graph = StateGraph(State)
 
         self.agent_graph.add_node("guardrail_check", is_valid_query)
@@ -189,9 +203,29 @@ Python analytics workflow:
             return END
         
     
-    def call_llm(self, state: State) -> State:
+    def get_model_clients(self, model_name: str):
+        if model_name not in SUPPORTED_CHAT_MODELS:
+            model_name = DEFAULT_CHAT_MODEL
+        if model_name not in self.model_clients:
+            model = ChatOpenAI(model=model_name)
+            self.model_clients[model_name] = (model.bind_tools(self.tools), model)
+        return self.model_clients[model_name]
+
+    def call_llm(self, state: State, config: RunnableConfig) -> State:
         #print("Calling LLM with messages:", state["messages"])
-        messages = [self.system_message] + state["messages"]
+        configurable = config.get("configurable", {})
+        model_name = str(configurable.get("model", DEFAULT_CHAT_MODEL))
+        analysis_depth = str(configurable.get("analysis_depth", "balanced"))
+        answer_detail = str(configurable.get("answer_detail", "balanced"))
+        tool_llm, finalize_llm = self.get_model_clients(model_name)
+        preferences = SystemMessage(
+            content=(
+                "Request preferences:\n"
+                f"- Analysis: {ANALYSIS_INSTRUCTIONS.get(analysis_depth, ANALYSIS_INSTRUCTIONS['balanced'])}\n"
+                f"- Answer: {ANSWER_INSTRUCTIONS.get(answer_detail, ANSWER_INSTRUCTIONS['balanced'])}"
+            )
+        )
+        messages = [self.system_message, preferences] + state["messages"]
 
         last_message = state["messages"][-1]
         if isinstance(last_message, ToolMessage) and getattr(last_message, "name", "") == "generate_report_tool":
@@ -201,9 +235,11 @@ Python analytics workflow:
                     "Reply to the user with a short confirmation and do not call any more tools."
                 )
             )
-            llm_response = self.finalize_llm.invoke([self.system_message, finalize_message] + state["messages"])
+            llm_response = finalize_llm.invoke(
+                [self.system_message, preferences, finalize_message] + state["messages"]
+            )
         else:
-            llm_response = self.llm.invoke(messages)
+            llm_response = tool_llm.invoke(messages)
         #print("LLM response:", llm_response)
         return {"messages": [llm_response]}
 

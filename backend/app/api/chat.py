@@ -17,6 +17,12 @@ from app.services.users import get_or_create_user
 router = APIRouter(tags=["chat"])
 agent = ProductAgent()
 
+ANALYSIS_RECURSION_LIMITS = {
+    "quick": 16,
+    "balanced": 32,
+    "deep": 64,
+}
+
 
 @router.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest, db: Session = Depends(get_db)):
@@ -26,7 +32,15 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
     user = get_or_create_user(db, req.username)
     conversation = get_or_create_conversation(db, user, req.conversation_id, req.query)
     conversation_id = str(conversation.conversation_id)
-    config = {"configurable": {"thread_id": conversation_id}}
+    config = {
+        "configurable": {
+            "thread_id": conversation_id,
+            "model": req.options.model,
+            "analysis_depth": req.options.analysis_depth,
+            "answer_detail": req.options.answer_detail,
+        },
+        "recursion_limit": ANALYSIS_RECURSION_LIMITS[req.options.analysis_depth],
+    }
     if agent.has_checkpoint(conversation_id):
         agent_messages = [HumanMessage(content=req.query)]
     else:
@@ -39,6 +53,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
         conversation_id=conversation_id,
         latency_ms=latency_ms,
         trace_id=trace_id,
+        model=req.options.model,
     )
 
     answer = response["messages"][-1].content

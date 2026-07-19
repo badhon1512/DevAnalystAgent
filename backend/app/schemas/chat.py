@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -17,6 +17,7 @@ class ToolArtifact(BaseModel):
 class ToolCallTrace(BaseModel):
     name: str
     args: dict[str, Any] = Field(default_factory=dict)
+    result: str | None = None
     result_preview: str | None = None
     artifacts: list[ToolArtifact] = Field(default_factory=list)
 
@@ -42,10 +43,17 @@ class AgentTrace(BaseModel):
     message_count: int
 
 
+class ChatOptions(BaseModel):
+    model: Literal["gpt-5.4", "gpt-4.1", "gpt-5.4-nano"] = "gpt-5.4"
+    analysis_depth: Literal["quick", "balanced", "deep"] = "balanced"
+    answer_detail: Literal["concise", "balanced", "detailed"] = "balanced"
+
+
 class ChatRequest(BaseModel):
     query: str
     conversation_id: str
     username: str = Field(min_length=3, max_length=40, pattern=r"^[a-zA-Z0-9_-]+$")
+    options: ChatOptions = Field(default_factory=ChatOptions)
 
 
 class ChatResponse(BaseModel):

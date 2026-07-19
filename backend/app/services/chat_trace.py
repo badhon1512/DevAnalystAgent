@@ -13,6 +13,15 @@ def preview(value: object, limit: int = 500) -> str:
     return text if len(text) <= limit else f"{text[:limit]}..."
 
 
+def full_result(value: object) -> str:
+    if isinstance(value, str):
+        return value
+    try:
+        return json.dumps(value, ensure_ascii=False, indent=2, default=str)
+    except (TypeError, ValueError):
+        return str(value)
+
+
 def as_int(value: object) -> int:
     try:
         return int(value or 0)
@@ -113,6 +122,7 @@ def build_trace(
     conversation_id: str,
     latency_ms: int,
     trace_id: str,
+    model: str,
 ) -> AgentTrace:
     messages = latest_turn_messages(response)
     guardrail_status = "UNKNOWN"
@@ -142,6 +152,7 @@ def build_trace(
         if isinstance(message, ToolMessage):
             matching_trace = pending_tools.get(message.tool_call_id)
             if matching_trace:
+                matching_trace.result = full_result(message.content)
                 matching_trace.result_preview = preview(message.content)
                 attach_tool_artifacts(matching_trace, message.content)
 
@@ -152,7 +163,7 @@ def build_trace(
         conversation_id=conversation_id,
         latency_ms=latency_ms,
         guardrail_status=guardrail_status,
-        model="n/a",
+        model=model,
         token_usage=token_usage,
         tools_used=tools_used,
         tool_calls=tool_calls,
