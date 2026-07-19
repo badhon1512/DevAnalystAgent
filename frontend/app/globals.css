@@ -392,8 +392,8 @@ body {
 
 .chatWorkspaceEmbedded .bubble {
   border-radius: 18px;
-  font-size: 13.5px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.55;
 }
 
 .chatWorkspaceEmbedded .bubbleUser {
@@ -531,8 +531,8 @@ body {
 
 .chatWorkspaceEmbedded .bubbleMeta {
   margin-top: 4px;
-  color: #94a3b8;
-  font-size: 10px;
+  color: #64748b;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1.2;
   padding: 0;
@@ -768,7 +768,8 @@ body {
 .chatWorkspaceEmbedded .chatSub {
   max-width: 100%;
   margin-top: 3px;
-  font-size: 11px;
+  color: #64748b;
+  font-size: 12px;
 }
 
 .chatWorkspaceEmbedded .chatBody {
@@ -845,6 +846,7 @@ body {
   border-color: #dbe2ea;
   border-radius: 10px;
   background: #f8fafc;
+  font-size: 14px;
   box-shadow: none;
 }
 
@@ -862,8 +864,166 @@ body {
 
 .chatWorkspaceEmbedded .footerHint {
   margin-top: 6px;
-  font-size: 10px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.4;
   text-align: center;
+}
+
+.chatWorkspaceEmbedded .tracePanel {
+  margin-top: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0;
+  overflow: hidden;
+}
+
+.chatWorkspaceEmbedded .tracePanel > summary {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  background: #f8fafc;
+  color: #0f172a;
+  padding: 8px 11px;
+  cursor: pointer;
+}
+
+.chatWorkspaceEmbedded .tracePanel > summary::-webkit-details-marker,
+.chatWorkspaceEmbedded .toolTrace > summary::-webkit-details-marker {
+  display: none;
+}
+
+.chatWorkspaceEmbedded .traceSummaryTitle {
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.chatWorkspaceEmbedded .traceSummaryMeta {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.chatWorkspaceEmbedded .traceGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+  border-top: 1px solid #e5e7eb;
+  padding: 10px;
+}
+
+.chatWorkspaceEmbedded .traceGrid > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 7px 8px;
+}
+
+.chatWorkspaceEmbedded .traceGrid span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.chatWorkspaceEmbedded .traceGrid strong {
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.chatWorkspaceEmbedded .toolTraceList {
+  gap: 8px;
+  margin: 0;
+  border-top: 1px solid #e5e7eb;
+  padding: 10px;
+}
+
+.chatWorkspaceEmbedded .toolTrace {
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  background: #ffffff;
+  padding: 0;
+  overflow: hidden;
+}
+
+.chatWorkspaceEmbedded .toolTraceHeader {
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  background: #f8fafc;
+  padding: 7px 9px;
+  cursor: pointer;
+}
+
+.chatWorkspaceEmbedded .toolTraceStep {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.chatWorkspaceEmbedded .toolTraceName {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chatWorkspaceEmbedded .toolTraceStatus {
+  color: #047857;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chatWorkspaceEmbedded .toolTraceIo {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.35fr);
+  gap: 8px;
+  border-top: 1px solid #e5e7eb;
+  padding: 8px;
+}
+
+.chatWorkspaceEmbedded .toolTraceBlock {
+  min-width: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.chatWorkspaceEmbedded .toolTraceLabel {
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #475569;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.chatWorkspaceEmbedded .toolTraceBlock pre {
+  max-height: 360px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #334155;
+  padding: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow: auto;
+  overflow-wrap: anywhere;
 }
 
 .srOnly {
@@ -2912,6 +3072,66 @@ body {
   gap: 10px;
 }
 
+.composerOptions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 1px;
+  scrollbar-width: none;
+}
+
+.composerOptions::-webkit-scrollbar {
+  display: none;
+}
+
+.composerOptions label {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.composerOptions select {
+  min-height: 30px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 7px;
+  background: rgba(15, 23, 42, 0.76);
+  color: #e2e8f0;
+  padding: 4px 24px 4px 8px;
+  font: inherit;
+  font-weight: 700;
+  outline: none;
+}
+
+.composerOptions select:focus {
+  border-color: rgba(45, 212, 191, 0.52);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.08);
+}
+
+.composerOptions select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.chatWorkspaceEmbedded .composerOptions label {
+  color: #64748b;
+}
+
+.chatWorkspaceEmbedded .composerOptions select {
+  border-color: #dbe2ea;
+  background: #ffffff;
+  color: #334155;
+}
+
+.chatWorkspaceEmbedded .composerOptions select:focus {
+  border-color: rgba(37, 99, 235, 0.42);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
 .composerSuggestions {
   display: flex;
   flex-wrap: wrap;
@@ -4737,6 +4957,14 @@ body {
 
   .chatWorkspaceEmbedded .chatBody {
     padding: 12px;
+  }
+
+  .chatWorkspaceEmbedded .traceGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chatWorkspaceEmbedded .toolTraceIo {
+    grid-template-columns: 1fr;
   }
 
   .chatWorkspaceEmbedded .chartCardGrid:has(.chartArtifactCard:nth-child(2)) {

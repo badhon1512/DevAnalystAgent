@@ -14,7 +14,12 @@ import {
 } from "../lib/api";
 import { buildThreadTitle } from "../lib/chatThreads";
 import { DEMO_QUERIES } from "../lib/demoQueries";
-import type { ChatMessage, ChatThread } from "../lib/types";
+import {
+  DEFAULT_CHAT_OPTIONS,
+  type ChatMessage,
+  type ChatOptions,
+  type ChatThread,
+} from "../lib/types";
 import { uuidv4 } from "../lib/uuid";
 import ChatComposer from "./ChatComposer";
 import ChatMessageView from "./ChatMessage";
@@ -42,6 +47,18 @@ function readStoredUsername() {
   return localStorage.getItem("productai-username") || "";
 }
 
+function readStoredChatOptions(): ChatOptions {
+  if (typeof window === "undefined") return DEFAULT_CHAT_OPTIONS;
+  try {
+    const stored = localStorage.getItem("productai-chat-options");
+    return stored
+      ? { ...DEFAULT_CHAT_OPTIONS, ...(JSON.parse(stored) as Partial<ChatOptions>) }
+      : DEFAULT_CHAT_OPTIONS;
+  } catch {
+    return DEFAULT_CHAT_OPTIONS;
+  }
+}
+
 export default function Chat({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [username, setUsername] = useState<string | null>(() => readStoredUsername());
@@ -53,7 +70,13 @@ export default function Chat({ embedded = false }: { embedded?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState("");
+  const [chatOptions, setChatOptions] = useState<ChatOptions>(() => readStoredChatOptions());
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  function handleOptionsChange(options: ChatOptions) {
+    setChatOptions(options);
+    localStorage.setItem("productai-chat-options", JSON.stringify(options));
+  }
 
   useEffect(() => {
     if (username === null) {
@@ -215,7 +238,7 @@ export default function Chat({ embedded = false }: { embedded?: boolean }) {
 
     setLoading(true);
     try {
-      const data = await sendChat(text, activeThreadId, activeUsername);
+      const data = await sendChat(text, activeThreadId, activeUsername, chatOptions);
       const assistantText =
         data?.final_answer ??
         data?.finalAnswer ??
@@ -397,6 +420,8 @@ export default function Chat({ embedded = false }: { embedded?: boolean }) {
             onTranscribeAudio={handleTranscribeAudio}
             onVoiceError={setError}
             suggestions={DEMO_QUERIES}
+            options={chatOptions}
+            onOptionsChange={handleOptionsChange}
           />
           <div className="footerHint">
             AI-generated insights may require review before business decisions.

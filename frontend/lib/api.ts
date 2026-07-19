@@ -10,6 +10,7 @@ import type {
   Product,
   ProductDetail,
   VoiceTranscriptionResponse,
+  ChatOptions,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
@@ -34,11 +35,12 @@ export async function sendChat(
   query: string,
   conversationId: string,
   username: string,
+  options?: ChatOptions,
 ): Promise<ChatResponse> {
   const res = await fetch(`${API_BASE}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, conversation_id: conversationId, username }),
+    body: JSON.stringify({ query, conversation_id: conversationId, username, options }),
   });
 
   if (!res.ok) {

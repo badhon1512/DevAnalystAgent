@@ -50,6 +50,18 @@ export type ChatResponse = {
   report?: ReportSummary;
 };
 
+export type ChatOptions = {
+  model: "gpt-5.4" | "gpt-4.1" | "gpt-5.4-nano";
+  analysis_depth: "quick" | "balanced" | "deep";
+  answer_detail: "concise" | "balanced" | "detailed";
+};
+
+export const DEFAULT_CHAT_OPTIONS: ChatOptions = {
+  model: "gpt-5.4",
+  analysis_depth: "balanced",
+  answer_detail: "balanced",
+};
+
 export type ReportAsset = {
   type: "html" | "markdown" | "json" | "pdf" | "chart" | "csv" | "other";
   label: string;
@@ -78,6 +90,7 @@ export type VoiceTranscriptionResponse = {
 export type ToolCallTrace = {
   name: string;
   args: Record<string, unknown>;
+  result?: string | null;
   result_preview?: string | null;
   artifacts?: {
     type: string;

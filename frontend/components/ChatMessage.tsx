@@ -23,6 +23,18 @@ function formatTraceModel(model?: string | null) {
   return model?.trim() || "N/A";
 }
 
+function formatTracePayload(value: unknown) {
+  if (value == null || value === "") return "No output captured";
+  if (typeof value === "string") {
+    try {
+      return JSON.stringify(JSON.parse(value), null, 2);
+    } catch {
+      return value;
+    }
+  }
+  return JSON.stringify(value, null, 2);
+}
+
 function toAbsoluteUrl(path?: string | null) {
   if (!path) return null;
   const apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
@@ -185,37 +197,43 @@ export default function ChatMessageView({ message }: { message: Msg }) {
         {trace && (
           <details className="tracePanel">
             <summary>
-              Agent trace - {trace.tools_used.length || 0} tools -{" "}
-              {formatSeconds(trace.latency_ms)}
+              <span className="traceSummaryTitle">Agent trace</span>
+              <span className="traceSummaryMeta">
+                {trace.tool_calls.length} {trace.tool_calls.length === 1 ? "step" : "steps"} ·{" "}
+                {formatSeconds(trace.latency_ms)}
+              </span>
             </summary>
             <div className="traceGrid">
-              <span>Model</span>
-              <strong>{formatTraceModel(trace.model)}</strong>
-              <span>Guardrail</span>
-              <strong>{trace.guardrail_status}</strong>
-              <span>Trace ID</span>
-              <strong>{trace.trace_id.slice(0, 8)}</strong>
-              <span>Input tokens</span>
-              <strong>{trace.token_usage?.input_tokens ?? 0}</strong>
-              <span>Output tokens</span>
-              <strong>{trace.token_usage?.output_tokens ?? 0}</strong>
-              <span>Total tokens</span>
-              <strong>{trace.token_usage?.total_tokens ?? 0}</strong>
-              <span>Input cost</span>
-              <strong>{formatCost(trace.token_usage?.estimated_input_cost_usd)}</strong>
-              <span>Output cost</span>
-              <strong>{formatCost(trace.token_usage?.estimated_output_cost_usd)}</strong>
-              <span>Total cost</span>
-              <strong>{formatCost(trace.token_usage?.estimated_total_cost_usd)}</strong>
+              <div><span>Model</span><strong>{formatTraceModel(trace.model)}</strong></div>
+              <div><span>Guardrail</span><strong>{trace.guardrail_status}</strong></div>
+              <div><span>Trace ID</span><strong>{trace.trace_id.slice(0, 8)}</strong></div>
+              <div><span>Input tokens</span><strong>{trace.token_usage?.input_tokens ?? 0}</strong></div>
+              <div><span>Output tokens</span><strong>{trace.token_usage?.output_tokens ?? 0}</strong></div>
+              <div><span>Total tokens</span><strong>{trace.token_usage?.total_tokens ?? 0}</strong></div>
+              <div><span>Input cost</span><strong>{formatCost(trace.token_usage?.estimated_input_cost_usd)}</strong></div>
+              <div><span>Output cost</span><strong>{formatCost(trace.token_usage?.estimated_output_cost_usd)}</strong></div>
+              <div><span>Total cost</span><strong>{formatCost(trace.token_usage?.estimated_total_cost_usd)}</strong></div>
             </div>
             {trace.tool_calls.length > 0 && (
               <div className="toolTraceList">
                 {trace.tool_calls.map((tool, index) => (
-                  <div className="toolTrace" key={`${tool.name}-${index}`}>
-                    <div className="toolTraceName">{tool.name}</div>
-                    <pre>{JSON.stringify(tool.args, null, 2)}</pre>
-                    {tool.result_preview && <p>{tool.result_preview}</p>}
-                  </div>
+                  <details className="toolTrace" key={`${tool.name}-${index}`} open>
+                    <summary className="toolTraceHeader">
+                      <span className="toolTraceStep">Step {String(index + 1).padStart(2, "0")}</span>
+                      <span className="toolTraceName">{tool.name}</span>
+                      <span className="toolTraceStatus">Completed</span>
+                    </summary>
+                    <div className="toolTraceIo">
+                      <section className="toolTraceBlock">
+                        <div className="toolTraceLabel">Input</div>
+                        <pre>{formatTracePayload(tool.args)}</pre>
+                      </section>
+                      <section className="toolTraceBlock">
+                        <div className="toolTraceLabel">Output</div>
+                        <pre>{formatTracePayload(tool.result ?? tool.result_preview)}</pre>
+                      </section>
+                    </div>
+                  </details>
                 ))}
               </div>
             )}

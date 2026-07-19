@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import type { ChatOptions } from "../lib/types";
+
 function MicIcon({ active }: { active: boolean }) {
   return (
     <svg
@@ -30,12 +32,16 @@ export default function ChatComposer({
   onTranscribeAudio,
   onVoiceError,
   suggestions = [],
+  options,
+  onOptionsChange,
 }: {
   onSend: (text: string) => void;
   disabled?: boolean;
   onTranscribeAudio?: (audio: Blob) => Promise<string>;
   onVoiceError?: (message: string) => void;
   suggestions?: Array<{ label: string; query: string }>;
+  options: ChatOptions;
+  onOptionsChange: (options: ChatOptions) => void;
 }) {
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
@@ -145,6 +151,56 @@ export default function ChatComposer({
 
   return (
     <div className="composerShell">
+      <div className="composerOptions" aria-label="AI response settings">
+        <label>
+          <span>Model</span>
+          <select
+            value={options.model}
+            onChange={(event) =>
+              onOptionsChange({ ...options, model: event.target.value as ChatOptions["model"] })
+            }
+            disabled={disabled}
+          >
+            <option value="gpt-5.4">GPT-5.4</option>
+            <option value="gpt-4.1">GPT-4.1</option>
+            <option value="gpt-5.4-nano">GPT-5.4 Nano</option>
+          </select>
+        </label>
+        <label>
+          <span>Analysis</span>
+          <select
+            value={options.analysis_depth}
+            onChange={(event) =>
+              onOptionsChange({
+                ...options,
+                analysis_depth: event.target.value as ChatOptions["analysis_depth"],
+              })
+            }
+            disabled={disabled}
+          >
+            <option value="quick">Quick</option>
+            <option value="balanced">Balanced</option>
+            <option value="deep">Deep</option>
+          </select>
+        </label>
+        <label>
+          <span>Answer</span>
+          <select
+            value={options.answer_detail}
+            onChange={(event) =>
+              onOptionsChange({
+                ...options,
+                answer_detail: event.target.value as ChatOptions["answer_detail"],
+              })
+            }
+            disabled={disabled}
+          >
+            <option value="concise">Concise</option>
+            <option value="balanced">Balanced</option>
+            <option value="detailed">Detailed</option>
+          </select>
+        </label>
+      </div>
       {suggestions.length > 0 ? (
         <div className="composerSuggestions" aria-label="Demo queries">
           <span>Try:</span>
