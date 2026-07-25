@@ -3,7 +3,8 @@ import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
+from langgraph.errors import GraphRecursionError
 from sqlalchemy.orm import Session
 
 from app.agents.agent import ProductAgent
@@ -22,6 +23,16 @@ ANALYSIS_RECURSION_LIMITS = {
     "balanced": 32,
     "deep": 64,
 }
+
+
+def recursion_limit_answer(analysis_depth: str) -> str:
+    if analysis_depth == "quick":
+        action = "Try Balanced or Deep analysis, or narrow the request."
+    elif analysis_depth == "balanced":
+        action = "Try Deep analysis, or narrow the request."
+    else:
+        action = "Please narrow the request into a smaller analysis task."
+    return f"The {analysis_depth.title()} analysis reached its execution limit. {action}"
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -46,7 +57,15 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
     else:
         agent_messages = build_agent_messages(conversation, req.query)
 
-    response = agent.agent.invoke({"messages": agent_messages}, config=config)
+    try:
+        response = agent.agent.invoke({"messages": agent_messages}, config=config)
+    except GraphRecursionError:
+        snapshot = agent.agent.get_state(config)
+        partial_messages = list((snapshot.values or {}).get("messages", []))
+        answer = recursion_limit_answer(req.options.analysis_depth)
+        response = {
+            "messages": [*(partial_messages or agent_messages), AIMessage(content=answer)]
+        }
     latency_ms = int((time.perf_counter() - started) * 1000)
     trace = build_trace(
         response=response,
