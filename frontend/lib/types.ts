@@ -316,6 +316,95 @@ export type DashboardAnalytics = {
   returns: ReturnInsight;
 };
 
+export type EvaluationRunSummary = {
+  run_id: string;
+  status: string;
+  suite_name: string;
+  suite_version?: string | null;
+  model: string;
+  analysis_depth?: string | null;
+  answer_detail?: string | null;
+  trigger_source: string;
+  environment?: string | null;
+  selected_case_count: number;
+  attempted_case_count: number;
+  completed_case_count: number;
+  passed_case_count: number;
+  failed_case_count: number;
+  error_case_count: number;
+  pass_rate_percent?: number | null;
+  average_score_percent?: number | null;
+  actual_cost_usd?: number | null;
+  average_latency_ms?: number | null;
+  p95_latency_ms?: number | null;
+  total_tokens: number;
+  started_at?: string | null;
+  finished_at?: string | null;
+  created_at: string;
+};
+
+export type EvaluationCategorySummary = {
+  category: string;
+  total: number;
+  passed: number;
+  failed: number;
+  errors: number;
+  pass_rate_percent: number;
+  average_score_percent: number;
+};
+
+export type EvaluationCaseSummary = {
+  case_id: string;
+  category: string;
+  attempt_number: number;
+  status: string;
+  passed?: boolean | null;
+  score_percent?: number | null;
+  tools_used: string[];
+  tool_call_count: number;
+  guardrail_status?: string | null;
+  latency_ms?: number | null;
+  cost_usd?: number | null;
+  failed_checks: Array<{ name?: string; detail?: string; passed?: boolean }>;
+  error_stage?: string | null;
+  error_type?: string | null;
+  error_message?: string | null;
+};
+
+export type EvaluationRunDetail = EvaluationRunSummary & {
+  cases: EvaluationCaseSummary[];
+};
+
+export type EvaluationDashboard = {
+  generated_at: string;
+  latest_run?: EvaluationRunSummary | null;
+  runs: EvaluationRunSummary[];
+  categories: EvaluationCategorySummary[];
+  total_runs: number;
+  completed_runs: number;
+  average_pass_rate_percent: number;
+  total_known_cost_usd: number;
+};
+
+export type EvaluationRunRequest = {
+  categories?: string[];
+  case_ids?: string[];
+  limit?: number;
+  model: ChatOptions["model"];
+  analysis_depth: ChatOptions["analysis_depth"];
+  answer_detail: ChatOptions["answer_detail"];
+  budget_usd: number;
+  estimated_cost_per_case: number;
+  fail_fast: boolean;
+};
+
+export type EvaluationRunQueued = {
+  run_id: string;
+  status: string;
+  selected_case_count: number;
+  estimated_cost_usd: number;
+};
+
 export type ListResponse<T> = {
   items: T[];
   total: number;

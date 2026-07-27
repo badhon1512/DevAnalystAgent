@@ -5,6 +5,10 @@ import type {
   AdminConversationDetail,
   AdminConversationSummary,
   DashboardAnalytics,
+  EvaluationDashboard,
+  EvaluationRunDetail,
+  EvaluationRunQueued,
+  EvaluationRunRequest,
   InventoryRow,
   ListResponse,
   Product,
@@ -231,6 +235,35 @@ export async function adminDeleteConversation(token: string, conversationId: str
     const text = await res.text();
     throw new Error(`Admin delete failed (${res.status}): ${text}`);
   }
+}
+
+export async function getEvaluationDashboard(): Promise<EvaluationDashboard> {
+  return getJSON<EvaluationDashboard>(`${API_BASE}/evaluations/dashboard`);
+}
+
+export async function getEvaluationRun(runId: string): Promise<EvaluationRunDetail> {
+  return getJSON<EvaluationRunDetail>(`${API_BASE}/evaluations/runs/${runId}`);
+}
+
+export async function adminQueueEvaluation(
+  token: string,
+  payload: EvaluationRunRequest,
+): Promise<EvaluationRunQueued> {
+  const res = await fetch(`${API_BASE}/admin/evaluations`, {
+    method: "POST",
+    headers: {
+      ...adminHeaders(token),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Evaluation could not be started (${res.status}): ${text}`);
+  }
+
+  return res.json();
 }
 
 export async function transcribeVoice(audio: Blob): Promise<VoiceTranscriptionResponse> {
