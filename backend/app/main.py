@@ -18,6 +18,7 @@ from app.api.analytics import router as analytics_router
 from app.api.admin import router as admin_router
 from app.api.conversations import router as conversations_router
 from app.api.documents import router as documents_router
+from app.api.evaluations import router as evaluations_router
 from app.api.inventories import router as inventories_router
 from app.api.products import router as products_router
 from app.api.users import router as users_router
@@ -59,6 +60,7 @@ app.include_router(inventories_router)
 app.include_router(analytics_router)
 app.include_router(conversations_router)
 app.include_router(documents_router)
+app.include_router(evaluations_router)
 app.include_router(admin_router)
 app.include_router(chat_router)
 
