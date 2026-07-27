@@ -5849,3 +5849,1117 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Agent evaluation dashboard */
+.evalDashboard {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  color: #172033;
+}
+
+.evalHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid #dfe5ec;
+  padding: 2px 2px 18px;
+}
+
+.evalHeader p,
+.evalPanelHeader p {
+  margin: 0 0 5px;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.evalHeader h1 {
+  max-width: 760px;
+  margin: 0;
+  color: #111827;
+  font-size: 28px;
+  line-height: 1.18;
+}
+
+.evalHeader > div > span {
+  display: block;
+  max-width: 780px;
+  margin-top: 9px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.evalHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.evalHeaderActions button,
+.evalRunControl button {
+  min-height: 38px;
+  border: 1px solid #cfd8e3;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #243247;
+  padding: 0 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.evalHeaderActions button:hover {
+  border-color: #8ca0b8;
+  background: #f8fafc;
+}
+
+.evalAccessAdmin,
+.evalAccessPublic {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 7px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.evalAccessAdmin {
+  border: 1px solid #9ad5c8;
+  background: #ecfdf8;
+  color: #0f766e;
+}
+
+.evalAccessPublic {
+  border: 1px solid #d7dee8;
+  background: #f8fafc;
+  color: #667085;
+}
+
+.evalNotice {
+  border: 1px solid;
+  border-radius: 7px;
+  padding: 11px 13px;
+  font-size: 13px;
+}
+
+.evalNoticeError {
+  border-color: #fecaca;
+  background: #fff7f7;
+  color: #b42318;
+}
+
+.evalNoticeSuccess {
+  border-color: #a7f3d0;
+  background: #f0fdf9;
+  color: #067647;
+}
+
+.evalMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid #dfe5ec;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.evalMetricGrid article {
+  min-width: 0;
+  padding: 16px 18px;
+}
+
+.evalMetricGrid article + article {
+  border-left: 1px solid #e7ebf0;
+}
+
+.evalMetricGrid span,
+.evalMetricGrid small {
+  display: block;
+  color: #667085;
+  font-size: 12px;
+}
+
+.evalMetricGrid strong {
+  display: block;
+  margin: 6px 0 4px;
+  color: #101828;
+  font-size: 25px;
+  line-height: 1;
+}
+
+.evalPrimaryGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.9fr) 300px;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.evalHistoryGrid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.7fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.evalPanel {
+  min-width: 0;
+  border: 1px solid #dfe5ec;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.evalPanelHeader {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #e7ebf0;
+  padding: 12px 14px;
+}
+
+.evalPanelHeader h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 16px;
+}
+
+.evalPanelHeader > span {
+  border: 1px solid #d9e1ea;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #667085;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.evalTrendChart {
+  height: 222px;
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  padding: 22px 14px 14px;
+  background:
+    linear-gradient(#edf1f5 1px, transparent 1px);
+  background-size: 100% 25%;
+}
+
+.evalTrendChart > button {
+  min-width: 0;
+  height: 100%;
+  flex: 1;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 17px 16px;
+  align-items: end;
+  gap: 3px;
+  border: 0;
+  background: transparent;
+  color: #475467;
+  padding: 0;
+  cursor: pointer;
+}
+
+.evalTrendChart i {
+  width: min(30px, 72%);
+  min-height: 5px;
+  justify-self: center;
+  border-radius: 4px 4px 1px 1px;
+  background: linear-gradient(180deg, #14b8a6, #2563eb);
+  box-shadow: 0 5px 13px rgba(37, 99, 235, 0.14);
+}
+
+.evalTrendChart button:hover i {
+  filter: saturate(1.2) brightness(0.96);
+}
+
+.evalTrendChart span {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.evalTrendChart small {
+  overflow: hidden;
+  color: #98a2b3;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evalCategoryList {
+  display: grid;
+  gap: 13px;
+  max-height: 222px;
+  overflow: auto;
+  padding: 15px;
+}
+
+.evalCategoryList > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.evalCategoryList > div > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.evalCategoryList strong,
+.evalCategoryList span,
+.evalCategoryList b {
+  font-size: 11px;
+}
+
+.evalCategoryList strong {
+  color: #344054;
+}
+
+.evalCategoryList span {
+  color: #98a2b3;
+}
+
+.evalCategoryList b {
+  color: #344054;
+  text-align: right;
+}
+
+.evalProgress {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #edf1f5;
+}
+
+.evalProgress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #0f9f8f;
+}
+
+.evalRunControl form {
+  display: grid;
+  gap: 11px;
+  padding: 14px;
+}
+
+.evalRunControl label {
+  display: grid;
+  gap: 6px;
+  color: #475467;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.evalRunControl select {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid #cfd8e3;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #172033;
+  padding: 0 9px;
+  font-size: 12px;
+}
+
+.evalRunControl button {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.evalRunControl button:disabled,
+.evalRunControl select:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.evalRunControl form p {
+  margin: 0;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.evalRunControl form a {
+  color: #1d4ed8;
+  font-weight: 750;
+}
+
+.evalRunList {
+  display: grid;
+  max-height: 440px;
+  overflow: auto;
+}
+
+.evalRunList > button {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid #edf1f5;
+  background: #ffffff;
+  color: #344054;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.evalRunList > button:hover,
+.evalRunList > button.isSelected {
+  background: #f4f8fc;
+}
+
+.evalRunList > button.isSelected {
+  box-shadow: inset 3px 0 #2563eb;
+}
+
+.evalRunList strong,
+.evalRunList small {
+  display: block;
+}
+
+.evalRunList strong {
+  font-size: 12px;
+}
+
+.evalRunList small {
+  margin-top: 3px;
+  overflow: hidden;
+  color: #8a94a6;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evalRunList b {
+  font-size: 12px;
+}
+
+.evalRunStatus {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.evalRunStatus-pass {
+  background: #12a676;
+}
+
+.evalRunStatus-warn {
+  background: #e7a008;
+}
+
+.evalRunStatus-error {
+  background: #e5484d;
+}
+
+.evalRunStatus-running {
+  background: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.evalRunFacts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid #e7ebf0;
+}
+
+.evalRunFacts span {
+  color: #667085;
+  padding: 12px 14px;
+  font-size: 10px;
+}
+
+.evalRunFacts span + span {
+  border-left: 1px solid #edf1f5;
+}
+
+.evalRunFacts strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #172033;
+  font-size: 14px;
+}
+
+.evalCaseTable {
+  max-height: 345px;
+  overflow: auto;
+  font-size: 11px;
+}
+
+.evalCaseTable > div {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) 72px 65px minmax(140px, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 650px;
+  border-bottom: 1px solid #edf1f5;
+  padding: 10px 14px;
+}
+
+.evalCaseTableHeader {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+  color: #667085;
+  font-weight: 800;
+}
+
+.evalCaseTable strong,
+.evalCaseTable small {
+  display: block;
+}
+
+.evalCaseTable strong {
+  color: #344054;
+}
+
+.evalCaseTable small {
+  margin-top: 3px;
+  color: #98a2b3;
+}
+
+.evalCaseResult {
+  width: fit-content;
+  border-radius: 5px;
+  padding: 4px 7px;
+  font-weight: 800;
+}
+
+.evalCaseResult.pass {
+  background: #eafbf4;
+  color: #067647;
+}
+
+.evalCaseResult.fail {
+  background: #fff8e6;
+  color: #945b00;
+}
+
+.evalCaseResult.error {
+  background: #fff0f0;
+  color: #b42318;
+}
+
+.evalEmpty {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  color: #98a2b3;
+  padding: 30px;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 1180px) {
+  .evalPrimaryGrid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  }
+
+  .evalRunControl {
+    grid-column: 1 / -1;
+  }
+
+  .evalRunControl form {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    align-items: end;
+  }
+
+  .evalRunControl form p {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .evalDashboard {
+    padding: 12px;
+  }
+
+  .evalHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .evalHeader h1 {
+    font-size: 22px;
+  }
+
+  .evalHeaderActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .evalMetricGrid,
+  .evalPrimaryGrid,
+  .evalHistoryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .evalMetricGrid article + article {
+    border-top: 1px solid #e7ebf0;
+    border-left: 0;
+  }
+
+  .evalRunControl,
+  .evalRunControl form {
+    grid-column: auto;
+  }
+
+  .evalRunControl form {
+    grid-template-columns: 1fr;
+  }
+
+  .evalRunFacts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .evalRunFacts span:nth-child(3) {
+    border-top: 1px solid #edf1f5;
+    border-left: 0;
+  }
+
+  .evalRunFacts span:nth-child(4) {
+    border-top: 1px solid #edf1f5;
+  }
+}
+
+/* Evaluation operations layout */
+.evalDashboard {
+  gap: 14px;
+  padding: 16px 18px 28px;
+  color: #182230;
+}
+
+.evalHeader {
+  align-items: center;
+  border-bottom: 0;
+  padding: 0 2px 2px;
+}
+
+.evalHeader p {
+  margin-bottom: 4px;
+  color: #087f73;
+  font-size: 10px;
+}
+
+.evalHeader h1 {
+  font-size: 23px;
+  line-height: 1.2;
+}
+
+.evalHeader > div > span {
+  margin-top: 5px;
+  color: #697586;
+  font-size: 12px;
+}
+
+.evalHeaderActions {
+  gap: 8px;
+}
+
+.evalHeaderActions button,
+.evalAccessAdmin,
+.evalAccessPublic {
+  min-height: 34px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.evalHeaderActions button {
+  padding: 0 12px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.evalScoreBand {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.05fr) minmax(0, 1.65fr);
+  overflow: hidden;
+  border: 1px solid #dce3ea;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.025);
+}
+
+.evalScoreLead {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-right: 1px solid #e6ebf0;
+  padding: 17px 18px;
+}
+
+.evalScoreRing {
+  width: 86px;
+  height: 86px;
+  flex: 0 0 86px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.evalScoreRing > div {
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-content: center;
+  border-radius: 50%;
+  background: #ffffff;
+  text-align: center;
+}
+
+.evalScoreRing strong,
+.evalScoreRing span {
+  display: block;
+}
+
+.evalScoreRing strong {
+  color: #101828;
+  font-size: 21px;
+  line-height: 1;
+}
+
+.evalScoreRing span {
+  margin-top: 4px;
+  color: #7c8798;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.evalScoreLead h2 {
+  margin: 7px 0 3px;
+  color: #182230;
+  font-size: 15px;
+}
+
+.evalScoreLead p {
+  max-width: 350px;
+  margin: 0;
+  color: #697586;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.evalHealth {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #4b5565;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.evalHealth::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2563eb;
+  content: "";
+}
+
+.evalHealth-pass::before {
+  background: #0f9f72;
+}
+
+.evalHealth-warn::before {
+  background: #d99500;
+}
+
+.evalHealth-error::before {
+  background: #dc4348;
+}
+
+.evalMetricStrip {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.evalMetricStrip > div {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  padding: 16px;
+}
+
+.evalMetricStrip > div + div {
+  border-left: 1px solid #e8edf2;
+}
+
+.evalMetricStrip span,
+.evalMetricStrip small {
+  overflow: hidden;
+  color: #697586;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evalMetricStrip strong {
+  margin: 6px 0 3px;
+  color: #101828;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.evalPrimaryGrid {
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 14px;
+}
+
+.evalPanel {
+  border-color: #dce3ea;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.02);
+}
+
+.evalPanelHeader {
+  min-height: 54px;
+  padding: 11px 14px;
+}
+
+.evalPanelHeader p {
+  margin-bottom: 3px;
+  color: #087f73;
+  font-size: 9px;
+}
+
+.evalPanelHeader h2 {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.evalPanelHeader > span {
+  border-radius: 5px;
+  padding: 4px 7px;
+  font-size: 9px;
+}
+
+.evalPerformanceBody {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.1fr) minmax(250px, 0.9fr);
+  min-height: 228px;
+}
+
+.evalTrendSection,
+.evalCategorySection {
+  min-width: 0;
+  padding: 14px;
+}
+
+.evalTrendSection {
+  border-right: 1px solid #e8edf2;
+}
+
+.evalSectionLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.evalSectionLabel strong {
+  color: #344054;
+  font-size: 11px;
+}
+
+.evalSectionLabel span {
+  color: #8a94a6;
+  font-size: 9px;
+}
+
+.evalTrendChart {
+  height: 174px;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 12px 8px 0;
+  border-bottom: 1px solid #dce3ea;
+  background: linear-gradient(#edf1f5 1px, transparent 1px);
+  background-size: 100% 25%;
+}
+
+.evalTrendChart > button {
+  max-width: 62px;
+  grid-template-rows: 18px minmax(0, 1fr) 15px;
+  gap: 2px;
+}
+
+.evalTrendChart > button > span {
+  align-self: start;
+  color: #344054;
+  font-size: 9px;
+}
+
+.evalTrendChart i {
+  width: 24px;
+  border-radius: 3px 3px 0 0;
+  background: #168c83;
+  box-shadow: none;
+}
+
+.evalTrendChart small {
+  color: #8a94a6;
+  font-size: 8px;
+}
+
+.evalTrendChartSingle {
+  justify-content: center;
+}
+
+.evalTrendChartSingle > button {
+  flex: 0 0 62px;
+}
+
+.evalCategoryList {
+  gap: 15px;
+  max-height: 184px;
+  padding: 4px 2px;
+}
+
+.evalCategoryList > div {
+  grid-template-columns: minmax(0, 1fr) 40px;
+}
+
+.evalCategoryList strong,
+.evalCategoryList span,
+.evalCategoryList b {
+  font-size: 10px;
+}
+
+.evalProgress {
+  height: 6px;
+  background: #e8edf2;
+}
+
+.evalProgress i {
+  background: #168c83;
+}
+
+.evalRunControl form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 13px 14px 14px;
+}
+
+.evalControlIntro {
+  grid-column: 1 / -1;
+  margin: 0 0 1px;
+  color: #697586;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.evalRunControl select {
+  min-height: 34px;
+  border-color: #d5dde6;
+  font-size: 11px;
+}
+
+.evalRunControl label:first-of-type,
+.evalRunControl button,
+.evalControlFootnote {
+  grid-column: 1 / -1;
+}
+
+.evalRunControl button {
+  min-height: 35px;
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  font-size: 11px;
+}
+
+.evalRunControl button:disabled {
+  border-color: #d8dee7;
+  background: #e7ebf1;
+  color: #8993a3;
+  opacity: 1;
+}
+
+.evalRunControl select:disabled {
+  background: #f8fafc;
+  color: #7c8798;
+  opacity: 1;
+}
+
+.evalControlFootnote {
+  min-height: 16px;
+  padding-top: 1px;
+}
+
+.evalHistoryGrid {
+  grid-template-columns: 300px minmax(0, 1fr);
+}
+
+.evalRunList {
+  max-height: 365px;
+}
+
+.evalRunList > button {
+  padding: 11px 13px;
+}
+
+.evalRunList strong {
+  font-size: 11px;
+}
+
+.evalRunList strong em {
+  margin-left: 4px;
+  color: #7c8798;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.evalRunFacts span {
+  padding: 11px 13px;
+}
+
+.evalCaseTable {
+  max-height: 285px;
+}
+
+.evalCaseTable > div {
+  padding: 9px 13px;
+}
+
+@media (max-width: 1120px) {
+  .evalScoreBand {
+    grid-template-columns: 1fr;
+  }
+
+  .evalScoreLead {
+    border-right: 0;
+    border-bottom: 1px solid #e6ebf0;
+  }
+
+  .evalPrimaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .evalRunControl form {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    align-items: end;
+  }
+
+  .evalControlIntro,
+  .evalControlFootnote {
+    grid-column: 1 / -1;
+  }
+
+  .evalRunControl label:first-of-type,
+  .evalRunControl button {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .evalDashboard {
+    gap: 12px;
+    padding: 12px 10px 22px;
+  }
+
+  .evalHeader {
+    gap: 12px;
+  }
+
+  .evalHeaderActions {
+    justify-content: flex-start;
+  }
+
+  .evalScoreLead {
+    align-items: flex-start;
+    padding: 15px;
+  }
+
+  .evalScoreRing {
+    width: 74px;
+    height: 74px;
+    flex-basis: 74px;
+  }
+
+  .evalScoreRing > div {
+    width: 58px;
+    height: 58px;
+  }
+
+  .evalScoreRing strong {
+    font-size: 18px;
+  }
+
+  .evalMetricStrip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .evalMetricStrip > div:nth-child(3) {
+    border-top: 1px solid #e8edf2;
+    border-left: 0;
+  }
+
+  .evalMetricStrip > div:nth-child(4) {
+    border-top: 1px solid #e8edf2;
+  }
+
+  .evalPerformanceBody,
+  .evalHistoryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .evalTrendSection {
+    border-right: 0;
+    border-bottom: 1px solid #e8edf2;
+  }
+
+  .evalRunControl form {
+    grid-template-columns: 1fr;
+  }
+
+  .evalControlIntro,
+  .evalControlFootnote {
+    grid-column: auto;
+  }
+
+  .evalRunControl label:first-of-type,
+  .evalRunControl button {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 430px) {
+  .evalHeaderActions {
+    width: 100%;
+  }
+
+  .evalHeaderActions button,
+  .evalHeaderActions > span {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .evalScoreLead {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .evalMetricStrip > div {
+    padding: 13px;
+  }
+
+  .evalMetricStrip strong {
+    font-size: 16px;
+  }
+}
