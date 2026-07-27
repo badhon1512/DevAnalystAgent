@@ -1,4 +1,16 @@
-from sqlalchemy import String, Boolean, Numeric, Integer, DateTime, ForeignKey, CheckConstraint, UniqueConstraint, Text, JSON
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    JSON,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import UserDefinedType
@@ -323,3 +335,283 @@ class DocumentChunk(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     document: Mapped[Document] = relationship(back_populates="chunks")
+
+
+class EvaluationRun(Base):
+    __tablename__ = "evaluation_runs"
+    __table_args__ = (
+        CheckConstraint(
+            "selected_case_count >= 0 AND attempted_case_count >= 0 "
+            "AND completed_case_count >= 0 AND passed_case_count >= 0 "
+            "AND failed_case_count >= 0 AND error_case_count >= 0",
+            name="ck_evaluation_runs_counts_nonnegative",
+        ),
+        CheckConstraint(
+            "pass_rate_percent IS NULL OR "
+            "(pass_rate_percent >= 0 AND pass_rate_percent <= 100)",
+            name="ck_evaluation_runs_pass_rate_range",
+        ),
+        CheckConstraint(
+            "average_score_percent IS NULL OR "
+            "(average_score_percent >= 0 AND average_score_percent <= 100)",
+            name="ck_evaluation_runs_average_score_range",
+        ),
+        CheckConstraint(
+            "estimated_cost_usd IS NULL OR estimated_cost_usd >= 0",
+            name="ck_evaluation_runs_estimated_cost_nonnegative",
+        ),
+        CheckConstraint(
+            "actual_cost_usd IS NULL OR actual_cost_usd >= 0",
+            name="ck_evaluation_runs_actual_cost_nonnegative",
+        ),
+        Index("ix_evaluation_runs_status_created_at", "status", "created_at"),
+        Index("ix_evaluation_runs_suite_created_at", "suite_name", "created_at"),
+        Index("ix_evaluation_runs_model_created_at", "model", "created_at"),
+    )
+
+    run_id: Mapped[uuid.UUID] = uuid_pk()
+    baseline_run_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("evaluation_runs.run_id", ondelete="SET NULL"),
+    )
+    idempotency_key: Mapped[str | None] = mapped_column(
+        String(128),
+        unique=True,
+    )
+    suite_name: Mapped[str] = mapped_column(
+        String(120),
+        default="productai-agent-evals",
+        nullable=False,
+    )
+    suite_version: Mapped[str | None] = mapped_column(String(80))
+    status: Mapped[str] = mapped_column(
+        String(32),
+        default="queued",
+        nullable=False,
+    )
+    trigger_source: Mapped[str] = mapped_column(
+        String(32),
+        default="cli",
+        nullable=False,
+    )
+    triggered_by: Mapped[str | None] = mapped_column(String(160))
+    environment: Mapped[str | None] = mapped_column(String(64))
+    git_commit_sha: Mapped[str | None] = mapped_column(String(64))
+    git_branch: Mapped[str | None] = mapped_column(String(255))
+    deployment_id: Mapped[str | None] = mapped_column(String(255))
+    ci_provider: Mapped[str | None] = mapped_column(String(64))
+    ci_run_id: Mapped[str | None] = mapped_column(String(255))
+    model_provider: Mapped[str | None] = mapped_column(String(64))
+    model: Mapped[str] = mapped_column(String(120), nullable=False)
+    prompt_version: Mapped[str | None] = mapped_column(String(80))
+    agent_version: Mapped[str | None] = mapped_column(String(80))
+    analysis_depth: Mapped[str | None] = mapped_column(String(32))
+    answer_detail: Mapped[str | None] = mapped_column(String(32))
+    configuration: Mapped[dict | None] = mapped_column(JSON)
+    selection_filters: Mapped[dict | None] = mapped_column(JSON)
+    run_metadata: Mapped[dict | None] = mapped_column("metadata", JSON)
+    selected_case_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    attempted_case_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    completed_case_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    passed_case_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    failed_case_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    error_case_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    pass_rate_percent: Mapped[float | None] = mapped_column(Numeric(5, 2))
+    average_score_percent: Mapped[float | None] = mapped_column(Numeric(5, 2))
+    estimated_cost_usd: Mapped[float | None] = mapped_column(Numeric(14, 8))
+    actual_cost_usd: Mapped[float | None] = mapped_column(Numeric(14, 8))
+    average_latency_ms: Mapped[int | None] = mapped_column(Integer)
+    minimum_latency_ms: Mapped[int | None] = mapped_column(Integer)
+    maximum_latency_ms: Mapped[int | None] = mapped_column(Integer)
+    p95_latency_ms: Mapped[int | None] = mapped_column(Integer)
+    total_input_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_output_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    manifest_uri: Mapped[str | None] = mapped_column(Text)
+    report_uri: Mapped[str | None] = mapped_column(Text)
+    error_summary: Mapped[str | None] = mapped_column(Text)
+    cancellation_requested: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+    started_at: Mapped[datetime | None] = mapped_column(DateTime)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
+
+    baseline_run: Mapped["EvaluationRun | None"] = relationship(
+        remote_side=[run_id],
+        foreign_keys=[baseline_run_id],
+    )
+    case_results: Mapped[list["EvaluationCaseResult"]] = relationship(
+        back_populates="run",
+        cascade="all, delete-orphan",
+    )
+    artifacts: Mapped[list["EvaluationArtifact"]] = relationship(
+        back_populates="run",
+        cascade="all, delete-orphan",
+    )
+
+
+class EvaluationCaseResult(Base):
+    __tablename__ = "evaluation_case_results"
+    __table_args__ = (
+        UniqueConstraint(
+            "run_id",
+            "case_id",
+            "attempt_number",
+            name="uq_evaluation_case_results_run_case_attempt",
+        ),
+        CheckConstraint(
+            "attempt_number > 0",
+            name="ck_evaluation_case_results_attempt_positive",
+        ),
+        CheckConstraint(
+            "score_percent IS NULL OR "
+            "(score_percent >= 0 AND score_percent <= 100)",
+            name="ck_evaluation_case_results_score_range",
+        ),
+        CheckConstraint(
+            "cost_usd IS NULL OR cost_usd >= 0",
+            name="ck_evaluation_case_results_cost_nonnegative",
+        ),
+        Index(
+            "ix_evaluation_case_results_run_status",
+            "run_id",
+            "status",
+        ),
+        Index(
+            "ix_evaluation_case_results_category_passed",
+            "category",
+            "passed",
+        ),
+        Index("ix_evaluation_case_results_case_id", "case_id"),
+        Index("ix_evaluation_case_results_trace_id", "trace_id"),
+    )
+
+    case_result_id: Mapped[uuid.UUID] = uuid_pk()
+    run_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("evaluation_runs.run_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    case_id: Mapped[str] = mapped_column(String(160), nullable=False)
+    case_version: Mapped[str | None] = mapped_column(String(80))
+    category: Mapped[str] = mapped_column(String(120), nullable=False)
+    sequence_number: Mapped[int | None] = mapped_column(Integer)
+    attempt_number: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(32),
+        default="queued",
+        nullable=False,
+    )
+    passed: Mapped[bool | None] = mapped_column(Boolean)
+    score_percent: Mapped[float | None] = mapped_column(Numeric(5, 2))
+    query: Mapped[str] = mapped_column(Text, nullable=False)
+    answer: Mapped[str | None] = mapped_column(Text)
+    final_answer: Mapped[str | None] = mapped_column(Text)
+    reference_source: Mapped[str | None] = mapped_column(Text)
+    expected_tools: Mapped[list[str] | None] = mapped_column(JSON)
+    forbidden_tools: Mapped[list[str] | None] = mapped_column(JSON)
+    expected_answer_contains: Mapped[list[str] | None] = mapped_column(JSON)
+    expected_answer_terms: Mapped[list[list[str]] | None] = mapped_column(JSON)
+    tools_used: Mapped[list[str] | None] = mapped_column(JSON)
+    tool_call_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    checks: Mapped[list[dict] | None] = mapped_column(JSON)
+    failed_checks: Mapped[list[dict] | None] = mapped_column(JSON)
+    trace_id: Mapped[str | None] = mapped_column(String(160))
+    guardrail_status: Mapped[str | None] = mapped_column(String(64))
+    model: Mapped[str | None] = mapped_column(String(120))
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    cost_usd: Mapped[float | None] = mapped_column(Numeric(14, 8))
+    error_stage: Mapped[str | None] = mapped_column(String(64))
+    error_type: Mapped[str | None] = mapped_column(String(160))
+    error_message: Mapped[str | None] = mapped_column(Text)
+    raw_result_uri: Mapped[str | None] = mapped_column(Text)
+    score_result_uri: Mapped[str | None] = mapped_column(Text)
+    result_metadata: Mapped[dict | None] = mapped_column("metadata", JSON)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
+
+    run: Mapped[EvaluationRun] = relationship(back_populates="case_results")
+    artifacts: Mapped[list["EvaluationArtifact"]] = relationship(
+        back_populates="case_result",
+    )
+
+
+class EvaluationArtifact(Base):
+    __tablename__ = "evaluation_artifacts"
+    __table_args__ = (
+        CheckConstraint(
+            "size_bytes IS NULL OR size_bytes >= 0",
+            name="ck_evaluation_artifacts_size_nonnegative",
+        ),
+        Index(
+            "ix_evaluation_artifacts_run_type",
+            "run_id",
+            "artifact_type",
+        ),
+        Index(
+            "ix_evaluation_artifacts_case_result_id",
+            "case_result_id",
+        ),
+    )
+
+    artifact_id: Mapped[uuid.UUID] = uuid_pk()
+    run_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("evaluation_runs.run_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    case_result_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "evaluation_case_results.case_result_id",
+            ondelete="CASCADE",
+        ),
+    )
+    artifact_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    storage_provider: Mapped[str] = mapped_column(
+        String(32),
+        default="local",
+        nullable=False,
+    )
+    uri: Mapped[str] = mapped_column(Text, nullable=False)
+    content_type: Mapped[str | None] = mapped_column(String(160))
+    size_bytes: Mapped[int | None] = mapped_column(Integer)
+    checksum_sha256: Mapped[str | None] = mapped_column(String(64))
+    is_sensitive: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        nullable=False,
+    )
+    retention_expires_at: Mapped[datetime | None] = mapped_column(DateTime)
+    artifact_metadata: Mapped[dict | None] = mapped_column("metadata", JSON)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
+
+    run: Mapped[EvaluationRun] = relationship(back_populates="artifacts")
+    case_result: Mapped[EvaluationCaseResult | None] = relationship(
+        back_populates="artifacts",
+    )
