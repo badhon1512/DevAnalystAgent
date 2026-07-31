@@ -40,6 +40,12 @@ Generate a business report from data evidence and attach it to the chat.
 
 For large analytics requests, the system should aggregate in the data layer before plotting. For example, "plot all sales for the last five years" should not send millions of raw rows to the LLM. PostgreSQL groups the data by day/week/month, Python plots the compact result, and the LLM explains the chart.
 
+## Health Check
+
+The backend exposes a lightweight machine-readable health endpoint for deployment checks and monitoring:
+
+- `GET /health` returns `200` with `{ "status": "ok", "service": "dev-analyst-agent" }`.
+
 ## Agent Architecture
 
 ProductAI Core is designed as a controlled agentic workflow rather than a single prompt-response call.
@@ -191,7 +197,7 @@ LLM tool calls and usage:
 - `get_inventory_schema`: inspects data tables, columns, keys, indexes, and optional row counts through MCP.
 - `sql_db_query_checker`: validates SQL before execution.
 - `run_readonly_inventory_sql`: executes approved read-only `SELECT`/`WITH` queries through MCP for inventory, sales, returns, products, and warehouses.
-- `search_company_documents`: searches indexed company policies, SOPs, return rules, supplier terms, and warehouse playbooks through MCP-backed RAG.
+- `search_company_documents`: searches indexed company policies, SOPs, supplier terms, and warehouse playbooks through MCP-backed RAG.
 - `execute_python_code_tool`: performs derived calculations, transformations, trend analysis, and chart generation after the required data has been retrieved.
 - `save_chart_tool`: saves a base64 PNG chart when the agent needs to attach a chart artifact.
 - `generate_report_tool`: creates a saved report only when the user explicitly asks for a report, export, downloadable summary, or saved document.
