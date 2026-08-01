@@ -29,20 +29,27 @@ export default function StorefrontProductDetailPage() {
   const [err, setErr] = useState("");
 
   useEffect(() => {
+    let active = true;
+    setProduct(null);
+
     async function load() {
       setLoading(true);
       setErr("");
       try {
         const data = await api.product(params.productId);
-        setProduct(data);
+        if (active) setProduct(data);
       } catch (e: unknown) {
-        setErr(e instanceof Error ? e.message : "Failed to load product");
+        if (active) setErr(e instanceof Error ? e.message : "Failed to load product");
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
 
     void load();
+
+    return () => {
+      active = false;
+    };
   }, [params.productId]);
 
   const primaryImage = product?.images.find((image) => image.is_primary) ?? product?.images[0];
