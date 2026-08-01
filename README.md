@@ -20,7 +20,7 @@ ProductAI Core combines agent orchestration, MCP-backed tools, guarded read-only
 - **Customer Support Agent:** answers product, return, refund, fulfillment, and policy questions using trusted product and company knowledge.
 - **Tool-first workflow:** the model plans, while MCP/tools execute schema inspection, read-only SQL, RAG retrieval, analytics, charting, reports, and scoped file actions.
 - **Grounded outputs:** answers are based on inspected schemas, retrieved rows, trusted documents, sandboxed Python results, and saved artifacts.
-- **Interpretable execution:** each response can expose selected tools, arguments, evidence, latency, token usage, estimated cost, and trace IDs.
+- **Interpretable execution:** each response can expose selected tools, arguments, evidence, latency, token usage, estimated cost, guardrail status, and trace IDs.
 - **Extensible backend:** organizations can add custom MCP tools, data adapters, knowledge sources, and UI modules without rewriting the agent core.
 
 ## What The Agent Can Do
@@ -191,7 +191,7 @@ LLM tool calls and usage:
 - `get_inventory_schema`: inspects data tables, columns, keys, indexes, and optional row counts through MCP.
 - `sql_db_query_checker`: validates SQL before execution.
 - `run_readonly_inventory_sql`: executes approved read-only `SELECT`/`WITH` queries through MCP for inventory, sales, returns, products, and warehouses.
-- `search_company_documents`: searches indexed company policies, SOPs, supplier terms, and warehouse playbooks through MCP-backed RAG.
+- `search_company_documents`: searches indexed company policies, SOPs, return rules, supplier terms, and warehouse playbooks through MCP-backed RAG.
 - `execute_python_code_tool`: performs derived calculations, transformations, trend analysis, and chart generation after the required data has been retrieved.
 - `save_chart_tool`: saves a base64 PNG chart when the agent needs to attach a chart artifact.
 - `generate_report_tool`: creates a saved report only when the user explicitly asks for a report, export, downloadable summary, or saved document.
