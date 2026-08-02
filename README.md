@@ -13,6 +13,12 @@ The system keeps execution transparent with guardrails, tool traces, token usage
 
 ProductAI Core combines agent orchestration, MCP-backed tools, guarded read-only SQL, PostgreSQL/pgvector RAG, sandboxed Python analytics, report generation, scoped file tools, and a Next.js ProductAI merchant UI with visible traces.
 
+<p align="center">
+  <img src="frontend/public/generated/productai_agent_motion.gif" alt="ProductAI agentic workflow overview" width="100%" />
+</p>
+
+The animation summarizes the full ProductAI loop: users ask business questions by voice or natural language, the multi-agent core orchestrates trusted data and tools, and the system returns traceable insights, charts, and reports.
+
 ## Product Overview
 
 - **COSS and self-hosted:** designed so small organizations can run the core locally and integrate it with their own data, documents, and internal systems.
@@ -45,6 +51,17 @@ For large analytics requests, the system should aggregate in the data layer befo
 ProductAI Core is designed as a controlled agentic workflow rather than a single prompt-response call.
 
 **Expanded agentic capability map**
+
+<p align="center">
+  <a href="frontend/public/generated/productai_agent_full_graph.png">
+    <img src="frontend/public/generated/productai_agent_full_graph.png" alt="ProductAI expanded agentic capability map" width="100%" />
+  </a>
+</p>
+
+<p align="center"><sub>Click the graph to open the full-resolution view.</sub></p>
+
+<details>
+<summary>View Mermaid source</summary>
 
 ```mermaid
 flowchart LR
@@ -159,6 +176,8 @@ flowchart LR
     classDef files fill:#e0f2fe,stroke:#0284c7,color:#082f49,stroke-width:1.5px
     classDef utility fill:#fef9c3,stroke:#ca8a04,color:#422006,stroke-width:1.5px
 ```
+
+</details>
 
 The expanded figure shows the full agentic surface: MCP tools, SQL checker, read-only SQL execution, document search, weather context, research sub-agent, Python sandbox, chart/report tools, and scoped frontend file tools. Solid edges represent direct workflow edges; dotted edges represent conditional routes.
 
