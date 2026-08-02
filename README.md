@@ -1,33 +1,45 @@
 # ProductAI Core
 
-**ProductAI Core** is a COSS, self-hosted agentic commerce platform for small teams that want to connect AI agents to their own business data, documents, code workspace, and internal tools.
+**A self-hosted COSS multi-agent platform that turns commerce data and trusted company knowledge into traceable analysis, artifacts, and support answers.**
 
-It is built as a reusable backend-first product, not only a demo chatbot. Teams can run it locally, point it at their data, index trusted company knowledge, and use agentic workflows for analytics, demand research, reporting, customer support knowledge, and operational decision support.
+**Live deployment:** [Open the ProductAI demo](https://product-ai.up.railway.app/) on Railway.
 
-The current ProductAI commerce demo highlights practical roles that ProductAI can perform:
-
-- **DevAnalyst Agent:** performs junior software engineering and data analysis tasks, including merchant questions about revenue, sales, demand, inventory risk, returns, branch performance, charts, and business reports.
-- **Customer Support Agent:** uses product context and trusted policy documents to answer product, return, refund, fulfillment, and support questions.
-
-The system keeps execution transparent with guardrails, tool traces, token usage, estimated cost, response metadata, and generated artifacts that can be reviewed after each answer.
-
-ProductAI Core combines agent orchestration, MCP-backed tools, guarded read-only SQL, PostgreSQL/pgvector RAG, sandboxed Python analytics, report generation, scoped file tools, and a Next.js ProductAI merchant UI with visible traces.
+ProductAI Core is a reusable backend-first product, not only a demo chatbot. Small teams can run it locally, connect it to their own databases, documents, code workspace, and internal tools, and use controlled agentic workflows without hiding execution behind a single opaque model response.
 
 <p align="center">
   <img src="frontend/public/generated/productai_agent_motion.gif" alt="ProductAI agentic workflow overview" width="100%" />
 </p>
 
-The animation summarizes the full ProductAI loop: users ask business questions by voice or natural language, the multi-agent core orchestrates trusted data and tools, and the system returns traceable insights, charts, and reports.
+The animation summarizes the ProductAI loop: users ask business questions by voice or natural language, the multi-agent core orchestrates trusted data and tools, and the system returns grounded insights, charts, reports, and visible execution traces.
 
-## Product Overview
+## Problem
 
-- **COSS and self-hosted:** designed so small organizations can run the core locally and integrate it with their own data, documents, and internal systems.
-- **DevAnalyst Agent:** performs software and data analysis tasks, reasons over product, inventory, branch, sales, revenue, returns, market-signal, weather, and policy data, and can inspect scoped frontend files for safe UI work.
-- **Customer Support Agent:** answers product, return, refund, fulfillment, and policy questions using trusted product and company knowledge.
-- **Tool-first workflow:** the model plans, while MCP/tools execute schema inspection, read-only SQL, RAG retrieval, analytics, charting, reports, and scoped file actions.
-- **Grounded outputs:** answers are based on inspected schemas, retrieved rows, trusted documents, sandboxed Python results, and saved artifacts.
-- **Interpretable execution:** each response can expose selected tools, arguments, evidence, latency, token usage, estimated cost, guardrail status, and trace IDs.
-- **Extensible backend:** organizations can add custom MCP tools, data adapters, knowledge sources, and UI modules without rewriting the agent core.
+Commerce teams repeatedly need data-analysis and customer-support work: querying revenue and inventory, identifying demand or stock risk, explaining product and return policies, and preparing charts or reports. Without automation, each request may require a data analyst or customer-support specialist to gather evidence from databases, documents, files, and external signals before producing an answer.
+
+The challenge is not simply generating text:
+
+- **Fragmented evidence:** sales, inventory, returns, products, branches, and policies live in different systems.
+- **Unsafe automation:** unrestricted model-generated SQL, Python, or file operations create security and reliability risks.
+- **Low trust:** answers are difficult to review without evidence, tool history, guardrail status, latency, tokens, and cost.
+
+## Goal
+
+ProductAI Core aims to automate the repeatable parts of data analysis and customer support without removing organizational control or human review. It provides a reusable agent foundation that teams can self-host and adapt to their domain.
+
+The system is designed to:
+
+- Connect private structured data, trusted documents, code workspaces, and internal tools;
+- Turn voice or natural-language requests into grounded analysis, support answers, charts, reports, and operational recommendations;
+- Keep planning, execution boundaries, artifacts, traces, and evaluation results visible.
+
+## Solution
+
+ProductAI combines multi-agent orchestration, MCP-backed tools, guarded read-only SQL, PostgreSQL/pgvector RAG, sandboxed Python analytics, report generation, scoped file tools, persisted conversations, and a Next.js merchant interface.
+
+- **DevAnalyst Agent:** automates recurring junior data-analysis and software tasks across revenue, sales, demand, inventory risk, returns, branch performance, market signals, weather context, charts, reports, and scoped UI work.
+- **Customer Support Agent:** automates product and policy research for return, refund, fulfillment, and support questions using trusted product data and company documents.
+
+The model plans and orchestrates; approved tools inspect evidence and perform deterministic work. Outputs remain grounded in schemas, rows, document chunks, Python results, and saved artifacts. Guardrails, read-only access, sandboxing, tool traces, latency, tokens, cost, and repeatable evaluations make the workflow reviewable. Because the core is COSS, self-hosted, and extensible, organizations can add their own MCP tools, adapters, knowledge sources, and UI modules.
 
 ## What The Agent Can Do
 
@@ -50,29 +62,21 @@ For large analytics requests, the system should aggregate in the data layer befo
 
 ProductAI Core is designed as a controlled agentic workflow rather than a single prompt-response call.
 
-**Expanded agentic capability map**
-
-<p align="center">
-  <a href="frontend/public/generated/productai_agent_full_graph.png">
-    <img src="frontend/public/generated/productai_agent_full_graph.png" alt="ProductAI expanded agentic capability map" width="100%" />
-  </a>
-</p>
-
-<p align="center"><sub>Click the graph to open the full-resolution view.</sub></p>
-
-<details>
-<summary>View Mermaid source</summary>
+**Simplified agentic capability map**
 
 ```mermaid
-flowchart LR
+flowchart TB
     start(("START")):::startstate
-    user["User request"]:::entry
+    user[/"User request"/]:::entry
     guardrails{"guardrail_check<br/>valid query?"}:::condition
-    orchestrator["ProductAI orchestrator<br/>DevAnalyst agent"]:::agent
-    route_tools{"route_tool_calls<br/>tool calls?"}:::condition
-    router["mcp_and_tool_calls<br/>Agentic tool execution layer"]:::router
-    tool_result["ToolMessage results<br/>returned to messages"]:::router
-    answer["Final answer<br/>grounded response + trace"]:::entry
+    orchestrator(["ProductAI orchestrator<br/>plan, route and explain"]):::agent
+    answer(["Final answer<br/>grounded response + trace"]):::entry
+    postgres[("PostgreSQL + pgvector<br/>application persistence")]:::database
+    trace_store["Persist trace + evaluation metadata"]:::utility
+    interpretability["Interpretability<br/>tool trace / evidence / decisions"]:::observability
+    cost_monitor["Cost monitoring<br/>tokens / latency / estimated cost"]:::observability
+    conversation_trace["conversation_messages.trace<br/>(JSON)"]:::other
+    evaluation_trace["evaluation_case_results.trace_id"]:::other
     blocked["Blocked response<br/>guardrail rejection"]:::guardrail
     end_state(("END")):::endstate
 
@@ -80,106 +84,107 @@ flowchart LR
     user --> guardrails
     guardrails -.->|valid| orchestrator
     guardrails -.->|invalid| blocked
-    orchestrator --> route_tools
-    route_tools -.->|tool calls| router
-    route_tools -.->|no tool calls| answer
-    tool_result --> orchestrator
+    orchestrator --> answer
+    answer --> postgres
+    postgres --> trace_store
+    trace_store --- interpretability
+    trace_store --- cost_monitor
+    trace_store --- conversation_trace
+    trace_store --- evaluation_trace
+    conversation_trace ~~~ evaluation_trace
+    trace_store --> end_state
     blocked --> end_state
-    answer --> end_state
 
-    subgraph mcp_group["MCP server tools"]
-        tool_get_inventory_schema["get inventory schema"]:::mcp
-        tool_get_weather_forecast["get weather forecast"]:::mcp
-        tool_run_readonly_inventory_sql["run readonly inventory sql"]:::mcp
-        tool_search_company_documents["search company documents"]:::mcp
-        tool_tracestock_mcp_status["tracestock mcp status"]:::mcp
+    subgraph tracing_block["Tracing DB"]
+        postgres
+        trace_store
+        interpretability
+        cost_monitor
+        conversation_trace
+        evaluation_trace
     end
 
-    router --> tool_get_inventory_schema
-    tool_get_inventory_schema --> tool_result
-    router --> tool_get_weather_forecast
-    tool_get_weather_forecast --> tool_result
-    router --> tool_run_readonly_inventory_sql
-    tool_run_readonly_inventory_sql --> tool_result
-    router --> tool_search_company_documents
-    tool_search_company_documents --> tool_result
-    router --> tool_tracestock_mcp_status
-    tool_tracestock_mcp_status --> tool_result
+    subgraph capability_layer["Agent capability layer"]
+        direction TB
+        tool_hub{{"Approved capability gateway"}}:::router
 
-    subgraph research_group["Research sub-agent"]
-        tool_researcher_agent["researcher agent"]:::research
+        subgraph mcp_block["MCP"]
+            direction TB
+            mcp_data["Secure commerce data"]:::mcp
+            get_schema["get_inventory_schema"]:::other
+            run_sql["run_readonly_inventory_sql"]:::other
+            mcp_context["Knowledge + external context"]:::mcp
+            search_docs["search_company_documents"]:::other
+            weather["get_weather_forecast"]:::other
+            mcp_status["tracestock_mcp_status"]:::other
+            mcp_data --- get_schema
+            mcp_data --- run_sql
+            get_schema ~~~ run_sql
+            mcp_context --- search_docs
+            mcp_context --- weather
+            mcp_context --- mcp_status
+            search_docs ~~~ weather
+            weather ~~~ mcp_status
+            mcp_data ~~~ mcp_context
+        end
+
+        subgraph tools_block["Tools"]
+            direction TB
+            research_group["Research intelligence"]:::research
+            researcher["researcher_agent"]:::other
+            analysis_group["Analysis + artifacts"]:::analysis
+            python_tool["execute_python_code_tool"]:::other
+            chart_tool["save_chart_tool"]:::other
+            report_tool["generate_report_tool"]:::other
+            workspace_group["Workspace + utilities"]:::files
+            read_tool["read_file"]:::other
+            write_tool["write_file"]:::other
+            list_tool["list_directory"]:::other
+            datetime_tool["datetime_now"]:::other
+            research_group --- researcher
+            analysis_group --- python_tool
+            analysis_group --- chart_tool
+            analysis_group --- report_tool
+            python_tool ~~~ chart_tool
+            chart_tool ~~~ report_tool
+            workspace_group --- read_tool
+            workspace_group --- write_tool
+            workspace_group --- list_tool
+            workspace_group --- datetime_tool
+            read_tool ~~~ write_tool
+            write_tool ~~~ list_tool
+            list_tool ~~~ datetime_tool
+            research_group ~~~ analysis_group
+            analysis_group ~~~ workspace_group
+        end
+
+        tool_hub --- mcp_data
+        tool_hub --- mcp_context
+        tool_hub --- research_group
+        tool_hub --- analysis_group
+        tool_hub --- workspace_group
+        mcp_context ~~~ research_group
     end
 
-    router --> tool_researcher_agent
-    tool_researcher_agent --> tool_result
-
-    subgraph analysis_group["Analytics and artifacts"]
-        tool_execute_python_code_tool["execute python code tool"]:::analysis
-        tool_generate_report_tool["generate report tool"]:::analysis
-        tool_save_chart_tool["save chart tool"]:::analysis
-    end
-
-    router --> tool_execute_python_code_tool
-    tool_execute_python_code_tool --> tool_result
-    router --> tool_generate_report_tool
-    tool_generate_report_tool --> tool_result
-    router --> tool_save_chart_tool
-    tool_save_chart_tool --> tool_result
-
-    subgraph files_group["Frontend file tools"]
-        tool_list_directory["list directory"]:::files
-        tool_read_file["read file"]:::files
-        tool_write_file["write file"]:::files
-    end
-
-    router --> tool_list_directory
-    tool_list_directory --> tool_result
-    router --> tool_read_file
-    tool_read_file --> tool_result
-    router --> tool_write_file
-    tool_write_file --> tool_result
-
-    subgraph utility_group["Utility and validation"]
-        tool_datetime_now["datetime now"]:::utility
-        tool_sql_db_query_checker["sql db query checker"]:::utility
-    end
-
-    router --> tool_datetime_now
-    tool_datetime_now --> tool_result
-    router --> tool_sql_db_query_checker
-    tool_sql_db_query_checker --> tool_result
-
-    subgraph research_inner["Researcher agent internal loop"]
-        research_plan["Focused research plan"]:::research
-        research_db["Data schema + read-only SQL"]:::mcp
-        research_weather["Weather and season context"]:::mcp
-        research_brief["Concise evidence brief"]:::research
-        research_plan --> research_db
-        research_plan --> research_weather
-        research_db --> research_brief
-        research_weather --> research_brief
-    end
-
-    tool_researcher_agent --> research_plan
-    research_brief --> tool_result
+    orchestrator <-->|tool calls + observations| tool_hub
+    datetime_tool ~~~ answer
 
     classDef startstate fill:#2563eb,stroke:#1d4ed8,color:#ffffff,stroke-width:2px
     classDef endstate fill:#0f172a,stroke:#0f172a,color:#ffffff,stroke-width:2px
     classDef entry fill:#e0f2fe,stroke:#0284c7,color:#082f49,stroke-width:1.5px
     classDef condition fill:#fff7ed,stroke:#f97316,color:#431407,stroke-width:2px
     classDef guardrail fill:#fef3c7,stroke:#f59e0b,color:#3b2600,stroke-width:1.5px
-    classDef agent fill:#eef2ff,stroke:#4f46e5,color:#111827,stroke-width:2px
-    classDef router fill:#f8fafc,stroke:#475569,color:#0f172a,stroke-width:1.5px
-    classDef mcp fill:#dcfce7,stroke:#16a34a,color:#052e16,stroke-width:1.5px
-    classDef research fill:#f3e8ff,stroke:#9333ea,color:#2e1065,stroke-width:1.5px
-    classDef analysis fill:#ffe4e6,stroke:#e11d48,color:#4c0519,stroke-width:1.5px
-    classDef files fill:#e0f2fe,stroke:#0284c7,color:#082f49,stroke-width:1.5px
+    classDef agent fill:#e0e7ff,stroke:#4338ca,color:#111827,stroke-width:2.5px
+    classDef router fill:#e2e8f0,stroke:#334155,color:#111827,stroke-width:2px
+    classDef mcp fill:#d1fae5,stroke:#15803d,color:#111827,stroke-width:2px
+    classDef research fill:#ede9fe,stroke:#7e22ce,color:#111827,stroke-width:2px
+    classDef analysis fill:#ffe4e6,stroke:#be123c,color:#111827,stroke-width:2px
+    classDef files fill:#dbeafe,stroke:#0369a1,color:#111827,stroke-width:2px
     classDef utility fill:#fef9c3,stroke:#ca8a04,color:#422006,stroke-width:1.5px
+    classDef other fill:#e2e8f0,stroke:#475569,color:#111827,stroke-width:1.5px
+    classDef database fill:#ecfeff,stroke:#0e7490,color:#083344,stroke-width:2px
+    classDef observability fill:#f5f3ff,stroke:#7c3aed,color:#2e1065,stroke-width:1.5px
 ```
-
-</details>
-
-The expanded figure shows the full agentic surface: MCP tools, SQL checker, read-only SQL execution, document search, weather context, research sub-agent, Python sandbox, chart/report tools, and scoped frontend file tools. Solid edges represent direct workflow edges; dotted edges represent conditional routes.
 
 Generated graph assets are also available here:
 
@@ -190,18 +195,15 @@ Generated graph assets are also available here:
 
 ![ProductAI compact runtime graph](backend/agent_graph.png)
 
-The compact graph shows the main runtime loop: user request, guardrail validation, model reasoning, approved tool execution, and final grounded response.
+Runtime responsibilities:
 
-Main agent responsibilities:
+- Validate every request before capability use;
+- Orchestrate SQL, MCP, RAG, research, Python, chart, report, and scoped file tools;
+- Keep structured analysis grounded in read-only data and policy answers grounded in retrieved document evidence;
+- Return reviewable answers and artifacts with tool, latency, token, cost, guardrail, and trace metadata.
 
-- Route every request through a guardrail before tool use.
-- Choose between SQL tools, MCP tools, RAG tools, Python analytics, file tools, chart tools, and report tools.
-- Keep structured business analysis grounded in schema inspection and read-only SQL.
-- Keep company policy answers grounded in retrieved document chunks.
-- Use Python for computation and visualization after data has been prepared.
-- Return final answers with visible trace metadata, including tool usage, latency, token usage, and estimated cost.
-- Serve as a **DevAnalyst Agent** for junior software engineering, data analysis, charts, reports, and demand/stock insights.
-- Serve as a **Customer Support Agent** for product, return, refund, fulfillment, and policy answers.
+<details>
+<summary>Tool catalog</summary>
 
 LLM tool calls and usage:
 
@@ -216,6 +218,8 @@ LLM tool calls and usage:
 - `generate_report_tool`: creates a saved report only when the user explicitly asks for a report, export, downloadable summary, or saved document.
 - `read_file`, `write_file`, `list_directory`: scoped frontend workspace tools for reading, updating, and listing files inside the allowed frontend folder.
 
+</details>
+
 Tool and safety design:
 
 - **MCP boundary:** selected capabilities are exposed through the MCP server, then wrapped as LangChain tools for the LangGraph agent.
@@ -228,37 +232,132 @@ Tool and safety design:
 
 The agentic RAG layer is used for unstructured company knowledge, not live transactional facts. The agent decides when retrieval is needed, calls the company-document search tool, evaluates retrieved evidence, and uses document context only when it supports the answer.
 
-```text
-Company documents
-  -> safe ingestion from configured knowledge folder
-  -> chunking
-  -> embeddings
-  -> PostgreSQL + pgvector document_chunks
-  -> retrieval through search_company_documents
-  -> cited policy-aware answer
+<p align="center">
+  <a href="frontend/public/generated/productai_rag_pipeline.png">
+    <img src="frontend/public/generated/productai_rag_pipeline.png" alt="ProductAI agentic RAG pipeline" width="100%" />
+  </a>
+</p>
+
+<p align="center"><sub>Steps 1-5 run vertically on the left; the Step 6 agentic workflow runs vertically on the right. Click to open the full-resolution graph.</sub></p>
+
+<details>
+<summary>View Mermaid source</summary>
+
+```mermaid
+flowchart TB
+    s3[("Step 1 - Source<br/>S3 Knowledge Documents")]:::source
+    load{{"Step 2 - Ingest<br/>Secure Load + Validation"}}:::guard
+    chunk["Step 3 - Prepare<br/>Semantic Chunking + Metadata"]:::process
+    embed["Step 4 - Embed<br/>Vector Embedding Generation"]:::model
+    vector_db[("Step 5 - Index<br/>PostgreSQL + pgvector<br/>Knowledge Index")]:::database
+
+    planner(["Agentic Query Planning"]):::agent
+    retrieve["Hybrid Retrieval<br/>pgvector + keyword"]:::retrieval
+    grade{"Evidence Grading"}:::condition
+    synthesis(["Grounded Generation<br/>citations + policy context"]):::agent
+    telemetry["Interpretability + Cost<br/>trace / scores / tokens / latency"]:::trace
+
+    subgraph rag_pipeline[" "]
+        direction LR
+        subgraph foundation["Knowledge ingestion and indexing"]
+            direction TB
+            s3 --> load --> chunk --> embed --> vector_db
+        end
+
+        subgraph improvements["Step 6 - Agentic retrieval and generation"]
+            direction TB
+            planner --> retrieve --> grade
+            grade -. sufficient .-> synthesis --> telemetry
+            grade -. insufficient / rewrite .-> planner
+        end
+        vector_db ==>|Indexed knowledge| retrieve
+    end
+
+    classDef source fill:transparent,stroke:#f97316,color:#737373,stroke-width:2.2px,font-weight:600
+    classDef guard fill:transparent,stroke:#f59e0b,color:#737373,stroke-width:2.2px,font-weight:600
+    classDef process fill:transparent,stroke:#737373,color:#737373,stroke-width:2px,font-weight:600
+    classDef model fill:transparent,stroke:#6366f1,color:#737373,stroke-width:2px,font-weight:600
+    classDef database fill:transparent,stroke:#14b8a6,color:#737373,stroke-width:2.4px,font-weight:600
+    classDef agent fill:transparent,stroke:#8b5cf6,color:#737373,stroke-width:2.2px,font-weight:600
+    classDef retrieval fill:transparent,stroke:#22c55e,color:#737373,stroke-width:2px,font-weight:600
+    classDef condition fill:transparent,stroke:#f97316,color:#737373,stroke-width:2.2px,font-weight:600
+    classDef trace fill:transparent,stroke:#737373,color:#737373,stroke-width:2px,font-weight:600
+
+    style foundation fill:transparent,stroke:#94a3b8,stroke-width:1.5px,color:#737373,font-weight:600
+    style improvements fill:transparent,stroke:#94a3b8,stroke-width:1.5px,color:#737373,font-weight:600
+    style rag_pipeline fill:transparent,stroke:transparent
+    linkStyle default stroke:#737373,stroke-width:2px,color:#737373
 ```
+
+</details>
+
+Generated RAG graph assets:
+
+- Mermaid source: [frontend/public/generated/productai_rag_pipeline.mmd](frontend/public/generated/productai_rag_pipeline.mmd)
+- Rendered PNG: [frontend/public/generated/productai_rag_pipeline.png](frontend/public/generated/productai_rag_pipeline.png)
+- Local browser view: `http://localhost:3000/generated/productai_rag_pipeline.html`
 
 Agentic RAG responsibilities:
 
-- Search company policies, SOPs, supplier rules, return policies, warehouse playbooks, and internal FAQs.
-- Keep document retrieval separate from SQL analysis.
-- Store documents and chunks in PostgreSQL-backed tables.
-- Use pgvector for semantic retrieval when embeddings are available.
-- Fall back to keyword search for local demos if embeddings are unavailable.
-- Return source titles, paths, versions, departments, scores, and chunk content for grounded answers.
-- Support mixed SQL + RAG answers when a question needs both live business data and policy context.
+- Ingest versioned Amazon S3 documents, enrich semantic chunks, generate embeddings, and index them in PostgreSQL/pgvector with keyword fallback;
+- Retrieve policies, SOPs, supplier rules, return guidance, and warehouse playbooks with source title, path, version, department, score, and chunk evidence;
+- Keep document retrieval separate from live SQL analysis, then combine both evidence types when a question requires them.
 
-## Key Capabilities
+## Agent Evaluation
 
-- **MCP tool layer:** selected backend capabilities are exposed through a local MCP server and called by LangChain tool wrappers.
-- **Read-only SQL intelligence:** schema inspection, query checking, and guarded SQL execution for structured business data.
-- **Agentic RAG knowledge layer:** the agent retrieves company documents when needed and grounds policy/SOP answers in pgvector-backed evidence.
-- **Python analytics sandbox:** calculations, transformations, and chart generation happen outside the LLM.
-- **Report and chart artifacts:** generated outputs are saved and surfaced in the chat UI.
-- **Traceability and observability:** every important agent step can be inspected through trace metadata, including tool usage, token usage, latency, and estimated cost.
-- **Conversation persistence:** chat threads and messages are stored in PostgreSQL and can be rehydrated after restart.
-- **Large-data strategy:** raw data stays in the data layer; compact aggregates are sent to Python/LLM for charting and explanation.
-- **Optional voice input:** browser recording can be transcribed through the FastAPI backend when voice support is enabled.
+Agentic systems need more than a convincing demo: they need repeatable evidence that the model selected appropriate tools, avoided unsafe capabilities, returned required facts, and completed the task within a reasonable execution budget. ProductAI therefore includes an application-specific benchmark and persisted evaluation workflow.
+
+The current suite contains **40 validated single-turn cases across 13 capability categories**. It covers RAG policy retrieval, SQL analytics, schema discovery, combined SQL + RAG reasoning, research and weather orchestration, Python analytics, chart and report generation, grounded limitations, MCP connectivity, utility tools, no-tool responses, and guardrail behavior.
+
+```text
+cases.jsonl -> validate -> select -> budget preflight -> execute /chat
+            -> capture trace -> deterministic score -> persist run
+            -> batch manifest + Markdown report + evaluation dashboard
+```
+
+Each case defines a transparent behavioral contract:
+
+| Evaluation dimension | What is checked |
+|---|---|
+| Expected tools | Required tools were selected for the task. |
+| Forbidden tools | Unnecessary or unsafe tools were not called. |
+| Required evidence | Expected normalized facts or flexible term groups appear in the answer. |
+| Tool efficiency | Total tool calls stay within the case-specific limit. |
+
+A case passes only when all four checks pass. Batch reports additionally aggregate pass rate, average score, execution errors, tools used, agent latency, token usage, and known trace cost. The budget check is a pre-run estimate that prevents accidental oversized batches; it is not a provider billing cap.
+
+### Verified result snapshot
+
+The latest saved local run evaluates the six guardrail cases with `gpt-5.4-nano`, quick analysis, and concise answers:
+
+| Scope | Cases | Passed | Average score | Errors | Average latency | Known trace cost |
+|---|---:|---:|---:|---:|---:|---:|
+| Guardrail subset | 6 | 6 | 100% | 0 | 833 ms | $0.000633 |
+
+This is a verified guardrail-subset result, not a claimed full-suite score. Full and filtered runs remain reproducible through the CLI and evaluation dashboard.
+
+Evaluation history is persisted in PostgreSQL through `evaluation_runs`, `evaluation_case_results`, and `evaluation_artifacts`. Raw responses, traces, score files, manifests, and reviewed Markdown reports remain independently inspectable, making failures easier to reproduce instead of reducing them to one unexplained score.
+
+The merchant evaluation dashboard at `/merchant/evaluations` is visible to users for run history and quality trends. Starting a new evaluation is restricted to admin mode, while the backend also exposes a composable CLI:
+
+```powershell
+cd backend
+
+# Inspect validated cases
+uv run python -m evals list
+
+# Preview selection and estimated cost without API calls
+uv run python -m evals batch --category rag_policy --limit 3
+
+# Execute a reviewed batch
+uv run python -m evals batch `
+  --category rag_policy `
+  --limit 3 `
+  --budget-usd 0.30 `
+  --execute
+```
+
+Detailed evaluation design, case fields, artifact flow, and debugging guidance are documented in [backend/evals/README.md](backend/evals/README.md).
 
 ## Project Structure
 
@@ -267,11 +366,13 @@ The project follows a layered architecture so the UI, API transport, agent reaso
 **Frontend Layer**
 - `frontend/components/Chat.tsx`: threaded chat experience backed by data-persisted conversation APIs.
 - `frontend/components/ChatMessage.tsx`: response rendering, report cards, chart cards, and expandable agent trace UI.
+- `frontend/app/merchant/evaluations/page.tsx`: evaluation history, category quality, run details, and admin-controlled benchmark execution.
 
 **API Layer**
 - `backend/app/main.py`: FastAPI application entrypoint with chat, trace metadata, report/chart links, and conversation rehydration.
 - `backend/app/api/conversations.py`: data-backed conversation and message APIs.
 - `backend/app/api/documents.py`: document indexing, listing, deletion, and search APIs.
+- `backend/app/api/evaluations.py`: public evaluation results and admin-protected run orchestration APIs.
 
 **Agent Orchestration Layer**
 - `backend/app/agents/agent.py`: LangGraph workflow that routes between reasoning, tools, reports, and final responses.
@@ -292,26 +393,15 @@ The project follows a layered architecture so the UI, API transport, agent reaso
 - `backend/app/rag`: document chunking, embeddings, ingestion, vector retrieval, and keyword fallback.
 - `backend/app/knowledge`: source company documents used by the agentic RAG pipeline.
 
+**Evaluation Layer**
+- `backend/evals`: validated benchmark cases, execution, deterministic scoring, batch reporting, and CLI orchestration.
+- `backend/app/services/evaluations.py`: persisted run summaries, category metrics, case details, latency, token, and cost aggregation.
+- `evaluation_runs`, `evaluation_case_results`, `evaluation_artifacts`: durable evaluation history and artifact metadata.
+
 **Infrastructure Layer**
 - `docker-compose.yml`: local PostgreSQL/pgvector service.
 - `backend/alembic`: database migrations.
 - `HOW_TO_RUN.md`: local setup and runbook.
-
-## Roadmap
-
-High-impact next steps:
-
-- Extend the Customer Support Agent for FAQ handling, order-status questions, return-policy guidance, and real-time return/order support workflows.
-- Extend the DevAnalyst Agent with forecasting, anomaly detection, branch-level planning, and stronger executive reporting.
-- Add eval datasets for expected tool usage, answer grounding, and guardrail behavior.
-- Add streaming agent timeline events to the frontend.
-- Add persistent LangGraph checkpointing.
-- Add citation cards and evals for agentic RAG answers.
-- Add dedicated MCP analytics tools for large time-series, forecasting, stockout risk, and reorder recommendations.
-- Add CI checks for backend compile/tests, frontend lint/typecheck, migration health, and eval smoke tests.
-- Add deployment and observability dashboards for latency, cost, tool failures, guardrail rejects, RAG quality, and eval pass rate.
-
-Detailed plans live in [PROJECT_TODO.md](PROJECT_TODO.md), [RAG_TODO.md](RAG_TODO.md), and [DEPLOYMENT_LLMOPS_PLAN.md](DEPLOYMENT_LLMOPS_PLAN.md).
 
 ## Quick Start
 
@@ -354,8 +444,10 @@ Backend:
 
 ```powershell
 cd backend
-uv run python -m compileall app
+uv run python -m compileall app evals
 uv run python -m app.mcp.smoke
+uv run python -m evals list
+uv run pytest tests/test_eval_cases.py
 ```
 
 Frontend:
@@ -367,6 +459,23 @@ npx tsc --noEmit
 ```
 
 Optional voice input requires the voice extra, `ffmpeg`, and Whisper configuration. See [HOW_TO_RUN.md](HOW_TO_RUN.md) for details.
+
+## Roadmap
+
+High-impact next steps:
+
+- Extend the Customer Support Agent with authenticated order status, return initiation, escalation, and real-time fulfillment workflows.
+- Extend the DevAnalyst Agent with forecasting, anomaly detection, branch-level planning, and stronger executive reporting.
+- Expand the benchmark with multi-turn conversations, citation-quality checks, retrieval relevance and faithfulness measures, and isolated fixtures for side-effectful tools.
+- Add regression baselines and CI quality gates for critical guardrail, SQL, RAG, and tool-routing cases.
+- Add streaming agent timeline events and persistent LangGraph checkpointing.
+- Add dedicated MCP analytics tools for large time-series analysis, forecasting, stockout risk, and reorder recommendations.
+- Expand operational dashboards for latency, cost, tool failures, guardrail rejections, RAG quality, and evaluation trends.
+
+Detailed plans live in [PROJECT_TODO.md](PROJECT_TODO.md), [RAG_TODO.md](RAG_TODO.md), and [DEPLOYMENT_LLMOPS_PLAN.md](DEPLOYMENT_LLMOPS_PLAN.md).
+## License
+
+ProductAI Core is licensed under the [MIT License](LICENSE).
 
 ## Contact
 
