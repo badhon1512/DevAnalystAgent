@@ -70,91 +70,49 @@ ProductAI Core is designed as a controlled agentic workflow rather than a single
   </a>
 </p>
 
-<p align="center"><sub>Guardrails approve the request, ProductAI exchanges calls and observations with the boxed MCP and normal-tool layer, and the grounded response remains at the bottom. PostgreSQL persistence, tracing, cost, and evaluation stay visible as a separate side concern. A rejected request ends locally instead of routing across the whole diagram back to the same END.</sub></p>
+<p align="center"><sub>The guardrail check gates every request. Approved requests reach the orchestrator, which exchanges calls and observations with the MCP service group and the agent tool group, each listing its actual tools. Grounded responses and the trace and evaluation store hang off the orchestrator, and a rejected request ends immediately.</sub></p>
 
 <details>
 <summary>View Mermaid source</summary>
 
 ```mermaid
-%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 16, "padding": 8}}}%%
+%%{init: {"flowchart": {"nodeSpacing": 12, "rankSpacing": 40, "subGraphTitleMargin": {"top": 6, "bottom": 14}}}}%%
 flowchart TB
-    start(("START")):::startstate
-    user[/"User request"/]:::entry
-    guardrails{"Guardrail check<br/>approved?"}:::condition
-    blocked(["Blocked response<br/>guardrail rejection"]):::guardrail
-    end_blocked(("END")):::endstate
-    orchestrator(["ProductAI orchestrator<br/>plans, routes, synthesizes"]):::agent
-    answer(["Grounded response<br/>answer + artifacts"]):::answer
-    end_main(("END")):::endstate
+    USER[/User request/] --> GUARD{Guardrail check}
+    GUARD -->|rejected| BLOCKED[Blocked response] --> ENDB((End))
+    GUARD -->|approved| O[ProductAI Orchestrator]
 
-    start --> user --> guardrails
-    guardrails -. rejected .-> blocked --> end_blocked
-    guardrails -. approved .-> orchestrator
+    O <-->|MCP calls| MCP
+    O <-->|tool calls| TOOLS
 
-    subgraph orchestration_band[" "]
-        direction LR
-        subgraph mcp_group["MCP services"]
-            direction LR
-            mcp_title_gap[" "]:::spacer
-            mcp_schema("get_inventory_schema"):::mcp
-            mcp_sql("run_readonly_inventory_sql"):::mcp
-            mcp_docs("search_company_documents<br/>Agentic RAG"):::mcp
-            mcp_weather("get_weather_forecast"):::mcp
-            mcp_status("tracestock_mcp_status"):::mcp
-        end
-        subgraph tool_group["Agent tools"]
-            direction LR
-            tool_title_gap[" "]:::spacer
-            tool_research("researcher_agent"):::analysis
-            tool_python("execute_python_code_tool"):::analysis
-            tool_chart("save_chart_tool"):::analysis
-            tool_report("generate_report_tool"):::analysis
-            tool_files("read_file / write_file / list_directory"):::analysis
-            tool_dt("datetime_now"):::analysis
-        end
-        mcp_group <-->|MCP calls| orchestrator
-        orchestrator <-->|tool calls| tool_group
+    subgraph MCP[MCP services]
+        M1[get_inventory_schema]
+        M2[run_readonly_inventory_sql]
+        M3[search_company_documents]
+        M4[get_weather_forecast]
+        M5[tracestock_mcp_status]
     end
 
-    orchestrator --> answer
-
-    subgraph observability_layer["Persistence, tracing and evaluation"]
-        direction TB
-        postgres[("PostgreSQL + pgvector<br/>application persistence")]:::database
-        trace_store["Trace + evaluation store<br/>evidence, decisions, eval IDs"]:::utility
-        telemetry["Interpretability + cost<br/>tools, tokens, latency, estimate"]:::observability
-
-        postgres --> trace_store
-        trace_store --> telemetry
+    subgraph TOOLS[Agent tools]
+        T1[researcher_agent]
+        T2[execute_python_code_tool]
+        T3[save_chart_tool]
+        T4[generate_report_tool]
+        T5[read_file / write_file / list_directory]
+        T6[datetime_now]
     end
 
-    answer --> postgres
-    telemetry --> end_main
+    O --> ANSWER[Grounded response]
+    ANSWER --> ENDM((End))
+    O --> DB[(Trace and evaluation store)]
 
-    classDef startstate fill:#2563eb,stroke:#1d4ed8,color:#ffffff,stroke-width:2.5px,font-weight:700
-    classDef endstate fill:#0f172a,stroke:#020617,color:#ffffff,stroke-width:2.5px,font-weight:700
-    classDef entry fill:#eff6ff,stroke:#0284c7,color:#0f172a,stroke-width:2px,font-weight:600
-    classDef condition fill:#fff7ed,stroke:#f97316,color:#431407,stroke-width:2.5px,font-weight:600
-    classDef guardrail fill:#fffbeb,stroke:#d97706,color:#451a03,stroke-width:2px,font-weight:600
-    classDef agent fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b,stroke-width:2.5px,font-weight:700
-    classDef answer fill:#ecfeff,stroke:#0891b2,color:#083344,stroke-width:2.5px,font-weight:700
-    classDef router fill:#f1f5f9,stroke:#475569,color:#0f172a,stroke-width:2px,font-weight:600
-    classDef result fill:#f0fdfa,stroke:#0f766e,color:#134e4a,stroke-width:2.2px,font-weight:700
-    classDef mcp fill:#ecfdf5,stroke:#16a34a,color:#052e16,stroke-width:2px,font-weight:600
-    classDef rag fill:#f8fafc,stroke:#0ea5e9,color:#0c4a6e,stroke-width:2px,font-weight:600
-    classDef research fill:#faf5ff,stroke:#9333ea,color:#3b0764,stroke-width:2px,font-weight:600
-    classDef analysis fill:#fff1f2,stroke:#e11d48,color:#4c0519,stroke-width:2px,font-weight:600
-    classDef files fill:#eff6ff,stroke:#0284c7,color:#082f49,stroke-width:2px,font-weight:600
-    classDef database fill:#f0fdfa,stroke:#0f766e,color:#134e4a,stroke-width:2.5px,font-weight:600
-    classDef utility fill:#fffbeb,stroke:#ca8a04,color:#422006,stroke-width:2px,font-weight:600
-    classDef observability fill:#faf5ff,stroke:#8b5cf6,color:#2e1065,stroke-width:2px,font-weight:600
-    classDef spacer fill:none,stroke:none,color:#00000000
-
-    style orchestration_band fill:transparent,stroke:transparent,color:transparent
-    style mcp_group fill:transparent,stroke:#16a34a,stroke-width:1.5px,color:#052e16
-    style tool_group fill:transparent,stroke:#e11d48,stroke-width:1.5px,color:#4c0519
-    style observability_layer fill:transparent,stroke:#c4b5fd,stroke-width:1.5px,color:#5b21b6
-    linkStyle default stroke:#64748b,stroke-width:2px,color:#475569
+    style GUARD fill:#F97316,color:#ffffff,stroke:#C2410C,stroke-width:3px
+    style O fill:#4F46E5,color:#ffffff,stroke:#3730A3,stroke-width:3px
+    style ENDB fill:#059669,color:#ffffff,stroke:#047857,stroke-width:3px
+    style ENDM fill:#059669,color:#ffffff,stroke:#047857,stroke-width:3px
+    style DB fill:#F0FDFA,color:#134E4A,stroke:#0F766E,stroke-width:2px
+    style MCP fill:transparent,stroke:#16A34A,stroke-width:2px,color:#052E16
+    style TOOLS fill:transparent,stroke:#E11D48,stroke-width:2px,color:#4C0519
 ```
 
 </details>
