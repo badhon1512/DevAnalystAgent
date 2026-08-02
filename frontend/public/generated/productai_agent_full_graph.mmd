@@ -1,114 +1,79 @@
-%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "mainBkg": "#ffffff", "primaryColor": "#ffffff", "lineColor": "#64748b", "clusterBkg": "#ffffff", "clusterBorder": "#cbd5e1"}, "themeCSS": "svg { background: #ffffff !important; }"}}%%
-flowchart LR
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 16, "padding": 8}}}%%
+flowchart TB
     start(("START")):::startstate
-    user["User request"]:::entry
-    guardrails{"guardrail_check<br/>valid query?"}:::condition
-    orchestrator["call_llm<br/>ProductAI orchestrator"]:::agent
-    route_tools{"route_tool_calls<br/>tool calls?"}:::condition
-    router["mcp_and_tool_calls<br/>Agentic tool execution layer"]:::router
-    tool_result["ToolMessage results<br/>returned to messages"]:::router
-    answer["Final answer<br/>grounded response + trace"]:::entry
-    blocked["Blocked response<br/>guardrail rejection"]:::guardrail
-    end_state(("END")):::endstate
+    user[/"User request"/]:::entry
+    guardrails{"Guardrail check<br/>approved?"}:::condition
+    blocked(["Blocked response<br/>guardrail rejection"]):::guardrail
+    end_blocked(("END")):::endstate
+    orchestrator(["ProductAI orchestrator<br/>plans, routes, synthesizes"]):::agent
+    answer(["Grounded response<br/>answer + artifacts"]):::answer
+    end_main(("END")):::endstate
 
-    start --> user
-    user --> guardrails
-    guardrails -.->|valid| orchestrator
-    guardrails -.->|invalid| blocked
-    orchestrator --> route_tools
-    route_tools -.->|tool calls| router
-    route_tools -.->|no tool calls| answer
-    tool_result --> orchestrator
-    blocked --> end_state
-    answer --> end_state
+    start --> user --> guardrails
+    guardrails -. rejected .-> blocked --> end_blocked
+    guardrails -. approved .-> orchestrator
 
-    subgraph mcp_group["MCP server tools"]
-        tool_get_inventory_schema["get inventory schema"]:::mcp
-        tool_get_weather_forecast["get weather forecast"]:::mcp
-        tool_run_readonly_inventory_sql["run readonly inventory sql"]:::mcp
-        tool_search_company_documents["search company documents"]:::mcp
-        tool_tracestock_mcp_status["tracestock mcp status"]:::mcp
+    subgraph orchestration_band[" "]
+        direction LR
+        subgraph mcp_group["MCP services"]
+            direction LR
+            mcp_title_gap[" "]:::spacer
+            mcp_schema("get_inventory_schema"):::mcp
+            mcp_sql("run_readonly_inventory_sql"):::mcp
+            mcp_docs("search_company_documents<br/>Agentic RAG"):::mcp
+            mcp_weather("get_weather_forecast"):::mcp
+            mcp_status("tracestock_mcp_status"):::mcp
+        end
+        subgraph tool_group["Agent tools"]
+            direction LR
+            tool_title_gap[" "]:::spacer
+            tool_research("researcher_agent"):::analysis
+            tool_python("execute_python_code_tool"):::analysis
+            tool_chart("save_chart_tool"):::analysis
+            tool_report("generate_report_tool"):::analysis
+            tool_files("read_file / write_file / list_directory"):::analysis
+            tool_dt("datetime_now"):::analysis
+        end
+        mcp_group <-->|MCP calls| orchestrator
+        orchestrator <-->|tool calls| tool_group
     end
 
-    router --> tool_get_inventory_schema
-    tool_get_inventory_schema --> tool_result
-    router --> tool_get_weather_forecast
-    tool_get_weather_forecast --> tool_result
-    router --> tool_run_readonly_inventory_sql
-    tool_run_readonly_inventory_sql --> tool_result
-    router --> tool_search_company_documents
-    tool_search_company_documents --> tool_result
-    router --> tool_tracestock_mcp_status
-    tool_tracestock_mcp_status --> tool_result
+    orchestrator --> answer
 
-    subgraph research_group["Research sub-agent"]
-        tool_researcher_agent["researcher agent"]:::research
+    subgraph observability_layer["Persistence, tracing and evaluation"]
+        direction TB
+        postgres[("PostgreSQL + pgvector<br/>application persistence")]:::database
+        trace_store["Trace + evaluation store<br/>evidence, decisions, eval IDs"]:::utility
+        telemetry["Interpretability + cost<br/>tools, tokens, latency, estimate"]:::observability
+
+        postgres --> trace_store
+        trace_store --> telemetry
     end
 
-    router --> tool_researcher_agent
-    tool_researcher_agent --> tool_result
+    answer --> postgres
+    telemetry --> end_main
 
-    subgraph analysis_group["Analytics and artifacts"]
-        tool_execute_python_code_tool["execute python code tool"]:::analysis
-        tool_generate_report_tool["generate report tool"]:::analysis
-        tool_save_chart_tool["save chart tool"]:::analysis
-    end
+    classDef startstate fill:#2563eb,stroke:#1d4ed8,color:#ffffff,stroke-width:2.5px,font-weight:700
+    classDef endstate fill:#0f172a,stroke:#020617,color:#ffffff,stroke-width:2.5px,font-weight:700
+    classDef entry fill:#eff6ff,stroke:#0284c7,color:#0f172a,stroke-width:2px,font-weight:600
+    classDef condition fill:#fff7ed,stroke:#f97316,color:#431407,stroke-width:2.5px,font-weight:600
+    classDef guardrail fill:#fffbeb,stroke:#d97706,color:#451a03,stroke-width:2px,font-weight:600
+    classDef agent fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b,stroke-width:2.5px,font-weight:700
+    classDef answer fill:#ecfeff,stroke:#0891b2,color:#083344,stroke-width:2.5px,font-weight:700
+    classDef router fill:#f1f5f9,stroke:#475569,color:#0f172a,stroke-width:2px,font-weight:600
+    classDef result fill:#f0fdfa,stroke:#0f766e,color:#134e4a,stroke-width:2.2px,font-weight:700
+    classDef mcp fill:#ecfdf5,stroke:#16a34a,color:#052e16,stroke-width:2px,font-weight:600
+    classDef rag fill:#f8fafc,stroke:#0ea5e9,color:#0c4a6e,stroke-width:2px,font-weight:600
+    classDef research fill:#faf5ff,stroke:#9333ea,color:#3b0764,stroke-width:2px,font-weight:600
+    classDef analysis fill:#fff1f2,stroke:#e11d48,color:#4c0519,stroke-width:2px,font-weight:600
+    classDef files fill:#eff6ff,stroke:#0284c7,color:#082f49,stroke-width:2px,font-weight:600
+    classDef database fill:#f0fdfa,stroke:#0f766e,color:#134e4a,stroke-width:2.5px,font-weight:600
+    classDef utility fill:#fffbeb,stroke:#ca8a04,color:#422006,stroke-width:2px,font-weight:600
+    classDef observability fill:#faf5ff,stroke:#8b5cf6,color:#2e1065,stroke-width:2px,font-weight:600
+    classDef spacer fill:none,stroke:none,color:#00000000
 
-    router --> tool_execute_python_code_tool
-    tool_execute_python_code_tool --> tool_result
-    router --> tool_generate_report_tool
-    tool_generate_report_tool --> tool_result
-    router --> tool_save_chart_tool
-    tool_save_chart_tool --> tool_result
-
-    subgraph files_group["Frontend file tools"]
-        tool_list_directory["list directory"]:::files
-        tool_read_file["read file"]:::files
-        tool_write_file["write file"]:::files
-    end
-
-    router --> tool_list_directory
-    tool_list_directory --> tool_result
-    router --> tool_read_file
-    tool_read_file --> tool_result
-    router --> tool_write_file
-    tool_write_file --> tool_result
-
-    subgraph utility_group["Utility and validation"]
-        tool_datetime_now["datetime now"]:::utility
-        tool_sql_db_query_checker["sql db query checker"]:::utility
-    end
-
-    router --> tool_datetime_now
-    tool_datetime_now --> tool_result
-    router --> tool_sql_db_query_checker
-    tool_sql_db_query_checker --> tool_result
-
-    subgraph research_inner["Researcher agent internal loop"]
-        research_plan["Focused research plan"]:::research
-        research_db["DB schema + read-only SQL"]:::mcp
-        research_weather["Weather and season context"]:::mcp
-        research_brief["Concise evidence brief"]:::research
-        research_plan --> research_db
-        research_plan --> research_weather
-        research_db --> research_brief
-        research_weather --> research_brief
-    end
-
-    tool_researcher_agent --> research_plan
-    research_brief --> tool_result
-
-    classDef startstate fill:#2563eb,stroke:#1d4ed8,color:#ffffff,stroke-width:2px
-    classDef endstate fill:#0f172a,stroke:#0f172a,color:#ffffff,stroke-width:2px
-    classDef entry fill:#e0f2fe,stroke:#0284c7,color:#082f49,stroke-width:1.5px
-    classDef condition fill:#fff7ed,stroke:#f97316,color:#431407,stroke-width:2px
-    classDef guardrail fill:#fef3c7,stroke:#f59e0b,color:#3b2600,stroke-width:1.5px
-    classDef agent fill:#eef2ff,stroke:#4f46e5,color:#111827,stroke-width:2px
-    classDef router fill:#f8fafc,stroke:#475569,color:#0f172a,stroke-width:1.5px
-    classDef mcp fill:#dcfce7,stroke:#16a34a,color:#052e16,stroke-width:1.5px
-    classDef research fill:#f3e8ff,stroke:#9333ea,color:#2e1065,stroke-width:1.5px
-    classDef analysis fill:#ffe4e6,stroke:#e11d48,color:#4c0519,stroke-width:1.5px
-    classDef files fill:#e0f2fe,stroke:#0284c7,color:#082f49,stroke-width:1.5px
-    classDef utility fill:#fef9c3,stroke:#ca8a04,color:#422006,stroke-width:1.5px
-    classDef other fill:#e2e8f0,stroke:#64748b,color:#0f172a,stroke-width:1.5px
-    linkStyle default stroke:#64748b,stroke-width:1.6px
+    style orchestration_band fill:transparent,stroke:transparent,color:transparent
+    style mcp_group fill:transparent,stroke:#16a34a,stroke-width:1.5px,color:#052e16
+    style tool_group fill:transparent,stroke:#e11d48,stroke-width:1.5px,color:#4c0519
+    style observability_layer fill:transparent,stroke:#c4b5fd,stroke-width:1.5px,color:#5b21b6
+    linkStyle default stroke:#64748b,stroke-width:2px,color:#475569

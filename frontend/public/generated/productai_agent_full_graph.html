@@ -8,10 +8,7 @@
     body {
       margin: 0;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at 12% 12%, rgba(37, 99, 235, 0.10), transparent 26rem),
-        radial-gradient(circle at 90% 8%, rgba(16, 185, 129, 0.10), transparent 22rem),
-        linear-gradient(180deg, #ffffff 0%, #f8fafc 48%, #eef2f7 100%);
+      background: #eef2f7;
       color: #0f172a;
       min-height: 100vh;
     }
@@ -40,7 +37,7 @@
       border: 1px solid rgba(148, 163, 184, 0.42);
       border-radius: 999px;
       padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.78);
+      background: #ffffff;
       color: #334155;
       font-size: 14px;
     }
@@ -48,9 +45,9 @@
       margin: 20px 36px 36px;
       padding: 28px;
       border: 1px solid rgba(148, 163, 184, 0.32);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.92);
-      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+      border-radius: 12px;
+      background: #f8fafc;
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.10);
       overflow-x: auto;
     }
     section {
@@ -58,7 +55,7 @@
       padding: 28px;
       border: 1px solid rgba(148, 163, 184, 0.32);
       border-radius: 18px;
-      background: rgba(255, 255, 255, 0.92);
+      background: #ffffff;
       box-shadow: 0 24px 70px rgba(15, 23, 42, 0.10);
     }
     h2 {
@@ -67,7 +64,7 @@
       color: #0f172a;
     }
     .mermaid {
-      min-width: 1220px;
+      min-width: 1120px;
       font-size: 18px;
     }
     .compact-graph {
@@ -100,130 +97,95 @@
   <header>
     <h1>ProductAI Full Agent Graph</h1>
     <p>
-      Expanded view of the runtime agentic workflow. Solid edges show direct
-      execution flow; dotted labeled edges show conditional routing decisions.
+      Controlled multi-agent workflow from guardrail validation to approved tools,
+      grounded outputs, persistence, tracing, cost, and evaluation.
     </p>
     <div class="legend">
-      <span class="pill">solid edge = direct workflow edge</span>
+      <span class="pill">bidirectional edge = calls + observations</span>
       <span class="pill">dotted edge = conditional edge</span>
-      <span class="pill">tool layer expanded = available tools</span>
+      <span class="pill">grouped nodes = capability families, tool names listed inside</span>
     </div>
   </header>
   <main>
-    <pre class="mermaid">%%{init: {&quot;theme&quot;: &quot;base&quot;, &quot;themeVariables&quot;: {&quot;background&quot;: &quot;#ffffff&quot;, &quot;mainBkg&quot;: &quot;#ffffff&quot;, &quot;primaryColor&quot;: &quot;#ffffff&quot;, &quot;lineColor&quot;: &quot;#64748b&quot;, &quot;clusterBkg&quot;: &quot;#ffffff&quot;, &quot;clusterBorder&quot;: &quot;#cbd5e1&quot;}, &quot;themeCSS&quot;: &quot;svg { background: #ffffff !important; }&quot;}}%%
-flowchart LR
+    <pre class="mermaid">%%{init: {&quot;flowchart&quot;: {&quot;nodeSpacing&quot;: 10, &quot;rankSpacing&quot;: 16, &quot;padding&quot;: 8}}}%%
+flowchart TB
     start((&quot;START&quot;)):::startstate
-    user[&quot;User request&quot;]:::entry
-    guardrails{&quot;guardrail_check&lt;br/&gt;valid query?&quot;}:::condition
-    orchestrator[&quot;call_llm&lt;br/&gt;ProductAI orchestrator&quot;]:::agent
-    route_tools{&quot;route_tool_calls&lt;br/&gt;tool calls?&quot;}:::condition
-    router[&quot;mcp_and_tool_calls&lt;br/&gt;Agentic tool execution layer&quot;]:::router
-    tool_result[&quot;ToolMessage results&lt;br/&gt;returned to messages&quot;]:::router
-    answer[&quot;Final answer&lt;br/&gt;grounded response + trace&quot;]:::entry
-    blocked[&quot;Blocked response&lt;br/&gt;guardrail rejection&quot;]:::guardrail
-    end_state((&quot;END&quot;)):::endstate
+    user[/&quot;User request&quot;/]:::entry
+    guardrails{&quot;Guardrail check&lt;br/&gt;approved?&quot;}:::condition
+    blocked([&quot;Blocked response&lt;br/&gt;guardrail rejection&quot;]):::guardrail
+    end_blocked((&quot;END&quot;)):::endstate
+    orchestrator([&quot;ProductAI orchestrator&lt;br/&gt;plans, routes, synthesizes&quot;]):::agent
+    answer([&quot;Grounded response&lt;br/&gt;answer + artifacts&quot;]):::answer
+    end_main((&quot;END&quot;)):::endstate
 
-    start --&gt; user
-    user --&gt; guardrails
-    guardrails -.-&gt;|valid| orchestrator
-    guardrails -.-&gt;|invalid| blocked
-    orchestrator --&gt; route_tools
-    route_tools -.-&gt;|tool calls| router
-    route_tools -.-&gt;|no tool calls| answer
-    tool_result --&gt; orchestrator
-    blocked --&gt; end_state
-    answer --&gt; end_state
+    start --&gt; user --&gt; guardrails
+    guardrails -. rejected .-&gt; blocked --&gt; end_blocked
+    guardrails -. approved .-&gt; orchestrator
 
-    subgraph mcp_group[&quot;MCP server tools&quot;]
-        tool_get_inventory_schema[&quot;get inventory schema&quot;]:::mcp
-        tool_get_weather_forecast[&quot;get weather forecast&quot;]:::mcp
-        tool_run_readonly_inventory_sql[&quot;run readonly inventory sql&quot;]:::mcp
-        tool_search_company_documents[&quot;search company documents&quot;]:::mcp
-        tool_tracestock_mcp_status[&quot;tracestock mcp status&quot;]:::mcp
+    subgraph orchestration_band[&quot; &quot;]
+        direction LR
+        subgraph mcp_group[&quot;MCP services&quot;]
+            direction LR
+            mcp_title_gap[&quot; &quot;]:::spacer
+            mcp_schema(&quot;get_inventory_schema&quot;):::mcp
+            mcp_sql(&quot;run_readonly_inventory_sql&quot;):::mcp
+            mcp_docs(&quot;search_company_documents&lt;br/&gt;Agentic RAG&quot;):::mcp
+            mcp_weather(&quot;get_weather_forecast&quot;):::mcp
+            mcp_status(&quot;tracestock_mcp_status&quot;):::mcp
+        end
+        subgraph tool_group[&quot;Agent tools&quot;]
+            direction LR
+            tool_title_gap[&quot; &quot;]:::spacer
+            tool_research(&quot;researcher_agent&quot;):::analysis
+            tool_python(&quot;execute_python_code_tool&quot;):::analysis
+            tool_chart(&quot;save_chart_tool&quot;):::analysis
+            tool_report(&quot;generate_report_tool&quot;):::analysis
+            tool_files(&quot;read_file / write_file / list_directory&quot;):::analysis
+            tool_dt(&quot;datetime_now&quot;):::analysis
+        end
+        mcp_group &lt;--&gt;|MCP calls| orchestrator
+        orchestrator &lt;--&gt;|tool calls| tool_group
     end
 
-    router --&gt; tool_get_inventory_schema
-    tool_get_inventory_schema --&gt; tool_result
-    router --&gt; tool_get_weather_forecast
-    tool_get_weather_forecast --&gt; tool_result
-    router --&gt; tool_run_readonly_inventory_sql
-    tool_run_readonly_inventory_sql --&gt; tool_result
-    router --&gt; tool_search_company_documents
-    tool_search_company_documents --&gt; tool_result
-    router --&gt; tool_tracestock_mcp_status
-    tool_tracestock_mcp_status --&gt; tool_result
+    orchestrator --&gt; answer
 
-    subgraph research_group[&quot;Research sub-agent&quot;]
-        tool_researcher_agent[&quot;researcher agent&quot;]:::research
+    subgraph observability_layer[&quot;Persistence, tracing and evaluation&quot;]
+        direction TB
+        postgres[(&quot;PostgreSQL + pgvector&lt;br/&gt;application persistence&quot;)]:::database
+        trace_store[&quot;Trace + evaluation store&lt;br/&gt;evidence, decisions, eval IDs&quot;]:::utility
+        telemetry[&quot;Interpretability + cost&lt;br/&gt;tools, tokens, latency, estimate&quot;]:::observability
+
+        postgres --&gt; trace_store
+        trace_store --&gt; telemetry
     end
 
-    router --&gt; tool_researcher_agent
-    tool_researcher_agent --&gt; tool_result
+    answer --&gt; postgres
+    telemetry --&gt; end_main
 
-    subgraph analysis_group[&quot;Analytics and artifacts&quot;]
-        tool_execute_python_code_tool[&quot;execute python code tool&quot;]:::analysis
-        tool_generate_report_tool[&quot;generate report tool&quot;]:::analysis
-        tool_save_chart_tool[&quot;save chart tool&quot;]:::analysis
-    end
+    classDef startstate fill:#2563eb,stroke:#1d4ed8,color:#ffffff,stroke-width:2.5px,font-weight:700
+    classDef endstate fill:#0f172a,stroke:#020617,color:#ffffff,stroke-width:2.5px,font-weight:700
+    classDef entry fill:#eff6ff,stroke:#0284c7,color:#0f172a,stroke-width:2px,font-weight:600
+    classDef condition fill:#fff7ed,stroke:#f97316,color:#431407,stroke-width:2.5px,font-weight:600
+    classDef guardrail fill:#fffbeb,stroke:#d97706,color:#451a03,stroke-width:2px,font-weight:600
+    classDef agent fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b,stroke-width:2.5px,font-weight:700
+    classDef answer fill:#ecfeff,stroke:#0891b2,color:#083344,stroke-width:2.5px,font-weight:700
+    classDef router fill:#f1f5f9,stroke:#475569,color:#0f172a,stroke-width:2px,font-weight:600
+    classDef result fill:#f0fdfa,stroke:#0f766e,color:#134e4a,stroke-width:2.2px,font-weight:700
+    classDef mcp fill:#ecfdf5,stroke:#16a34a,color:#052e16,stroke-width:2px,font-weight:600
+    classDef rag fill:#f8fafc,stroke:#0ea5e9,color:#0c4a6e,stroke-width:2px,font-weight:600
+    classDef research fill:#faf5ff,stroke:#9333ea,color:#3b0764,stroke-width:2px,font-weight:600
+    classDef analysis fill:#fff1f2,stroke:#e11d48,color:#4c0519,stroke-width:2px,font-weight:600
+    classDef files fill:#eff6ff,stroke:#0284c7,color:#082f49,stroke-width:2px,font-weight:600
+    classDef database fill:#f0fdfa,stroke:#0f766e,color:#134e4a,stroke-width:2.5px,font-weight:600
+    classDef utility fill:#fffbeb,stroke:#ca8a04,color:#422006,stroke-width:2px,font-weight:600
+    classDef observability fill:#faf5ff,stroke:#8b5cf6,color:#2e1065,stroke-width:2px,font-weight:600
+    classDef spacer fill:none,stroke:none,color:#00000000
 
-    router --&gt; tool_execute_python_code_tool
-    tool_execute_python_code_tool --&gt; tool_result
-    router --&gt; tool_generate_report_tool
-    tool_generate_report_tool --&gt; tool_result
-    router --&gt; tool_save_chart_tool
-    tool_save_chart_tool --&gt; tool_result
-
-    subgraph files_group[&quot;Frontend file tools&quot;]
-        tool_list_directory[&quot;list directory&quot;]:::files
-        tool_read_file[&quot;read file&quot;]:::files
-        tool_write_file[&quot;write file&quot;]:::files
-    end
-
-    router --&gt; tool_list_directory
-    tool_list_directory --&gt; tool_result
-    router --&gt; tool_read_file
-    tool_read_file --&gt; tool_result
-    router --&gt; tool_write_file
-    tool_write_file --&gt; tool_result
-
-    subgraph utility_group[&quot;Utility and validation&quot;]
-        tool_datetime_now[&quot;datetime now&quot;]:::utility
-        tool_sql_db_query_checker[&quot;sql db query checker&quot;]:::utility
-    end
-
-    router --&gt; tool_datetime_now
-    tool_datetime_now --&gt; tool_result
-    router --&gt; tool_sql_db_query_checker
-    tool_sql_db_query_checker --&gt; tool_result
-
-    subgraph research_inner[&quot;Researcher agent internal loop&quot;]
-        research_plan[&quot;Focused research plan&quot;]:::research
-        research_db[&quot;DB schema + read-only SQL&quot;]:::mcp
-        research_weather[&quot;Weather and season context&quot;]:::mcp
-        research_brief[&quot;Concise evidence brief&quot;]:::research
-        research_plan --&gt; research_db
-        research_plan --&gt; research_weather
-        research_db --&gt; research_brief
-        research_weather --&gt; research_brief
-    end
-
-    tool_researcher_agent --&gt; research_plan
-    research_brief --&gt; tool_result
-
-    classDef startstate fill:#2563eb,stroke:#1d4ed8,color:#ffffff,stroke-width:2px
-    classDef endstate fill:#0f172a,stroke:#0f172a,color:#ffffff,stroke-width:2px
-    classDef entry fill:#e0f2fe,stroke:#0284c7,color:#082f49,stroke-width:1.5px
-    classDef condition fill:#fff7ed,stroke:#f97316,color:#431407,stroke-width:2px
-    classDef guardrail fill:#fef3c7,stroke:#f59e0b,color:#3b2600,stroke-width:1.5px
-    classDef agent fill:#eef2ff,stroke:#4f46e5,color:#111827,stroke-width:2px
-    classDef router fill:#f8fafc,stroke:#475569,color:#0f172a,stroke-width:1.5px
-    classDef mcp fill:#dcfce7,stroke:#16a34a,color:#052e16,stroke-width:1.5px
-    classDef research fill:#f3e8ff,stroke:#9333ea,color:#2e1065,stroke-width:1.5px
-    classDef analysis fill:#ffe4e6,stroke:#e11d48,color:#4c0519,stroke-width:1.5px
-    classDef files fill:#e0f2fe,stroke:#0284c7,color:#082f49,stroke-width:1.5px
-    classDef utility fill:#fef9c3,stroke:#ca8a04,color:#422006,stroke-width:1.5px
-    classDef other fill:#e2e8f0,stroke:#64748b,color:#0f172a,stroke-width:1.5px
-    linkStyle default stroke:#64748b,stroke-width:1.6px
+    style orchestration_band fill:transparent,stroke:transparent,color:transparent
+    style mcp_group fill:transparent,stroke:#16a34a,stroke-width:1.5px,color:#052e16
+    style tool_group fill:transparent,stroke:#e11d48,stroke-width:1.5px,color:#4c0519
+    style observability_layer fill:transparent,stroke:#c4b5fd,stroke-width:1.5px,color:#5b21b6
+    linkStyle default stroke:#64748b,stroke-width:2px,color:#475569
 </pre>
   </main>
   <section>
@@ -239,14 +201,22 @@ flowchart LR
     mermaid.initialize({
       startOnLoad: true,
       securityLevel: "loose",
-      theme: "base",
-      themeVariables: {
+        theme: "base",
+        themeVariables: {
+        background: "transparent",
+        mainBkg: "#ffffff",
+        primaryColor: "#ffffff",
+        secondaryColor: "#ffffff",
+        tertiaryColor: "#ffffff",
         fontFamily: "Inter, ui-sans-serif, system-ui",
-        fontSize: "18px",
-        primaryBorderColor: "#475569",
-        lineColor: "#64748b",
-        clusterBkg: "rgba(248, 250, 252, 0.82)",
-        clusterBorder: "#cbd5e1"
+        fontSize: "20px",
+        primaryTextColor: "#111827",
+        textColor: "#111827",
+        primaryBorderColor: "#334155",
+        lineColor: "#475569",
+        edgeLabelBackground: "#ffffff",
+        clusterBkg: "#f8fafc",
+        clusterBorder: "#94a3b8"
       }
     });
   </script>
