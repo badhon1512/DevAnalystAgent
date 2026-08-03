@@ -21,10 +21,10 @@ flowchart TB
     O <-->|tool calls| TOOLS
 
     subgraph RESEARCH["Research sub-agent (bounded loop, max 14 steps)"]
-        R1[["get_db_info_tool"]]:::researchNode
-        R2[["run_readonly_sql_tool"]]:::researchNode
-        R3[["get_weather_forecast"]]:::researchNode
-        R4[["datetime_now_for_research"]]:::researchNode
+        R1("get_db_info_tool"):::researchNode
+        R2("run_readonly_sql_tool"):::researchNode
+        R3("get_weather_forecast"):::researchNode
+        R4("datetime_now_for_research"):::researchNode
     end
 
     subgraph MCP[MCP services]
@@ -64,7 +64,7 @@ flowchart TB
 
     classDef mcpNode fill:#ECFDF5,stroke:#16A34A,stroke-width:1.5px,color:#052E16
     classDef toolNode fill:#FEFCE8,stroke:#CA8A04,stroke-width:1.5px,color:#422006
-    classDef researchNode fill:#FDF4FF,stroke:#C026D3,stroke-width:1.5px,color:#4A044E
+    classDef researchNode fill:#F0F9FF,stroke:#0369A1,stroke-width:1.5px,color:#0C4A6E
     classDef obsNode fill:#F5F3FF,stroke:#8B5CF6,stroke-width:1.5px,color:#2E1065
 
     style GUARD fill:#F97316,color:#ffffff,stroke:#C2410C,stroke-width:3px
@@ -74,7 +74,7 @@ flowchart TB
     style BLOCKED fill:#FFF1F2,stroke:#E11D48,stroke-width:2px,color:#4C0519
     style STORE fill:#F0FDFA,stroke:#0F766E,stroke-width:2px,color:#134E4A
     style FINISH fill:#059669,color:#ffffff,stroke:#047857,stroke-width:3px
-    style RESEARCH fill:transparent,stroke:#C026D3,stroke-width:2px,color:#C026D3
+    style RESEARCH fill:transparent,stroke:#0369A1,stroke-width:2px,color:#0369A1
     style MCP fill:transparent,stroke:#16A34A,stroke-width:2px,color:#16A34A
     style TOOLS fill:transparent,stroke:#CA8A04,stroke-width:2px,color:#CA8A04
     style OBS fill:transparent,stroke:#8B5CF6,stroke-width:2px,color:#8B5CF6
