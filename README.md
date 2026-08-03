@@ -72,8 +72,16 @@ flowchart TB
     GUARD -->|approved| O[ProductAI Orchestrator]
 
     STATE[/"Graph state<br/>messages, checkpoints"/] <-->|read + write| O
+    O <-->|delegated research| RESEARCH
     O <-->|MCP calls| MCP
     O <-->|tool calls| TOOLS
+
+    subgraph RESEARCH["Research sub-agent (bounded loop, max 14 steps)"]
+        R1[["get_db_info_tool"]]:::researchNode
+        R2[["run_readonly_sql_tool"]]:::researchNode
+        R3[["get_weather_forecast"]]:::researchNode
+        R4[["datetime_now_for_research"]]:::researchNode
+    end
 
     subgraph MCP[MCP services]
         M1("get_inventory_schema"):::mcpNode
@@ -84,7 +92,6 @@ flowchart TB
     end
 
     subgraph TOOLS[Agent tools]
-        T1(["researcher_agent"]):::toolNode
         T2(["Sandboxed Python data analysis"]):::toolNode
         T3(["save_chart_tool"]):::toolNode
         T4(["generate_report_tool"]):::toolNode
@@ -113,6 +120,7 @@ flowchart TB
 
     classDef mcpNode fill:#ECFDF5,stroke:#16A34A,stroke-width:1.5px,color:#052E16
     classDef toolNode fill:#FEFCE8,stroke:#CA8A04,stroke-width:1.5px,color:#422006
+    classDef researchNode fill:#FDF4FF,stroke:#C026D3,stroke-width:1.5px,color:#4A044E
     classDef obsNode fill:#F5F3FF,stroke:#8B5CF6,stroke-width:1.5px,color:#2E1065
 
     style GUARD fill:#F97316,color:#ffffff,stroke:#C2410C,stroke-width:3px
@@ -122,12 +130,13 @@ flowchart TB
     style BLOCKED fill:#FFF1F2,stroke:#E11D48,stroke-width:2px,color:#4C0519
     style STORE fill:#F0FDFA,stroke:#0F766E,stroke-width:2px,color:#134E4A
     style FINISH fill:#059669,color:#ffffff,stroke:#047857,stroke-width:3px
+    style RESEARCH fill:transparent,stroke:#C026D3,stroke-width:2px,color:#C026D3
     style MCP fill:transparent,stroke:#16A34A,stroke-width:2px,color:#16A34A
     style TOOLS fill:transparent,stroke:#CA8A04,stroke-width:2px,color:#CA8A04
     style OBS fill:transparent,stroke:#8B5CF6,stroke-width:2px,color:#8B5CF6
 ```
 
-The guardrail check gates every request. Approved requests reach the orchestrator, which reads and writes the typed graph state holding the message history and per-conversation checkpoints, and exchanges calls and observations with the MCP service group and the agent tool group, each listing its actual tools. Every grounded response also emits a trace of the evidence and decisions behind it, an interpretability record of the tool timeline and guardrail status, and a cost record of tokens, latency, and estimated spend. All three persist to PostgreSQL, so any answer can be reviewed after the fact. Rejected requests and completed responses converge on the same end state.
+The guardrail check gates every request. Approved requests reach the orchestrator, which reads and writes the typed graph state holding the message history and per-conversation checkpoints, and exchanges calls and observations with the MCP service group and the agent tool group. Deeper investigation is delegated to the research sub-agent, which runs its own bounded loop of at most fourteen steps over schema inspection, read-only SQL, and weather context before returning a single evidence brief. Every grounded response also emits a trace of the evidence and decisions behind it, an interpretability record of the tool timeline and guardrail status, and a cost record of tokens, latency, and estimated spend. All three persist to PostgreSQL, so any answer can be reviewed after the fact. Rejected requests and completed responses converge on the same end state.
 
 Generated graph assets are also available here:
 

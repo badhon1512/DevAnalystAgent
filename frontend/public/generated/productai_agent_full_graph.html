@@ -114,8 +114,16 @@ flowchart TB
     GUARD --&gt;|approved| O[ProductAI Orchestrator]
 
     STATE[/&quot;Graph state&lt;br/&gt;messages, checkpoints&quot;/] &lt;--&gt;|read + write| O
+    O &lt;--&gt;|delegated research| RESEARCH
     O &lt;--&gt;|MCP calls| MCP
     O &lt;--&gt;|tool calls| TOOLS
+
+    subgraph RESEARCH[&quot;Research sub-agent (bounded loop, max 14 steps)&quot;]
+        R1[[&quot;get_db_info_tool&quot;]]:::researchNode
+        R2[[&quot;run_readonly_sql_tool&quot;]]:::researchNode
+        R3[[&quot;get_weather_forecast&quot;]]:::researchNode
+        R4[[&quot;datetime_now_for_research&quot;]]:::researchNode
+    end
 
     subgraph MCP[MCP services]
         M1(&quot;get_inventory_schema&quot;):::mcpNode
@@ -126,7 +134,6 @@ flowchart TB
     end
 
     subgraph TOOLS[Agent tools]
-        T1([&quot;researcher_agent&quot;]):::toolNode
         T2([&quot;Sandboxed Python data analysis&quot;]):::toolNode
         T3([&quot;save_chart_tool&quot;]):::toolNode
         T4([&quot;generate_report_tool&quot;]):::toolNode
@@ -155,6 +162,7 @@ flowchart TB
 
     classDef mcpNode fill:#ECFDF5,stroke:#16A34A,stroke-width:1.5px,color:#052E16
     classDef toolNode fill:#FEFCE8,stroke:#CA8A04,stroke-width:1.5px,color:#422006
+    classDef researchNode fill:#FDF4FF,stroke:#C026D3,stroke-width:1.5px,color:#4A044E
     classDef obsNode fill:#F5F3FF,stroke:#8B5CF6,stroke-width:1.5px,color:#2E1065
 
     style GUARD fill:#F97316,color:#ffffff,stroke:#C2410C,stroke-width:3px
@@ -164,6 +172,7 @@ flowchart TB
     style BLOCKED fill:#FFF1F2,stroke:#E11D48,stroke-width:2px,color:#4C0519
     style STORE fill:#F0FDFA,stroke:#0F766E,stroke-width:2px,color:#134E4A
     style FINISH fill:#059669,color:#ffffff,stroke:#047857,stroke-width:3px
+    style RESEARCH fill:transparent,stroke:#C026D3,stroke-width:2px,color:#C026D3
     style MCP fill:transparent,stroke:#16A34A,stroke-width:2px,color:#16A34A
     style TOOLS fill:transparent,stroke:#CA8A04,stroke-width:2px,color:#CA8A04
     style OBS fill:transparent,stroke:#8B5CF6,stroke-width:2px,color:#8B5CF6
