@@ -64,17 +64,6 @@ ProductAI Core is designed as a controlled agentic workflow rather than a single
 
 **Full agent architecture**
 
-<p align="center">
-  <a href="frontend/public/generated/productai_agent_full_graph.png">
-    <img src="frontend/public/generated/productai_agent_full_graph.png" alt="ProductAI full agent architecture" width="760" />
-  </a>
-</p>
-
-<p align="center"><sub>The guardrail check gates every request. Approved requests reach the orchestrator, which exchanges calls and observations with the MCP service group and the agent tool group, each listing its actual tools. Grounded responses and the trace and evaluation store hang off the orchestrator, and a rejected request ends immediately.</sub></p>
-
-<details>
-<summary>View Mermaid source</summary>
-
 ```mermaid
 %%{init: {"flowchart": {"nodeSpacing": 12, "rankSpacing": 40, "subGraphTitleMargin": {"top": 6, "bottom": 14}}}}%%
 flowchart TB
@@ -115,7 +104,7 @@ flowchart TB
     style TOOLS fill:transparent,stroke:#E11D48,stroke-width:2px,color:#4C0519
 ```
 
-</details>
+The guardrail check gates every request. Approved requests reach the orchestrator, which exchanges calls and observations with the MCP service group and the agent tool group, each listing its actual tools. Grounded responses and the trace and evaluation store hang off the orchestrator, and a rejected request ends immediately.
 
 Generated graph assets are also available here:
 

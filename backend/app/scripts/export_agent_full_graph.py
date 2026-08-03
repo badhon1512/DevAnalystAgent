@@ -1,16 +1,11 @@
 from __future__ import annotations
 
-import base64
 import html
-import urllib.parse
 from pathlib import Path
-
-import requests
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 PROJECT_ROOT = BACKEND_DIR.parent
 FRONTEND_GENERATED_DIR = PROJECT_ROOT / "frontend" / "public" / "generated"
-MERMAID_INK_IMG_URL = "https://mermaid.ink/img/{payload}?type=png&bgColor=!transparent"
 
 
 def _build_mermaid() -> str:
@@ -202,17 +197,6 @@ def _build_html(mermaid: str) -> str:
 """
 
 
-def _render_png(mermaid: str) -> bytes:
-    # mermaid.ink's own client leaves raw base64 unescaped in the URL path; an
-    # unlucky "/" byte in the payload is then read as a path separator and 404s.
-    # Percent-encoding the payload avoids that.
-    encoded = base64.b64encode(mermaid.encode("utf-8")).decode("ascii")
-    url = MERMAID_INK_IMG_URL.format(payload=urllib.parse.quote(encoded, safe=""))
-    response = requests.get(url, timeout=20)
-    response.raise_for_status()
-    return response.content
-
-
 def main() -> None:
     mermaid = _build_mermaid()
     html_page = _build_html(mermaid)
@@ -220,19 +204,12 @@ def main() -> None:
     FRONTEND_GENERATED_DIR.mkdir(parents=True, exist_ok=True)
     mmd_path = FRONTEND_GENERATED_DIR / "productai_agent_full_graph.mmd"
     html_path = FRONTEND_GENERATED_DIR / "productai_agent_full_graph.html"
-    png_path = FRONTEND_GENERATED_DIR / "productai_agent_full_graph.png"
     mmd_path.write_text(mermaid, encoding="utf-8")
     html_path.write_text(html_page, encoding="utf-8")
 
     print(f"Wrote {mmd_path}")
     print(f"Wrote {html_path}")
-
-    try:
-        png_path.write_bytes(_render_png(mermaid))
-        print(f"Wrote {png_path}")
-    except Exception as e:
-        print(f"[WARN] PNG render skipped: {e}")
-
+    print("Paste the .mmd contents into the README mermaid block to keep them in sync.")
     print("Frontend URL: http://localhost:3000/generated/productai_agent_full_graph.html")
 
 
