@@ -79,7 +79,7 @@ def shutdown_mcp_server():
 
 @app.get("/health")
 async def read_root():
-    return {"message": "Welcome to the ProductAI Backend!"}
+    return {"status": "ok", "service": "dev-analyst-agent"}
 
 
 class ComputeRequest(BaseModel):
