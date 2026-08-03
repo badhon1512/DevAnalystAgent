@@ -29,7 +29,7 @@ flowchart TB
 
     subgraph TOOLS[Agent tools]
         T1(["researcher_agent"]):::toolNode
-        T2(["execute_python_code_tool"]):::toolNode
+        T2(["Sandboxed Python data analysis"]):::toolNode
         T3(["save_chart_tool"]):::toolNode
         T4(["generate_report_tool"]):::toolNode
         T5(["read_file / write_file / list_directory"]):::toolNode
@@ -66,9 +66,9 @@ flowchart TB
     style BLOCKED fill:#FFF1F2,stroke:#E11D48,stroke-width:2px,color:#4C0519
     style STORE fill:#F0FDFA,stroke:#0F766E,stroke-width:2px,color:#134E4A
     style FINISH fill:#059669,color:#ffffff,stroke:#047857,stroke-width:3px
-    style MCP fill:transparent,stroke:#16A34A,stroke-width:2px,color:#052E16
-    style TOOLS fill:transparent,stroke:#CA8A04,stroke-width:2px,color:#422006
-    style OBS fill:transparent,stroke:#8B5CF6,stroke-width:2px,color:#2E1065
+    style MCP fill:transparent,stroke:#16A34A,stroke-width:2px,color:#16A34A
+    style TOOLS fill:transparent,stroke:#CA8A04,stroke-width:2px,color:#CA8A04
+    style OBS fill:transparent,stroke:#8B5CF6,stroke-width:2px,color:#8B5CF6
 """
 def _build_html(mermaid: str) -> str:
     escaped = html.escape(mermaid)
