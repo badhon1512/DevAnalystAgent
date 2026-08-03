@@ -15,6 +15,7 @@ flowchart TB
     GUARD -->|rejected| BLOCKED[Blocked response]
     GUARD -->|approved| O[ProductAI Orchestrator]
 
+    STATE[/"Graph state<br/>messages, checkpoints"/] <-->|read + write| O
     O <-->|MCP calls| MCP
     O <-->|tool calls| TOOLS
 
@@ -27,12 +28,12 @@ flowchart TB
     end
 
     subgraph TOOLS[Agent tools]
-        T1("researcher_agent"):::toolNode
-        T2("execute_python_code_tool"):::toolNode
-        T3("save_chart_tool"):::toolNode
-        T4("generate_report_tool"):::toolNode
-        T5("read_file / write_file / list_directory"):::toolNode
-        T6("datetime_now"):::toolNode
+        T1(["researcher_agent"]):::toolNode
+        T2(["execute_python_code_tool"]):::toolNode
+        T3(["save_chart_tool"]):::toolNode
+        T4(["generate_report_tool"]):::toolNode
+        T5(["read_file / write_file / list_directory"]):::toolNode
+        T6(["datetime_now"]):::toolNode
     end
 
     O --> ANSWER[Grounded response]
@@ -55,17 +56,18 @@ flowchart TB
     STORE --> FINISH
 
     classDef mcpNode fill:#ECFDF5,stroke:#16A34A,stroke-width:1.5px,color:#052E16
-    classDef toolNode fill:#FFF1F2,stroke:#E11D48,stroke-width:1.5px,color:#4C0519
+    classDef toolNode fill:#FEFCE8,stroke:#CA8A04,stroke-width:1.5px,color:#422006
     classDef obsNode fill:#F5F3FF,stroke:#8B5CF6,stroke-width:1.5px,color:#2E1065
 
     style GUARD fill:#F97316,color:#ffffff,stroke:#C2410C,stroke-width:3px
     style O fill:#4F46E5,color:#ffffff,stroke:#3730A3,stroke-width:3px
+    style STATE fill:#EEF2FF,stroke:#6366F1,stroke-width:2px,color:#1E1B4B
     style ANSWER fill:#ECFEFF,stroke:#0891B2,stroke-width:2.5px,color:#083344
-    style BLOCKED fill:#FFFBEB,stroke:#D97706,stroke-width:2px,color:#451A03
+    style BLOCKED fill:#FFF1F2,stroke:#E11D48,stroke-width:2px,color:#4C0519
     style STORE fill:#F0FDFA,stroke:#0F766E,stroke-width:2px,color:#134E4A
     style FINISH fill:#059669,color:#ffffff,stroke:#047857,stroke-width:3px
     style MCP fill:transparent,stroke:#16A34A,stroke-width:2px,color:#052E16
-    style TOOLS fill:transparent,stroke:#E11D48,stroke-width:2px,color:#4C0519
+    style TOOLS fill:transparent,stroke:#CA8A04,stroke-width:2px,color:#422006
     style OBS fill:transparent,stroke:#8B5CF6,stroke-width:2px,color:#2E1065
 """
 def _build_html(mermaid: str) -> str:
