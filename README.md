@@ -65,46 +65,67 @@ ProductAI Core is designed as a controlled agentic workflow rather than a single
 **Full agent architecture**
 
 ```mermaid
-%%{init: {"flowchart": {"nodeSpacing": 12, "rankSpacing": 40, "subGraphTitleMargin": {"top": 6, "bottom": 14}}}}%%
+%%{init: {"flowchart": {"nodeSpacing": 14, "rankSpacing": 42, "subGraphTitleMargin": {"top": 6, "bottom": 16}}}}%%
 flowchart TB
     USER[/User request/] --> GUARD{Guardrail check}
-    GUARD -->|rejected| BLOCKED[Blocked response] --> ENDB((End))
+    GUARD -->|rejected| BLOCKED[Blocked response]
     GUARD -->|approved| O[ProductAI Orchestrator]
 
     O <-->|MCP calls| MCP
     O <-->|tool calls| TOOLS
 
     subgraph MCP[MCP services]
-        M1[get_inventory_schema]
-        M2[run_readonly_inventory_sql]
-        M3[search_company_documents]
-        M4[get_weather_forecast]
-        M5[tracestock_mcp_status]
+        M1("get_inventory_schema"):::mcpNode
+        M2("run_readonly_inventory_sql"):::mcpNode
+        M3("search_company_documents"):::mcpNode
+        M4("get_weather_forecast"):::mcpNode
+        M5("tracestock_mcp_status"):::mcpNode
     end
 
     subgraph TOOLS[Agent tools]
-        T1[researcher_agent]
-        T2[execute_python_code_tool]
-        T3[save_chart_tool]
-        T4[generate_report_tool]
-        T5[read_file / write_file / list_directory]
-        T6[datetime_now]
+        T1("researcher_agent"):::toolNode
+        T2("execute_python_code_tool"):::toolNode
+        T3("save_chart_tool"):::toolNode
+        T4("generate_report_tool"):::toolNode
+        T5("read_file / write_file / list_directory"):::toolNode
+        T6("datetime_now"):::toolNode
     end
 
     O --> ANSWER[Grounded response]
-    ANSWER --> ENDM((End))
-    O --> DB[(Trace and evaluation store)]
+
+    subgraph OBS[Trace, interpretability and cost]
+        TRACE("Trace<br/>evidence, decisions, eval IDs"):::obsNode
+        INTERP("Interpretability<br/>tool timeline, guardrail status"):::obsNode
+        COST("Cost and latency<br/>tokens, latency, estimate"):::obsNode
+    end
+
+    ANSWER --> TRACE
+    ANSWER --> INTERP
+    ANSWER --> COST
+
+    TRACE --> STORE[(PostgreSQL + pgvector)]
+    INTERP --> STORE
+    COST --> STORE
+
+    BLOCKED --> FINISH((End))
+    STORE --> FINISH
+
+    classDef mcpNode fill:#ECFDF5,stroke:#16A34A,stroke-width:1.5px,color:#052E16
+    classDef toolNode fill:#FFF1F2,stroke:#E11D48,stroke-width:1.5px,color:#4C0519
+    classDef obsNode fill:#F5F3FF,stroke:#8B5CF6,stroke-width:1.5px,color:#2E1065
 
     style GUARD fill:#F97316,color:#ffffff,stroke:#C2410C,stroke-width:3px
     style O fill:#4F46E5,color:#ffffff,stroke:#3730A3,stroke-width:3px
-    style ENDB fill:#059669,color:#ffffff,stroke:#047857,stroke-width:3px
-    style ENDM fill:#059669,color:#ffffff,stroke:#047857,stroke-width:3px
-    style DB fill:#F0FDFA,color:#134E4A,stroke:#0F766E,stroke-width:2px
+    style ANSWER fill:#ECFEFF,stroke:#0891B2,stroke-width:2.5px,color:#083344
+    style BLOCKED fill:#FFFBEB,stroke:#D97706,stroke-width:2px,color:#451A03
+    style STORE fill:#F0FDFA,stroke:#0F766E,stroke-width:2px,color:#134E4A
+    style FINISH fill:#059669,color:#ffffff,stroke:#047857,stroke-width:3px
     style MCP fill:transparent,stroke:#16A34A,stroke-width:2px,color:#052E16
     style TOOLS fill:transparent,stroke:#E11D48,stroke-width:2px,color:#4C0519
+    style OBS fill:transparent,stroke:#8B5CF6,stroke-width:2px,color:#2E1065
 ```
 
-The guardrail check gates every request. Approved requests reach the orchestrator, which exchanges calls and observations with the MCP service group and the agent tool group, each listing its actual tools. Grounded responses and the trace and evaluation store hang off the orchestrator, and a rejected request ends immediately.
+The guardrail check gates every request. Approved requests reach the orchestrator, which exchanges calls and observations with the MCP service group and the agent tool group, each listing its actual tools. Every grounded response also emits a trace of the evidence and decisions behind it, an interpretability record of the tool timeline and guardrail status, and a cost record of tokens, latency, and estimated spend. All three persist to PostgreSQL, so any answer can be reviewed after the fact. Rejected requests and completed responses converge on the same end state.
 
 Generated graph assets are also available here:
 
