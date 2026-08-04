@@ -8,7 +8,7 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langchain_core.tools import BaseTool, tool
 from langchain_openai import ChatOpenAI
 
-from app.tools.db import get_db_info_tool, get_sql_database_toolkit_tools, run_readonly_sql_tool
+from app.tools.db import get_db_info_tool, run_readonly_sql_tool
 from app.tools.mcp_tools import get_weather_forecast
 
 
@@ -40,16 +40,10 @@ def _tool_map(tools: list[BaseTool]) -> dict[str, BaseTool]:
 
 
 def _research_tools() -> list[BaseTool]:
-    sql_checker_tools = [
-        sql_tool
-        for sql_tool in get_sql_database_toolkit_tools(base_llm)
-        if sql_tool.name == "sql_db_query_checker"
-    ]
     return [
         datetime_now_for_research,
         get_weather_forecast,
         get_db_info_tool,
-        *sql_checker_tools,
         run_readonly_sql_tool,
     ]
 
@@ -87,13 +81,12 @@ def researcher_agent(
             "branch inventory exposure, returns, and sales trends using only provided tools.\n\n"
             "Rules:\n"
             "1. Always inspect schema with get_db_info_tool before writing SQL.\n"
-            "2. Use sql_db_query_checker before every SQL execution.\n"
-            "3. Execute data retrieval only through run_readonly_sql_tool.\n"
-            "4. Use SELECT/WITH only; never request write operations.\n"
-            "5. Prefer aggregated evidence over large raw row lists.\n"
-            "6. Ground every conclusion in tool results. If data is missing, say what is missing.\n"
-            "7. Return a concise brief with evidence, interpretation, and recommended next actions.\n"
-            "8. Use get_weather_forecast when a location, city, branch, weather event, or forecast-sensitive product is relevant.\n\n"
+            "2. Execute data retrieval only through run_readonly_sql_tool.\n"
+            "3. Use SELECT/WITH only; never request write operations.\n"
+            "4. Prefer aggregated evidence over large raw row lists.\n"
+            "5. Ground every conclusion in tool results. If data is missing, say what is missing.\n"
+            "6. Return a concise brief with evidence, interpretation, and recommended next actions.\n"
+            "7. Use get_weather_forecast when a location, city, branch, weather event, or forecast-sensitive product is relevant.\n\n"
             "StoreWise schema guidance:\n"
             "- Branches are stored in `warehouses`; use `warehouses.code`, `name`, `city`, `postal_code`, `region`, and `country`.\n"
             "- Sales history is stored in `sales`; there is no `orders` table unless schema inspection explicitly shows one.\n"

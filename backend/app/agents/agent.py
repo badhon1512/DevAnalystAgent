@@ -9,12 +9,6 @@ from pathlib import Path
 from langchain.tools import tool
 from app.agents.guardrails import is_valid_query
 from app.agents.state import State
-
-checkpointer = InMemorySaver()  
-thread = {"configurable": {"thread_id": "5"}}
-
-
-from app.tools.db import get_sql_database_toolkit_tools
 from app.tools.file_system import get_file_management_toolkit
 from app.tools.mcp_tools import (
     get_weather_forecast,
@@ -27,6 +21,10 @@ from app.tools.python_sandbox import execute_python_code_tool
 from app.tools.read_write import save_chart_tool
 from app.tools.research_agent import researcher_agent
 from app.tools.reporting import generate_report_tool
+
+
+checkpointer = InMemorySaver()
+thread = {"configurable": {"thread_id": "5"}}
 
 
 DEFAULT_CHAT_MODEL = "gpt-5.4"
@@ -52,17 +50,11 @@ def datetime_now() -> str:
 class ProductAgent():
 
     def __init__(self):
-        sql_tools = [
-            sql_tool
-            for sql_tool in get_sql_database_toolkit_tools(base_llm)
-            if sql_tool.name == "sql_db_query_checker"
-        ]
         self.tools = [
             datetime_now,
             tracestock_mcp_status,
             get_weather_forecast,
             get_inventory_schema,
-            *sql_tools,
             run_readonly_inventory_sql,
             researcher_agent,
             execute_python_code_tool,
@@ -110,24 +102,24 @@ General rules:
 6. Never response with simulated data, only give give answer based on database data.
 7. Use company document search for policies, SOPs, supplier terms, warehouse procedures, internal FAQs, and other unstructured company knowledge.
 
-Database access policy:
+Database view access policy:
 1. The database connection is managed by the system.
 2. Never access environment variables.
 3. Never request or suggest `os.getenv`, `DATABASE_URL`, `create_engine`, SQLAlchemy sessions, engine creation, or manual database connections.
 4. Never import internal application modules such as `models`, `db`, `database`, `app.*`, or other project-local code.
 5. Use only the approved database tools or approved helper functions provided by the system.
-6. If a safe SQL helper is provided, use that helper only for database access.
+6. If a safe SQL helper is provided, use it only for read-only database viewing and retrieval.
 7. Only query tables and columns that are confirmed by schema inspection.
+8. Query only the approved views exposed by the schema tool. Never query `public`, system schemas, or internal application tables.
 
 Required workflow:
 1. First call `get_inventory_schema` to inspect the schema and understand available tables and columns through MCP.
-2. Use `sql_db_query_checker` before executing a SQL query.
-3. If the request needs data retrieval, calculations, aggregations, rankings, time-series summaries, or comparisons, express them in read-only SQL and call `run_readonly_inventory_sql`.
-4. Return only results that were actually retrieved or computed from tool outputs.
-5. If the request needs a derived calculation, trend analysis, transformation, or visualization that is easier in Python, use `execute_python_code_tool`.
-6. If the request asks about company policies, SOPs, supplier rules, warehouse procedures, or internal documentation, use `search_company_documents`.
-7. Use `get_weather_forecast` when the user asks about weather impact, city-level demand, rain, heat, cold, wind, UV, or season-sensitive products.
-8. If the request asks for deeper product research, weather or seasonal demand, market opportunity, competitor pricing, or branch stock risk, delegate the focused investigation to `researcher_agent` and then summarize its evidence.
+2. If the request needs data retrieval, calculations, aggregations, rankings, time-series summaries, or comparisons, express them in read-only SQL and call `run_readonly_inventory_sql`.
+3. Return only results that were actually retrieved or computed from tool outputs.
+4. If the request needs a derived calculation, trend analysis, transformation, or visualization that is easier in Python, use `execute_python_code_tool`.
+5. If the request asks about company policies, SOPs, supplier rules, warehouse procedures, or internal documentation, use `search_company_documents`.
+6. Use `get_weather_forecast` when the user asks about weather impact, city-level demand, rain, heat, cold, wind, UV, or season-sensitive products.
+7. If the request asks for deeper product research, weather or seasonal demand, market opportunity, competitor pricing, or branch stock risk, delegate the focused investigation to `researcher_agent` and then summarize its evidence.
 
 SQL tool policy:
 1. Use `get_inventory_schema` for table and schema inspection.
@@ -141,17 +133,16 @@ Tool usage guidance:
 1. `datetime_now`: use when the current date or time is needed.
 2. `tracestock_mcp_status`: use only when asked to verify MCP connectivity or list MCP tools.
 3. `get_inventory_schema`: use first for project-specific schema inspection and row counts through MCP.
-4. `sql_db_query_checker`: validate SQL before execution.
-5. `run_readonly_inventory_sql`: execute checked read-only SQL through MCP.
-6. `execute_python_code_tool`: use for Python-based analysis, transformations, and chart generation after you have the needed data.
-7. `get_weather_forecast`: fetch current and daily weather forecasts by city/location for weather-sensitive demand reasoning.
-8. `researcher_agent`: delegate focused research on product demand, market signals, weather or seasonal effects, competitor pricing, and branch stock exposure.
-9. `search_company_documents`: search indexed company policies, SOPs, supplier terms, warehouse playbooks, and internal documentation through MCP.
-10. `save_chart_tool`: use only if you explicitly need to save a base64 PNG chart produced outside the Python sandbox.
-11. `generate_report_tool`: use only if the user explicitly asks for a report, export, downloadable summary, or saved document.
-12. File tools are scoped to the frontend folder only. Use them for frontend  (./frontend) component, UI, styling, API-integration questions, and generated frontend-public assets. Do not assume file-tool access to backend files, environment files, database files, or arbitrary project paths.
-13. Do not delete, wipe, or overwrite frontend files unless the user explicitly asks for that exact change. Prefer reading files first, explaining findings, and making narrow edits only when requested.
-14. Generated chart and report assets are saved under `frontend/public/generated` by backend tools, so they are inside the frontend folder. The agent graph image is saved by backend code to the current working directory; do not use file tools to manage graph image output.
+4. `run_readonly_inventory_sql`: execute guarded read-only SQL through MCP.
+5. `execute_python_code_tool`: use for Python-based analysis, transformations, and chart generation after you have the needed data.
+6. `get_weather_forecast`: fetch current and daily weather forecasts by city/location for weather-sensitive demand reasoning.
+7. `researcher_agent`: delegate focused research on product demand, market signals, weather or seasonal effects, competitor pricing, and branch stock exposure.
+8. `search_company_documents`: search indexed company policies, SOPs, supplier terms, warehouse playbooks, and internal documentation through MCP.
+9. `save_chart_tool`: use only if you explicitly need to save a base64 PNG chart produced outside the Python sandbox.
+10. `generate_report_tool`: use only if the user explicitly asks for a report, export, downloadable summary, or saved document.
+11. File tools are scoped to the frontend folder only. Use them for frontend  (./frontend) component, UI, styling, API-integration questions, and generated frontend-public assets. Do not assume file-tool access to backend files, environment files, database files, or arbitrary project paths.
+12. Do not delete, wipe, or overwrite frontend files unless the user explicitly asks for that exact change. Prefer reading files first, explaining findings, and making narrow edits only when requested.
+13. Generated chart and report assets are saved under `frontend/public/generated` by backend tools, so they are inside the frontend folder. The agent graph image is saved by backend code to the current working directory; do not use file tools to manage graph image output.
 
 RAG workflow:
 1. Use SQL tools for live structured facts about products, inventory, sales, returns, and warehouses.

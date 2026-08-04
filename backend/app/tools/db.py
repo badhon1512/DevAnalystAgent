@@ -11,9 +11,14 @@ from sqlalchemy import text
 from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 from sqlalchemy.engine import Engine
-from app.db.session import SessionLocal, engine
+from app.db.readonly_session import (
+    AGENT_VIEW_SCHEMA,
+    AGENT_VIEW_NAMES,
+    ReadOnlySessionLocal,
+    readonly_engine,
+)
 
-from app.schemas.db_info import DatabaseInfo, TableInfo, ColumnInfo, ForeignKeyInfo, IndexInfo
+from app.schemas.db_info import ColumnInfo, DatabaseInfo, TableInfo
 
 
 # If you ever store PII later, you can list tables/columns to hide:
@@ -36,6 +41,17 @@ BLOCKED_SQL_RE = re.compile(
     r")\b",
     re.IGNORECASE,
 )
+SQL_IDENTIFIER = r'(?:"[^"]+"|[A-Za-z_][A-Za-z0-9_$]*)'
+RELATION_RE = re.compile(
+    rf"\b(?:from|join)\s+(?P<relation>{SQL_IDENTIFIER}"
+    rf"(?:\s*\.\s*{SQL_IDENTIFIER})?)",
+    re.IGNORECASE,
+)
+CTE_NAME_RE = re.compile(
+    rf"(?:\bwith|,)\s*(?P<name>{SQL_IDENTIFIER})\s+as\s*\(",
+    re.IGNORECASE,
+)
+SQL_COMMENT_RE = re.compile(r"--|/\*|\*/")
 
 
 def _safe_type(col_type) -> str:
@@ -55,6 +71,36 @@ def _json_safe(value: Any) -> Any:
     return value
 
 
+def _normalize_sql_identifier(identifier: str) -> str:
+    return identifier.strip().strip('"').lower()
+
+
+def _validate_view_relations(query: str) -> None:
+    cte_names = {
+        _normalize_sql_identifier(match.group("name"))
+        for match in CTE_NAME_RE.finditer(query)
+    }
+    for match in RELATION_RE.finditer(query):
+        relation = match.group("relation")
+        identifiers = [
+            _normalize_sql_identifier(part)
+            for part in re.split(r"\s*\.\s*", relation)
+        ]
+        if len(identifiers) == 2:
+            schema, object_name = identifiers
+            if schema != AGENT_VIEW_SCHEMA or object_name not in AGENT_VIEW_NAMES:
+                raise ValueError(
+                    "Queries may access only approved agent_views objects"
+                )
+            continue
+
+        object_name = identifiers[0]
+        if object_name not in AGENT_VIEW_NAMES and object_name not in cte_names:
+            raise ValueError(
+                "Queries may access only approved agent view objects"
+            )
+
+
 def _validate_readonly_sql(query: str) -> str:
     if not isinstance(query, str) or not query.strip():
         raise ValueError("query must be a non-empty SQL string")
@@ -64,10 +110,13 @@ def _validate_readonly_sql(query: str) -> str:
 
     if ";" in without_trailing_semicolon:
         raise ValueError("Only one SQL statement is allowed")
+    if SQL_COMMENT_RE.search(without_trailing_semicolon):
+        raise ValueError("SQL comments are not allowed")
     if not READONLY_SQL_START_RE.match(without_trailing_semicolon):
         raise ValueError("Only SELECT or WITH queries are allowed")
     if BLOCKED_SQL_RE.search(without_trailing_semicolon):
         raise ValueError("Query contains a blocked SQL keyword")
+    _validate_view_relations(without_trailing_semicolon)
 
     return without_trailing_semicolon
 
@@ -80,27 +129,25 @@ def get_db_info(
     max_tables: int = 50,
 ) -> DatabaseInfo:
     """
-    Read-only schema/stats tool for the agent.
+    Return metadata and optional row counts for approved agent views.
 
-    Safe by default:
-    - returns schema metadata (tables/cols/keys/indexes)
-    - optional row counts
-    - NO raw data rows
+    This helper is intentionally fixed to AGENT_VIEW_SCHEMA so callers cannot
+    accidentally expose base tables or internal application schemas.
     """
     inspector = inspect(engine)
     dialect = engine.dialect.name
-
-    tables = inspector.get_table_names(schema="public")
-    tables = sorted(tables)[:max_tables]
+    schema = AGENT_VIEW_SCHEMA
+    object_names = inspector.get_view_names(schema=schema)
+    object_names = sorted(object_names)[:max_tables]
 
     out_tables: list[TableInfo] = []
 
-    for t in tables:
+    for t in object_names:
         if t in SENSITIVE_TABLES:
             continue
 
         cols = []
-        for c in inspector.get_columns(t, schema="public"):
+        for c in inspector.get_columns(t, schema=schema):
             col_name = c.get("name", "")
             if _should_hide_column(col_name):
                 # Hide potentially sensitive columns from the agent entirely
@@ -115,39 +162,23 @@ def get_db_info(
                 )
             )
 
-        pk = inspector.get_pk_constraint(t, schema="public") or {}
-        pk_cols = pk.get("constrained_columns") or []
-
         fks = []
-        for fk in inspector.get_foreign_keys(t, schema="public") or []:
-            constrained = fk.get("constrained_columns") or []
-            referred_table = fk.get("referred_table") or ""
-            referred_cols = fk.get("referred_columns") or []
-            for i, col in enumerate(constrained):
-                # Keep 1:1 mapping if possible
-                ref_col = referred_cols[i] if i < len(referred_cols) else (referred_cols[0] if referred_cols else "")
-                # Hide FK column if it's considered sensitive
-                if _should_hide_column(col):
-                    continue
-                fks.append(ForeignKeyInfo(column=col, references_table=referred_table, references_column=ref_col))
-
         idxs = []
-        for idx in inspector.get_indexes(t, schema="public") or []:
-            idx_cols = idx.get("column_names") or []
-            # Filter out sensitive columns from index display too
-            idx_cols = [c for c in idx_cols if not _should_hide_column(c)]
-            idxs.append(IndexInfo(name=idx.get("name") or "", columns=idx_cols, unique=bool(idx.get("unique", False))))
 
         row_count = None
         if include_row_counts:
             # Row count is safe and very useful for agent planning
-            row_count = db.execute(text(f'SELECT COUNT(*) FROM public."{t}"')).scalar_one()
+            quoted_schema = engine.dialect.identifier_preparer.quote_schema(schema)
+            quoted_name = engine.dialect.identifier_preparer.quote(t)
+            row_count = db.execute(
+                text(f"SELECT COUNT(*) FROM {quoted_schema}.{quoted_name}")
+            ).scalar_one()
 
         out_tables.append(
             TableInfo(
                 name=t,
                 columns=cols,
-                primary_key=pk_cols,
+                primary_key=[],
                 foreign_keys=fks,
                 indexes=idxs,
                 row_count=row_count,
@@ -159,7 +190,7 @@ def get_db_info(
         tables=out_tables,
         notes={
             "privacy": "No raw rows returned. Potential PII columns are filtered by allow/deny list.",
-            "scope": "public schema only. Limited table count to avoid huge payloads.",
+            "scope": f"{schema} views only. Base tables and internal schemas are hidden.",
         },
     )
 
@@ -167,40 +198,34 @@ def get_db_info(
 
 @tool
 def get_db_info_tool(include_row_counts: bool = False) -> dict:
-    """Return DB schema info (tables/columns/fks/indexes). Optionally include row counts."""
-    with SessionLocal() as db:
+    """View schema metadata and optional row counts through a read-only connection."""
+    with ReadOnlySessionLocal() as db:
         return get_db_info(
             db=db,
-            engine=engine,
+            engine=readonly_engine,
             include_row_counts=include_row_counts,
         ).model_dump()
 
 
 def get_sql_database_toolkit_tools(llm):
-    """Return non-executing SQLDatabaseToolkit tools backed by the app database engine."""
+    """Return non-executing SQL tools backed by the agent read-only engine."""
     sql_db = SQLDatabase(
-        engine=engine,
-        schema="public",
+        engine=readonly_engine,
+        schema=AGENT_VIEW_SCHEMA,
         sample_rows_in_table_info=0,
         indexes_in_table_info=True,
+        view_support=True,
         lazy_table_reflection=True,
     )
     toolkit = SQLDatabaseToolkit(db=sql_db, llm=llm)
     return [tool for tool in toolkit.get_tools() if tool.name != "sql_db_query"]
 
 
-@tool
-def run_readonly_sql_tool(query: str, max_rows: int = 100) -> dict:
-    """
-    Execute one guarded read-only SELECT/WITH SQL query against the app database.
-
-    Use this for actual DB query execution after checking SQL with sql_db_query_checker.
-    Write/DDL statements are rejected before reaching the database.
-    """
+def run_readonly_sql(query: str, max_rows: int = 100) -> dict:
     safe_query = _validate_readonly_sql(query)
     safe_max_rows = max(1, min(int(max_rows or 100), MAX_SQL_ROWS))
 
-    with engine.connect() as conn:
+    with readonly_engine.connect() as conn:
         result = conn.execute(text(safe_query))
         rows = [
             {
@@ -222,3 +247,14 @@ def run_readonly_sql_tool(query: str, max_rows: int = 100) -> dict:
         "truncated": truncated,
         "max_rows": safe_max_rows,
     }
+
+
+@tool
+def run_readonly_sql_tool(query: str, max_rows: int = 100) -> dict:
+    """
+    Execute one guarded SELECT/WITH query through the agent read-only connection.
+
+    Write/DDL statements are rejected before reaching a PostgreSQL transaction
+    that is also forced to READ ONLY.
+    """
+    return run_readonly_sql(query, max_rows)

@@ -8,10 +8,9 @@ if sys.platform == "win32":
 
 from dotenv import load_dotenv
 from fastapi.responses import FileResponse
-from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 
 from app.api.chat import router as chat_router
 from app.api.analytics import router as analytics_router
@@ -22,8 +21,7 @@ from app.api.evaluations import router as evaluations_router
 from app.api.inventories import router as inventories_router
 from app.api.products import router as products_router
 from app.api.users import router as users_router
-from app.db.session import engine
-from app.deps import get_db
+from app.db.readonly_session import ReadOnlySessionLocal, readonly_engine
 from app.reports.links import with_report_urls
 from app.reports.storage import load_report, resolve_asset_path
 from app.schemas.report import GeneratedReport
@@ -95,10 +93,14 @@ def compute(req: ComputeRequest):
 
 @app.get("/db-info")
 def db_info(
-    db: Session = Depends(get_db),
     include_row_counts: bool = Query(default=True),
 ):
-    return get_db_info(db=db, engine=engine, include_row_counts=include_row_counts).model_dump()
+    with ReadOnlySessionLocal() as db:
+        return get_db_info(
+            db=db,
+            engine=readonly_engine,
+            include_row_counts=include_row_counts,
+        ).model_dump()
 
 
 @app.post("/voice/transcribe")
