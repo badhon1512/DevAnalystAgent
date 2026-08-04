@@ -10,6 +10,7 @@ import {
   adminSetConversationActive,
 } from "../../lib/api";
 import type { AdminConversationDetail, AdminConversationSummary } from "../../lib/types";
+import TrafficPanel from "../../components/TrafficPanel";
 
 const ADMIN_TOKEN_KEY = "productai-admin-token";
 
@@ -220,6 +221,8 @@ export default function AdminPage() {
         <div><span>{activeCount}</span><p>Active</p></div>
         <div><span>{conversations.length - activeCount}</span><p>Inactive</p></div>
       </section>
+
+      <TrafficPanel token={token} />
 
       <section className="adminGrid">
         <div className="adminConversationList">

@@ -412,3 +412,35 @@ export type ListResponse<T> = {
   offset: number;
 };
 
+export type CountBucket = {
+  label: string;
+  views: number;
+};
+
+export type DailyViews = {
+  date: string;
+  views: number;
+  visitors: number;
+};
+
+export type RecentView = {
+  viewed_at: string;
+  path: string;
+  country: string | null;
+  city: string | null;
+  referrer: string | null;
+};
+
+export type PageViewStats = {
+  generated_at: string;
+  window_days: number;
+  total_views: number;
+  unique_visitors: number;
+  views_today: number;
+  daily: DailyViews[];
+  top_countries: CountBucket[];
+  top_paths: CountBucket[];
+  top_referrers: CountBucket[];
+  recent: RecentView[];
+};
+

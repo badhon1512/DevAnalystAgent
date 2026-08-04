@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import PageViewTracker from "../components/PageViewTracker";
+
 const capabilities = [
   { code: "ORC", label: "Agent orchestrator", value: "Routes tasks across tools and workflows" },
   { code: "RAG", label: "RAG knowledge layer", value: "Retrieves knowledge for LLMs to answer with trusted context" },
@@ -12,6 +14,7 @@ const capabilities = [
 export default function Page() {
   return (
     <main className="landingPage">
+      <PageViewTracker path="/" />
       <nav className="landingNav" aria-label="Primary">
         <Link className="landingBrand" href="/">
           <span>AI</span>

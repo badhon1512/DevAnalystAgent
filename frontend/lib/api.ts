@@ -11,6 +11,7 @@ import type {
   EvaluationRunRequest,
   InventoryRow,
   ListResponse,
+  PageViewStats,
   Product,
   ProductDetail,
   VoiceTranscriptionResponse,
@@ -184,6 +185,17 @@ function adminHeaders(token: string) {
   return {
     Authorization: `Bearer ${token}`,
   };
+}
+
+export async function fetchPageViewStats(
+  token: string,
+  days = 30,
+  path?: string,
+): Promise<PageViewStats> {
+  return getJSONWithHeaders<PageViewStats>(
+    `${API_BASE}/page-views/stats${buildQuery({ days, path })}`,
+    adminHeaders(token),
+  );
 }
 
 export async function adminListConversations(token: string): Promise<AdminConversationSummary[]> {
