@@ -19,6 +19,7 @@ from app.api.conversations import router as conversations_router
 from app.api.documents import router as documents_router
 from app.api.evaluations import router as evaluations_router
 from app.api.inventories import router as inventories_router
+from app.api.page_views import router as page_views_router
 from app.api.products import router as products_router
 from app.api.users import router as users_router
 from app.db.readonly_session import ReadOnlySessionLocal, readonly_engine
@@ -56,6 +57,7 @@ app.include_router(products_router)
 app.include_router(users_router)
 app.include_router(inventories_router)
 app.include_router(analytics_router)
+app.include_router(page_views_router)
 app.include_router(conversations_router)
 app.include_router(documents_router)
 app.include_router(evaluations_router)

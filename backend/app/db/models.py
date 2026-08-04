@@ -615,3 +615,33 @@ class EvaluationArtifact(Base):
     case_result: Mapped[EvaluationCaseResult | None] = relationship(
         back_populates="artifacts",
     )
+
+
+class PageView(Base):
+    """One visit to a public page.
+
+    The raw client IP is never stored. It is salted and hashed so distinct
+    visitors can still be counted, while the stored row stays non-identifying.
+    """
+
+    __tablename__ = "page_views"
+
+    view_id: Mapped[uuid.UUID] = uuid_pk()
+    path: Mapped[str] = mapped_column(String(300), nullable=False)
+    session_id: Mapped[str | None] = mapped_column(String(64))
+    visitor_hash: Mapped[str | None] = mapped_column(String(64))
+    country: Mapped[str | None] = mapped_column(String(80))
+    country_code: Mapped[str | None] = mapped_column(String(2))
+    city: Mapped[str | None] = mapped_column(String(120))
+    referrer: Mapped[str | None] = mapped_column(String(500))
+    user_agent: Mapped[str | None] = mapped_column(String(400))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
+
+    __table_args__ = (
+        Index("ix_page_views_created_at", "created_at"),
+        Index("ix_page_views_path_created_at", "path", "created_at"),
+    )

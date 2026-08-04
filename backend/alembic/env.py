@@ -1,12 +1,19 @@
 from logging.config import fileConfig
 import os
+from pathlib import Path
 
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from app.db.base import Base
 
 from alembic import context
 from app.db import models  # noqa: F401
+
+# Load backend/.env the same way app.main does, so the CLI and the running
+# application always agree on which database they are pointing at.
+load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
+
 target_metadata = Base.metadata
 
 # this is the Alembic Config object, which provides
