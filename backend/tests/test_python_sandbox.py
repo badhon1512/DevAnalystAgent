@@ -92,6 +92,23 @@ def test_blocks_relative_file_delete_inside_sandbox_runtime():
     runtime_file.unlink(missing_ok=True)
 
 
+def test_blocks_plt_savefig_and_preserves_chart_output(workspace_tmp_dir, monkeypatch):
+    chart_output_dir = workspace_tmp_dir / "charts"
+    chart_output_dir.mkdir()
+    monkeypatch.setattr(python_sandbox, "CHART_OUTPUT_DIR", chart_output_dir)
+
+    response = run_python_analytics(
+        "plt.figure(figsize=(3, 2))\n"
+        "plt.plot([1, 2, 3], [3, 1, 2])\n"
+        "plt.savefig('should-not-work.png')\n"
+        "result = {'points': 3}",
+        file_name="sandbox_chart.png",
+    )
+
+    assert response["error"] == "Attribute 'savefig' is not allowed"
+    assert list(chart_output_dir.iterdir()) == []
+
+
 def test_stops_infinite_loop(monkeypatch):
     monkeypatch.setattr(python_sandbox, "SANDBOX_TIMEOUT_SECONDS", 1)
 
