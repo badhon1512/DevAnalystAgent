@@ -15,12 +15,24 @@ const NAV = [
   { href: "/merchant/returns", label: "Returns", icon: "RT" },
 ];
 
-export default function MerchantSidebar() {
+export default function MerchantSidebar({
+  open = false,
+  onNavigate,
+}: {
+  /** Drawer state. Only affects small screens; the sidebar is always visible on desktop. */
+  open?: boolean;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
 
   return (
-    <aside className="merchantSidebar">
-      <Link className="merchantBrand" href="/">
+    <aside
+      className={`merchantSidebar${open ? " merchantSidebarOpen" : ""}`}
+      // Hidden from assistive tech on mobile until opened; on desktop CSS keeps
+      // it visible and this attribute is ignored because it is never set there.
+      aria-label="Merchant portal navigation"
+    >
+      <Link className="merchantBrand" href="/" onClick={onNavigate}>
         <span>AI</span>
         <div>
           <strong>ProductAI</strong>
@@ -38,6 +50,8 @@ export default function MerchantSidebar() {
               key={n.href}
               href={n.href}
               className={`merchantNavItem${active ? " merchantNavItemActive" : ""}`}
+              aria-current={active ? "page" : undefined}
+              onClick={onNavigate}
             >
               <span>{n.icon}</span>
               <strong>{n.label}</strong>
