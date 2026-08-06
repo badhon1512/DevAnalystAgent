@@ -8111,3 +8111,84 @@ canvas {
     max-width: 78ch;
   }
 }
+
+.landingPathOverview a {
+  border-color: rgba(96, 165, 250, 0.5);
+  background:
+    linear-gradient(150deg, rgba(37, 99, 235, 0.22), rgba(15, 23, 42, 0.5) 62%),
+    rgba(15, 23, 42, 0.46);
+}
+
+.landingPathOverview a:hover,
+.landingPathOverview a:focus-visible {
+  border-color: rgba(147, 197, 253, 0.85);
+  background:
+    linear-gradient(150deg, rgba(37, 99, 235, 0.3), rgba(15, 23, 42, 0.5) 62%),
+    rgba(15, 23, 42, 0.5);
+}
+
+.landingPathOverview a strong {
+  color: #f8fafc;
+}
+
+/* The action reads as a filled button rather than another outlined pill. */
+.landingPathOverview a em {
+  justify-self: start;
+  margin-top: 2px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  color: #ffffff;
+  padding: 9px 14px;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+}
+
+.landingPathOverview a:hover em {
+  background: linear-gradient(180deg, #60a5fa, #3b82f6);
+}
+
+/* The unavailable option recedes instead of competing. */
+.landingPathDisabled {
+  opacity: 0.55;
+  border-style: dashed;
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.34);
+}
+
+.landingPathDisabled em {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #94a3b8;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* --- Portal header: AI Analysis is the primary destination ---------------- */
+
+.viewSwitch a[href="/chat"] {
+  border-color: transparent;
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+}
+
+.viewSwitch a[href="/chat"]:hover,
+.viewSwitch a[href="/chat"]:focus-visible {
+  background: linear-gradient(180deg, #60a5fa, #3b82f6);
+  color: #ffffff;
+}
+
+/* On the AI Analysis page itself the link is where you already are, so it
+   drops back to a quiet state rather than shouting a destination you have
+   reached. */
+.merchantMainChat .viewSwitch a[href="/chat"] {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.28);
+  color: #1d4ed8;
+  box-shadow: none;
+}
