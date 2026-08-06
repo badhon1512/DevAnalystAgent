@@ -44,15 +44,16 @@ export default function TrafficPanel({ token }: { token: string }) {
   return (
     <section className="adminGrid" style={{ marginTop: 24 }}>
       <div className="adminConversationList">
-        <div className="adminPanelTitle">
-          Site traffic
-          <span style={{ float: "right", display: "flex", gap: 6 }}>
+        <div className="adminPanelTitle trafficPanelHeader">
+          <span>Site traffic</span>
+          <span className="trafficWindowButtons">
             {WINDOWS.map((value) => (
               <button
                 key={value}
                 type="button"
                 className="adminGhostButton"
                 onClick={() => setDays(value)}
+                aria-pressed={days === value}
                 style={{ opacity: days === value ? 1 : 0.55 }}
               >
                 {value}d
@@ -82,18 +83,13 @@ export default function TrafficPanel({ token }: { token: string }) {
             </section>
 
             <div className="adminPanelTitle">Views per day</div>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 90 }}>
+            <div className="trafficChart">
               {stats.daily.map((day) => (
                 <div
                   key={day.date}
+                  className="trafficChartBar"
                   title={`${day.date}: ${day.views} views, ${day.visitors} visitors`}
-                  style={{
-                    flex: 1,
-                    minWidth: 4,
-                    height: `${Math.round((day.views / peak) * 100)}%`,
-                    background: "#4F46E5",
-                    borderRadius: "3px 3px 0 0",
-                  }}
+                  style={{ height: `${Math.round((day.views / peak) * 100)}%` }}
                 />
               ))}
               {stats.daily.length === 0 ? <p>No views recorded yet.</p> : null}
@@ -101,7 +97,7 @@ export default function TrafficPanel({ token }: { token: string }) {
 
             <div className="adminPanelTitle">Top countries</div>
             {stats.top_countries.map((row) => (
-              <div key={row.label} style={{ display: "flex", justifyContent: "space-between" }}>
+              <div key={row.label} className="trafficRow">
                 <span>{row.label}</span>
                 <strong>{row.views}</strong>
               </div>
@@ -109,10 +105,8 @@ export default function TrafficPanel({ token }: { token: string }) {
 
             <div className="adminPanelTitle">Top referrers</div>
             {stats.top_referrers.map((row) => (
-              <div key={row.label} style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {row.label}
-                </span>
+              <div key={row.label} className="trafficRow">
+                <span>{row.label}</span>
                 <strong>{row.views}</strong>
               </div>
             ))}
@@ -120,7 +114,7 @@ export default function TrafficPanel({ token }: { token: string }) {
             <div className="adminPanelTitle">Recent visits</div>
             {stats.recent.map((view, index) => (
               <article key={`${view.viewed_at}-${index}`} className="adminConversationItem">
-                <small>
+                <small className="trafficRecentRow">
                   {formatDateTime(view.viewed_at)} · {view.path} ·{" "}
                   {location(view.country, view.city)}
                 </small>

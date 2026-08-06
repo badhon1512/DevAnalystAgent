@@ -8,8 +8,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,7 +20,6 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 :root {
@@ -6961,5 +6958,1156 @@ body {
 
   .evalMetricStrip strong {
     font-size: 16px;
+  }
+}
+
+/* ==========================================================================
+   Small-screen refinement and call-to-action motion
+   Appended last so these rules win over the earlier desktop-first cascade.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Motion on primary calls to action
+   -------------------------------------------------------------------------- */
+
+@keyframes ctaBreathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(96, 165, 250, 0),
+      0 18px 42px rgba(2, 6, 23, 0.16);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(96, 165, 250, 0.12),
+      0 18px 42px rgba(2, 6, 23, 0.16);
+  }
+}
+
+@keyframes ctaArrowNudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  55% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes ctaSheen {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+/* Landing: the Merchant Portal card is the single most important action on the
+   page, so it breathes gently at rest to separate it from the disabled
+   Storefront card beside it. */
+.landingPathOverview a {
+  position: relative;
+  overflow: hidden;
+  animation: ctaBreathe 4.5s ease-in-out infinite;
+}
+
+.landingPathOverview a::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 38%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(148, 197, 253, 0.14),
+    transparent
+  );
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+.landingPathOverview a:hover::after,
+.landingPathOverview a:focus-visible::after {
+  animation: ctaSheen 900ms ease-out;
+}
+
+.landingPathOverview a em {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The arrow is drawn in CSS so the markup stays clean. */
+.landingPathOverview a em::after {
+  content: "\2192";
+  display: inline-block;
+  transition: transform 200ms ease;
+}
+
+.landingPathOverview a:hover em::after,
+.landingPathOverview a:focus-visible em::after {
+  animation: ctaArrowNudge 900ms ease-in-out infinite;
+}
+
+.landingPathOverview a:hover,
+.landingPathOverview a:focus-visible {
+  transform: translateY(-3px);
+}
+
+.landingPathOverview a:active {
+  transform: translateY(-1px);
+}
+
+/* Keyboard users must see the same affordance as pointer users. */
+.landingPathOverview a:focus-visible,
+.landingNavLinks a:focus-visible,
+.merchantDashboardAction:focus-visible,
+.threadNewButton:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.9);
+  outline-offset: 3px;
+}
+
+/* Portal: the dashboard action tile that opens AI analysis. */
+.merchantDashboardAction {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.merchantDashboardAction:hover,
+.merchantDashboardAction:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgba(37, 99, 235, 0.3);
+  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.12);
+}
+
+.merchantDashboardAction > span {
+  transition: transform 220ms ease;
+}
+
+.merchantDashboardAction:hover > span {
+  transform: scale(1.06) rotate(-3deg);
+}
+
+/* Portal: "New analysis" is the primary action in the chat workspace. */
+.threadNewButton {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.threadNewButton:hover,
+.threadNewButton:focus-visible {
+  transform: translateY(-1px);
+  background: rgba(37, 99, 235, 0.38);
+  border-color: rgba(96, 165, 250, 0.6);
+}
+
+.threadNewButton:active {
+  transform: translateY(0);
+}
+
+.threadNewButton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(226, 240, 255, 0.28),
+    transparent
+  );
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+.threadNewButton:hover::after {
+  animation: ctaSheen 850ms ease-out;
+}
+
+/* Honour the operating-system preference. Motion is decoration here, so it is
+   removed entirely rather than merely shortened. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .landingPathOverview a,
+  .landingPathOverview a:hover,
+  .landingPathOverview a:focus-visible,
+  .merchantDashboardAction:hover,
+  .threadNewButton:hover {
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. Tablet and below
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 760px) {
+  .welcomeContent,
+  .welcomeExperienceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .merchantHomeGrid,
+  .merchantGraphGrid,
+  .merchantCircleGrid,
+  .merchantInsightStats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. Phones
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .landingPage {
+    padding: 12px 14px 20px;
+  }
+
+  /* The nav stacked to a column at 960px, which wastes vertical space on a
+     phone. A wrapping row keeps the brand and links on one line where they
+     fit. */
+  .landingNav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+
+  .landingBrand {
+    gap: 9px;
+  }
+
+  .landingBrand > span {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+
+  .landingBrand small {
+    display: none; /* the tagline wraps to three lines and pushes the nav tall */
+  }
+
+  .landingNavLinks {
+    gap: 4px;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Tap targets below roughly 44px are hard to hit reliably. */
+  .landingNavLinks a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .landingHero {
+    gap: 22px;
+    padding-top: 22px;
+  }
+
+  .landingCopy h1 {
+    font-size: clamp(28px, 8.4vw, 34px);
+    line-height: 1.12;
+  }
+
+  .landingCopy p {
+    font-size: 14.5px;
+  }
+
+  .landingBadge {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .landingAiTasks {
+    gap: 6px;
+  }
+
+  .landingAiTasks span {
+    font-size: 11px;
+    padding: 5px 9px;
+  }
+
+  .landingPathOverview a,
+  .landingPathDisabled {
+    min-height: 0; /* 142px leaves a large empty band under short text */
+    padding: 14px;
+  }
+
+  .landingStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .landingFooter {
+    gap: 10px;
+    font-size: 12px;
+  }
+
+  .landingFooterLinks {
+    flex-wrap: wrap;
+    gap: 10px 14px;
+  }
+
+  /* The animated agent map is decorative and costs a lot of height on a phone,
+     where the copy and the call to action matter far more. */
+  .landingPreview {
+    display: none;
+  }
+
+  /* Admin traffic panel */
+  .trafficWindowButtons {
+    gap: 4px;
+  }
+
+  .trafficRecentRow {
+    font-size: 11.5px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Small phones
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 430px) {
+  .landingPage {
+    padding: 10px 11px 18px;
+  }
+
+  .landingCopy h1 {
+    font-size: clamp(25px, 8.6vw, 30px);
+  }
+
+  .landingNavLinks a {
+    padding: 0 8px;
+    font-size: 12.5px;
+  }
+
+  .landingStats {
+    grid-template-columns: 1fr;
+  }
+
+  .landingAiTasks span:nth-child(n + 7) {
+    display: none; /* nine chips wrap to five rows on a 360px screen */
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Admin traffic panel
+   -------------------------------------------------------------------------- */
+
+.trafficPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trafficWindowButtons {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.trafficChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 90px;
+  margin-bottom: 6px;
+}
+
+.trafficChartBar {
+  flex: 1;
+  min-width: 3px;
+  background: #4f46e5;
+  border-radius: 3px 3px 0 0;
+  transition: opacity 150ms ease;
+}
+
+.trafficChartBar:hover {
+  opacity: 0.75;
+}
+
+.trafficRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 0;
+}
+
+.trafficRow span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trafficRecentRow {
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .trafficChart {
+    height: 64px;
+  }
+}
+
+/* ==========================================================================
+   Portal navigation on small screens, and the chat workspace on phones
+   ========================================================================== */
+
+/* The hamburger is a mobile-only control; the sidebar is permanent on desktop. */
+.merchantNavToggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Three bars drawn from one element, so the markup stays a single span. */
+.merchantNavToggle > span,
+.merchantNavToggle > span::before,
+.merchantNavToggle > span::after {
+  display: block;
+  width: 17px;
+  height: 2px;
+  border-radius: 2px;
+  background: #0f172a;
+  transition: transform 200ms ease, opacity 160ms ease;
+}
+
+.merchantNavToggle > span {
+  position: relative;
+}
+
+.merchantNavToggle > span::before,
+.merchantNavToggle > span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+
+.merchantNavToggle > span::before {
+  top: -5.5px;
+}
+
+.merchantNavToggle > span::after {
+  top: 5.5px;
+}
+
+/* Bars fold into a cross while the drawer is open. */
+.merchantNavToggle[aria-expanded="true"] > span {
+  background: transparent;
+}
+
+.merchantNavToggle[aria-expanded="true"] > span::before {
+  transform: translateY(5.5px) rotate(45deg);
+}
+
+.merchantNavToggle[aria-expanded="true"] > span::after {
+  transform: translateY(-5.5px) rotate(-45deg);
+}
+
+.merchantNavBackdrop {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .merchantNavToggle {
+    display: inline-flex;
+  }
+
+  /* Previously the sidebar became a full-width block holding nine stacked nav
+     items, which pushed the actual page content off the first screen. It is now
+     an off-canvas drawer. */
+  .merchantShell {
+    flex-direction: row;
+  }
+
+  .merchantSidebar {
+    position: fixed;
+    z-index: 60;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(276px, 82vw);
+    border-right: 1px solid rgba(15, 23, 42, 0.1);
+    border-bottom: 0;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 22px 0 60px rgba(15, 23, 42, 0.18);
+    padding: 16px 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transform: translateX(-102%);
+    transition: transform 240ms ease;
+  }
+
+  .merchantSidebarOpen {
+    transform: translateX(0);
+  }
+
+  .merchantNavBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    border: 0;
+    background: rgba(2, 6, 23, 0.5);
+    backdrop-filter: blur(2px);
+    cursor: pointer;
+  }
+
+  .merchantMain {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .appShellHeader {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .merchantTitleGroup {
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .merchantPageTitle {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* The header carried the page title plus three link-buttons, which wrapped to
+     three rows. Actions move to a second row and scroll sideways instead. */
+  .appShellHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .viewSwitch {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .viewSwitch::-webkit-scrollbar {
+    display: none;
+  }
+
+  .viewSwitch > * {
+    flex: 0 0 auto;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .appShellSub {
+    display: none; /* "Merchant Portal" repeats the drawer brand */
+  }
+
+  .merchantContentPanel {
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  /* Chat workspace ---------------------------------------------------------
+     Embedded chat is a two-column grid of 252px history + conversation. On a
+     phone the history must collapse to a drawer or the conversation is left
+     with roughly 100px of width. */
+  .chatWorkspaceEmbedded {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .chatWorkspaceEmbedded .threadSidebar {
+    position: fixed;
+    /* Must outrank .threadMobileBackdrop (z-index 70), or the backdrop paints
+       over the drawer: it dims the list and swallows every tap. */
+    z-index: 80;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(300px, 84vw);
+    height: 100%;
+    border-radius: 0 16px 16px 0;
+    transform: translateX(-102%);
+    transition: transform 240ms ease;
+  }
+
+  .chatWorkspaceEmbedded .threadSidebarOpen {
+    transform: translateX(0);
+  }
+
+  /* The toggle is hidden by default and only earns its place once the history
+     is off-canvas. */
+  .chatHistoryToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    min-height: 38px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.5);
+    color: inherit;
+    cursor: pointer;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .chatWorkspaceEmbedded .chatShellWide {
+    height: 100%;
+    min-height: 0;
+    border-radius: 14px;
+  }
+
+  .chatWorkspaceEmbedded .chatBody {
+    padding: 10px;
+  }
+
+  .chatWorkspaceEmbedded .bubbleUser,
+  .chatWorkspaceEmbedded .bubbleAssistant {
+    max-width: 92%;
+  }
+
+  /* Four trace tiles across a 360px screen leaves each about 80px wide. */
+  .chatWorkspaceEmbedded .traceGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .composer {
+    gap: 6px;
+  }
+
+  .composer textarea {
+    font-size: 16px; /* below 16px iOS Safari zooms the page on focus */
+  }
+}
+
+@media (max-width: 430px) {
+  .merchantTitleGroup > span {
+    display: none; /* the two-letter badge duplicates the page title */
+  }
+
+  .chatWorkspaceEmbedded .traceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .viewSwitch > * {
+    font-size: 12.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .merchantSidebar,
+  .chatWorkspaceEmbedded .threadSidebar,
+  .merchantNavToggle > span,
+  .merchantNavToggle > span::before,
+  .merchantNavToggle > span::after {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Typographic and interaction foundation
+   Appended last so it settles the cascade rather than fighting it.
+   ========================================================================== */
+
+:root {
+  /* Inter is loaded and self-hosted by next/font in app/layout.tsx. The system
+     stack remains as a fallback for the first paint and for offline builds. */
+  --font-ui:
+    var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-code:
+    var(--font-mono-code), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", monospace;
+
+  --focus-ring: rgba(96, 165, 250, 0.9);
+}
+
+html,
+body {
+  font-family: var(--font-ui);
+}
+
+body {
+  /* Without this, Inter renders noticeably heavier on macOS than on Windows. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+code,
+pre,
+kbd,
+samp,
+.markdownContent code,
+.markdownContent pre {
+  font-family: var(--font-code);
+  font-variant-ligatures: none;
+}
+
+/* Headings tighten as they grow. At display sizes the default tracking reads
+   loose and unfinished. */
+h1,
+.landingCopy h1,
+.merchantPageTitle,
+.chatTitle {
+  letter-spacing: -0.02em;
+}
+
+h2,
+h3 {
+  letter-spacing: -0.01em;
+}
+
+/* This is a numbers-heavy product. Proportional digits make columns of figures
+   jitter as they update; tabular digits keep them aligned in place. */
+table,
+.merchantInsightStats,
+.landingStats,
+.adminStats,
+.traceGrid,
+.trafficRow,
+.trafficChart,
+.merchantBarRow,
+.merchantRiskItem,
+.merchantProductInsight,
+.metricValue,
+time {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* --------------------------------------------------------------------------
+   Interaction states
+   -------------------------------------------------------------------------- */
+
+/* A single visible focus treatment everywhere, rather than the browser default
+   on some controls and nothing on others. */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Pointer devices only: a persistent hand cursor on disabled controls reads as
+   broken. */
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+::selection {
+  background: rgba(59, 130, 246, 0.28);
+  color: inherit;
+}
+
+/* --------------------------------------------------------------------------
+   Scrollbars
+   Default Windows scrollbars are heavy and sit oddly against dark panels.
+   -------------------------------------------------------------------------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+  background-color: rgba(148, 163, 184, 0.38);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Content polish
+   -------------------------------------------------------------------------- */
+
+/* Long tokens such as SKUs, URLs and hashes otherwise force horizontal scroll
+   on narrow panels. */
+.markdownContent,
+.bubbleAssistant,
+.bubbleUser,
+.threadItemTitle,
+.trafficRow span {
+  overflow-wrap: anywhere;
+}
+
+/* Wide tables scroll inside their own container instead of stretching the page. */
+.markdownContent table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Images never overflow their column. */
+img,
+svg,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Anchors inside prose get a considered underline rather than the default. */
+.markdownContent a {
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+
+/* Placeholder text should read as a hint, not as entered content. */
+::placeholder {
+  color: rgba(148, 163, 184, 0.75);
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Chat workspace and portal header, small screens
+   ========================================================================== */
+
+/* The history toggle holds three empty spans meant to be a hamburger. Without
+   styling they collapsed to three hairlines that read as a stray "---" box. */
+.chatHistoryToggle {
+  flex-direction: column;
+  justify-content: center;
+  gap: 3.5px;
+}
+
+.chatHistoryToggle > span {
+  display: block;
+  width: 15px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+/* Horizontal strips that scroll rather than clip. A fade on the trailing edge
+   signals there is more to reach, which a hard cut does not. */
+.composerOptions,
+.composerSuggestions {
+  -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+}
+
+@media (max-width: 640px) {
+  /* Portal header ---------------------------------------------------------
+     The three actions rendered as large bold pills filling a whole row, which
+     gave secondary navigation the visual weight of a primary call to action. */
+  .viewSwitch > * {
+    min-height: 34px;
+    border-radius: 9px;
+    padding: 0 11px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .merchantUserButton {
+    font-weight: 700;
+  }
+
+  /* Chat header -----------------------------------------------------------
+     18px of padding plus a decorative badge cost roughly a quarter of the
+     viewport before the first message. */
+  .chatHeader {
+    padding: 10px 12px;
+  }
+
+  .chatTitle {
+    font-size: 15px;
+  }
+
+  /* "Business intelligence workspace" restates the page title on a screen
+     where every row costs. */
+  .chatSub {
+    display: none;
+  }
+
+  /* Composer --------------------------------------------------------------
+     Suggestion chips wrapped, but a single long chip still overflowed. One
+     scrolling row is predictable and looks deliberate. */
+  .composerSuggestions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .composerSuggestions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .composerSuggestions > * {
+    flex: 0 0 auto;
+  }
+
+  .composerSuggestions button {
+    min-height: 32px;
+    max-width: 60vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .composerOptions label {
+    flex: 0 0 auto;
+  }
+
+  .chatFooter {
+    padding: 10px;
+  }
+
+  .composerShell {
+    gap: 8px;
+  }
+
+  /* Two lines of placeholder were clipped by the 44px floor. */
+  .composerInput {
+    min-height: 46px;
+    max-height: 108px;
+  }
+
+  .composerBtn,
+  .composerSendBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Tap targets ------------------------------------------------------------ */
+  .threadNewButton {
+    min-height: 38px;
+  }
+
+  .threadDeleteButton {
+    min-width: 34px;
+    min-height: 34px;
+  }
+}
+
+@media (max-width: 430px) {
+  .viewSwitch > * {
+    font-size: 12px;
+    padding: 0 9px;
+  }
+
+  .composerSuggestions button {
+    max-width: 52vw;
+  }
+}
+
+/* ==========================================================================
+   Embedded chat, small screens: specificity corrections
+   The embedded variant styles controls as ".chatWorkspaceEmbedded .x", which
+   outranks a bare ".x" rule. These match that weight so the mobile sizes win.
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  /* The placeholder wraps to two lines but the box only showed one, so the
+     text was visibly cut in half. 16px also stops iOS Safari zooming the whole
+     page when the field takes focus. */
+  .chatWorkspaceEmbedded .composerInput {
+    min-height: 68px;
+    max-height: 120px;
+    font-size: 16px;
+    line-height: 1.35;
+  }
+
+  .chatWorkspaceEmbedded .composerSuggestions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .chatWorkspaceEmbedded .composerSuggestions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chatWorkspaceEmbedded .composerSuggestions > * {
+    flex: 0 0 auto;
+  }
+
+  .chatWorkspaceEmbedded .composerSuggestions button {
+    min-height: 34px;
+    max-width: 62vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chatWorkspaceEmbedded .composerOptions {
+    min-height: 38px;
+  }
+
+  .chatWorkspaceEmbedded .composerOptions label,
+  .chatWorkspaceEmbedded .composerOptions select {
+    flex: 0 0 auto;
+  }
+
+  .chatWorkspaceEmbedded .threadNewButton {
+    min-height: 38px;
+  }
+
+  .chatWorkspaceEmbedded .composerBtn,
+  .chatWorkspaceEmbedded .composerSendBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* An empty conversation left a tall blank band between the greeting and the
+     composer. Centring the greeting makes the emptiness look intentional. */
+  .chatWorkspaceEmbedded .chatBody {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* chatBody holds the messages plus a scroll anchor, so :only-child never
+     matches. This centres the greeting only while it is the sole message. */
+  .chatWorkspaceEmbedded .chatBody > .msgRow:first-child:nth-last-child(-n + 2) {
+    margin-block: auto;
+  }
+}
+
+/* ==========================================================================
+   Drawer navigation: undo the horizontal-bar grid
+   The nav was laid out in 6/3/2 columns from when the sidebar was a full-width
+   block above the content. As a narrow vertical drawer those columns truncate
+   every label to "BI Dashb...", so it reverts to a single column.
+   ========================================================================== */
+
+@media (max-width: 960px) {
+  .merchantSidebar .merchantNav {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
+
+  .merchantSidebar .merchantNavItem {
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  .merchantSidebar .merchantNavItem strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* ==========================================================================
+   Chat header wherever the history is a drawer (<= 960px)
+   The toggle appears at 960px, but the header kept its block layout, so the
+   button sat on its own line above the title instead of beside it.
+   ========================================================================== */
+
+@media (max-width: 960px) {
+  .chatHeader {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 1px;
+    padding: 12px 16px;
+  }
+
+  /* Spans both rows so it centres against the title and subtitle together. */
+  .chatHistoryToggle {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: center;
+  }
+
+  .chatTitle,
+  .chatSub {
+    grid-column: 2;
+    margin: 0;
+    min-width: 0;
+  }
+
+  /* The toggle spans both rows, so centring each row leaves a gap between the
+     two lines of text. Pulling them to the shared edge closes it. */
+  .chatTitle {
+    align-self: end;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chatSub {
+    align-self: start;
+  }
+
+  /* The decorative "AI" mark duplicates the portal brand and crowds the
+     toggle once the header is this compact. */
+  .chatHeader::after {
+    display: none;
+  }
+
+  /* An empty conversation otherwise leaves the greeting stranded at the top of
+     a very tall blank panel. margin-block:auto only centres inside a flex
+     column, so the body needs to be one. */
+  .chatWorkspaceEmbedded .chatBody {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chatWorkspaceEmbedded .chatBody > .msgRow:first-child:nth-last-child(-n + 2) {
+    margin-block: auto;
+  }
+
+  /* Full-width prose runs to well over 120 characters a line on a tablet,
+     which is uncomfortable to read. */
+  .chatWorkspaceEmbedded .msgRow {
+    max-width: 78ch;
   }
 }
