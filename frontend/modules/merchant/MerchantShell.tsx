@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useSyncExternalStore } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import ChatWidget from "../../components/ChatWidget";
 import UsernameGate from "../../components/UsernameGate";
 import MerchantSidebar from "./MerchantSidebar";
@@ -36,11 +36,28 @@ export default function MerchantShell({
   showChatWidget?: boolean;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const [navOpen, setNavOpen] = useState(false);
   const username = useSyncExternalStore(
     subscribeStoredUsername,
     readStoredUsernameSnapshot,
     () => "",
   );
+
+  // Close the drawer on navigation, so returning to a page does not leave it open.
+  useEffect(() => {
+    setNavOpen(false);
+  }, [pathname]);
+
+  // Escape closes the drawer, matching the backdrop click.
+  useEffect(() => {
+    if (!navOpen) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setNavOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [navOpen]);
 
   function handleUsernameResolved() {
     notifyStoredUsernameChange();
@@ -60,10 +77,27 @@ export default function MerchantShell({
 
   return (
     <div className={`merchantShell${isChatLayout ? " merchantShellChat" : ""}`}>
-      <MerchantSidebar />
+      {navOpen && (
+        <button
+          className="merchantNavBackdrop"
+          aria-label="Close navigation"
+          onClick={() => setNavOpen(false)}
+          type="button"
+        />
+      )}
+      <MerchantSidebar open={navOpen} onNavigate={() => setNavOpen(false)} />
       <main className={`merchantMain${isChatLayout ? " merchantMainChat" : ""}`}>
         <div className="appShellHeader">
           <div className="merchantTitleGroup">
+            <button
+              className="merchantNavToggle"
+              type="button"
+              onClick={() => setNavOpen((open) => !open)}
+              aria-expanded={navOpen}
+              aria-label={navOpen ? "Close navigation" : "Open navigation"}
+            >
+              <span aria-hidden="true" />
+            </button>
             <span>{title.slice(0, 2).toUpperCase()}</span>
             <div>
               <div className="merchantPageTitle">{title}</div>

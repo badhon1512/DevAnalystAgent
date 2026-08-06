@@ -232,7 +232,7 @@ export default function ChatComposer({
         <textarea
           ref={textareaRef}
           className="composerInput"
-          placeholder="Ask about sales, inventory, demand, or returns"
+          placeholder="Ask about sales, inventory, or demand"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
