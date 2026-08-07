@@ -375,6 +375,51 @@ export type EvaluationRunDetail = EvaluationRunSummary & {
   cases: EvaluationCaseSummary[];
 };
 
+export type RagEvaluationSummary = {
+  run_id: string;
+  status: string;
+  retrieval_mode: "keyword" | "vector" | "hybrid";
+  embedding_model: string;
+  embedding_provider: string;
+  embedding_dimensions: number;
+  selected_case_count: number;
+  completed_case_count: number;
+  pass_rate_percent: number;
+  quality_gate_status: string;
+  hit_at_1_percent: number;
+  hit_at_3_percent: number;
+  hit_at_k_percent: number;
+  mean_precision_at_k_percent: number;
+  mean_source_recall_percent: number;
+  mean_retrieval_f1_percent: number;
+  mean_reciprocal_rank: number;
+  mean_average_precision: number;
+  mean_ndcg_at_k: number;
+  mean_content_term_recall_percent: number;
+  mean_unique_chunk_ratio_percent: number;
+  mean_redundancy_percent: number;
+  mean_similarity_score: number;
+  mean_context_character_count: number;
+  error_free_rate_percent: number;
+  average_latency_ms: number;
+  p50_latency_ms: number;
+  p95_latency_ms: number;
+  p99_latency_ms: number;
+  throughput_cases_per_second: number;
+  quality_gates: Record<string, boolean>;
+  generation_evaluation: Record<string, string>;
+  metrics_by_k: Record<string, {
+    hit_percent: number;
+    mean_precision_percent: number;
+    mean_source_recall_percent: number;
+    mean_retrieval_f1_percent: number;
+    mean_reciprocal_rank: number;
+    mean_average_precision: number;
+    mean_ndcg: number;
+  }>;
+  finished_at?: string | null;
+};
+
 export type EvaluationDashboard = {
   generated_at: string;
   latest_run?: EvaluationRunSummary | null;
@@ -384,6 +429,7 @@ export type EvaluationDashboard = {
   completed_runs: number;
   average_pass_rate_percent: number;
   total_known_cost_usd: number;
+  rag_latest?: RagEvaluationSummary | null;
 };
 
 export type EvaluationRunRequest = {
@@ -403,6 +449,15 @@ export type EvaluationRunQueued = {
   status: string;
   selected_case_count: number;
   estimated_cost_usd: number;
+};
+
+export type RagEvaluationRunRequest = {
+  categories?: string[];
+  case_ids?: string[];
+  limit?: number;
+  fail_fast: boolean;
+  retrieval_mode: "keyword" | "vector" | "hybrid";
+  embedding_model: "BAAI/bge-small-en-v1.5" | "text-embedding-3-small";
 };
 
 export type ListResponse<T> = {
@@ -443,4 +498,3 @@ export type PageViewStats = {
   top_referrers: CountBucket[];
   recent: RecentView[];
 };
-

@@ -9,6 +9,7 @@ import type {
   EvaluationRunDetail,
   EvaluationRunQueued,
   EvaluationRunRequest,
+  RagEvaluationRunRequest,
   InventoryRow,
   ListResponse,
   PageViewStats,
@@ -278,6 +279,27 @@ export async function adminQueueEvaluation(
   return res.json();
 }
 
+export async function adminQueueRagEvaluation(
+  token: string,
+  payload: RagEvaluationRunRequest,
+): Promise<EvaluationRunQueued> {
+  const res = await fetch(`${API_BASE}/admin/evaluations/rag`, {
+    method: "POST",
+    headers: {
+      ...adminHeaders(token),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`RAG evaluation could not be started (${res.status}): ${text}`);
+  }
+
+  return res.json();
+}
+
 export async function transcribeVoice(audio: Blob): Promise<VoiceTranscriptionResponse> {
   const form = new FormData();
   const extension = audio.type.includes("ogg") ? "ogg" : "webm";
@@ -349,4 +371,3 @@ export const api = {
   returns: (q?: { search?: string; days?: number; limit?: number; offset?: number }) =>
     getJSON(`${API_BASE}/returns${buildQuery(q || {})}`),
 };
-

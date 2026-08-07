@@ -6,6 +6,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState, useSyncExternalSt
 import AppShell from "../../../components/AppShell";
 import {
   adminQueueEvaluation,
+  adminQueueRagEvaluation,
   getEvaluationDashboard,
   getEvaluationRun,
 } from "../../../lib/api";
@@ -14,6 +15,7 @@ import type {
   EvaluationRunDetail,
   EvaluationRunRequest,
   EvaluationRunSummary,
+  RagEvaluationRunRequest,
 } from "../../../lib/types";
 
 
@@ -93,6 +95,13 @@ export default function EvaluationDashboardPage() {
   const [budget, setBudget] = useState(0.5);
   const [loading, setLoading] = useState(true);
   const [queueing, setQueueing] = useState(false);
+  const [ragQueueing, setRagQueueing] = useState(false);
+  const [ragMode, setRagMode] = useState<
+    RagEvaluationRunRequest["retrieval_mode"]
+  >("hybrid");
+  const [ragEmbeddingModel, setRagEmbeddingModel] = useState<
+    RagEvaluationRunRequest["embedding_model"]
+  >("BAAI/bge-small-en-v1.5");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -117,9 +126,12 @@ export default function EvaluationDashboardPage() {
     void loadDashboard();
   }, [loadDashboard]);
 
-  const hasActiveRun = dashboard?.runs.some(
-    (run) => run.status === "queued" || run.status === "running",
-  );
+  const hasActiveRun =
+    dashboard?.runs.some(
+      (run) => run.status === "queued" || run.status === "running",
+    ) ||
+    dashboard?.rag_latest?.status === "queued" ||
+    dashboard?.rag_latest?.status === "running";
 
   useEffect(() => {
     if (!hasActiveRun) return;
@@ -177,6 +189,32 @@ export default function EvaluationDashboardPage() {
       setError(nextError instanceof Error ? nextError.message : "Evaluation could not be started.");
     } finally {
       setQueueing(false);
+    }
+  }
+
+  async function queueRagRun() {
+    if (!adminToken || ragQueueing) return;
+    if (!window.confirm(
+      `Run all 40 cases using ${ragMode} retrieval and ${ragEmbeddingModel}?`,
+    )) {
+      return;
+    }
+    setRagQueueing(true);
+    setError("");
+    setNotice("");
+    try {
+      const queued = await adminQueueRagEvaluation(adminToken, {
+        limit: 40,
+        fail_fast: false,
+        retrieval_mode: ragMode,
+        embedding_model: ragEmbeddingModel,
+      });
+      setNotice(`RAG run ${queued.run_id.slice(0, 8)} queued with ${queued.selected_case_count} cases.`);
+      await loadDashboard();
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "RAG evaluation could not be started.");
+    } finally {
+      setRagQueueing(false);
     }
   }
 
@@ -255,6 +293,158 @@ export default function EvaluationDashboardPage() {
               <small>All persisted runs</small>
             </div>
           </div>
+        </section>
+
+        <section className="evalSuiteSection" aria-label="Evaluation suites">
+          <div className="evalSuiteHeading">
+            <div>
+              <p>Evaluation suites</p>
+              <h2>Production quality gates</h2>
+            </div>
+            <div className="evalSuiteIndex" aria-label="Available evaluation suites">
+              <span className="isActive">RAG retrieval</span>
+              <span>Answer quality</span>
+              <span>Safety</span>
+              <span>Tool use</span>
+            </div>
+          </div>
+
+          <article className="evalRagSuite">
+            <div className="evalRagSuiteHeader">
+              <div>
+                <span className={`evalRagGate evalRagGate-${dashboard?.rag_latest?.quality_gate_status.toLowerCase() ?? "pending"}`}>
+                  {dashboard?.rag_latest?.quality_gate_status ?? "No baseline"}
+                </span>
+                <h3>RAG retrieval and context quality</h3>
+                <p>
+                  {dashboard?.rag_latest
+                    ? `${dashboard.rag_latest.completed_case_count} ${dashboard.rag_latest.retrieval_mode} cases completed with ${dashboard.rag_latest.embedding_model} ${formatDate(dashboard.rag_latest.finished_at)}.`
+                    : "No persisted RAG evaluation has completed yet."}
+                </p>
+              </div>
+              <div className="evalRagActions">
+                <label>
+                  <span>Embedding</span>
+                  <select
+                    value={ragEmbeddingModel}
+                    onChange={(event) => setRagEmbeddingModel(
+                      event.target.value as RagEvaluationRunRequest["embedding_model"],
+                    )}
+                  >
+                    <option value="BAAI/bge-small-en-v1.5">BAAI BGE Small (local)</option>
+                    <option value="text-embedding-3-small">OpenAI Embedding 3 Small</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Retrieval</span>
+                  <select
+                    value={ragMode}
+                    onChange={(event) => setRagMode(
+                      event.target.value as RagEvaluationRunRequest["retrieval_mode"],
+                    )}
+                  >
+                    <option value="hybrid">Hybrid</option>
+                    <option value="vector">Vector</option>
+                    <option value="keyword">Keyword</option>
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => void queueRagRun()}
+                  disabled={!adminToken || ragQueueing || dashboard?.rag_latest?.status === "running"}
+                >
+                  {ragQueueing ? "Queueing..." : "Run RAG suite"}
+                </button>
+              </div>
+            </div>
+
+            <div className="evalRagMetrics">
+              <section>
+                <div><strong>Retrieval</strong><span>Ranking and source discovery</span></div>
+                <dl>
+                  <div><dt>Hit@1</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.hit_at_1_percent.toFixed(1)}%` : "--"}</dd></div>
+                  <div><dt>Hit@3</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.hit_at_3_percent.toFixed(1)}%` : "--"}</dd></div>
+                  <div><dt>Recall@K</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.mean_source_recall_percent.toFixed(1)}%` : "--"}</dd></div>
+                  <div><dt>Precision@K</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.mean_precision_at_k_percent.toFixed(1)}%` : "--"}</dd></div>
+                  <div><dt>MRR</dt><dd>{dashboard?.rag_latest?.mean_reciprocal_rank.toFixed(3) ?? "--"}</dd></div>
+                  <div><dt>nDCG@K</dt><dd>{dashboard?.rag_latest?.mean_ndcg_at_k.toFixed(3) ?? "--"}</dd></div>
+                  <div><dt>MAP@K</dt><dd>{dashboard?.rag_latest?.mean_average_precision.toFixed(3) ?? "--"}</dd></div>
+                  <div><dt>Retrieval F1</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.mean_retrieval_f1_percent.toFixed(1)}%` : "--"}</dd></div>
+                </dl>
+              </section>
+
+              <section>
+                <div><strong>Context</strong><span>Coverage and retrieval noise</span></div>
+                <dl>
+                  <div><dt>Concept recall</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.mean_content_term_recall_percent.toFixed(1)}%` : "--"}</dd></div>
+                  <div><dt>Unique chunks</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.mean_unique_chunk_ratio_percent.toFixed(1)}%` : "--"}</dd></div>
+                  <div><dt>Redundancy</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.mean_redundancy_percent.toFixed(1)}%` : "--"}</dd></div>
+                  <div><dt>Relevance score</dt><dd>{dashboard?.rag_latest?.mean_similarity_score.toFixed(3) ?? "--"}</dd></div>
+                  <div><dt>Context size</dt><dd>{dashboard?.rag_latest ? dashboard.rag_latest.mean_context_character_count.toLocaleString() : "--"}</dd></div>
+                  <div><dt>Pass rate</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.pass_rate_percent.toFixed(1)}%` : "--"}</dd></div>
+                </dl>
+              </section>
+
+              <section>
+                <div><strong>Runtime</strong><span>Reliability and latency</span></div>
+                <dl>
+                  <div><dt>Error-free</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.error_free_rate_percent.toFixed(1)}%` : "--"}</dd></div>
+                  <div><dt>Average</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.average_latency_ms} ms` : "--"}</dd></div>
+                  <div><dt>P50</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.p50_latency_ms} ms` : "--"}</dd></div>
+                  <div><dt>P95</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.p95_latency_ms} ms` : "--"}</dd></div>
+                  <div><dt>P99</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.p99_latency_ms} ms` : "--"}</dd></div>
+                  <div><dt>Throughput</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.throughput_cases_per_second.toFixed(2)}/s` : "--"}</dd></div>
+                </dl>
+              </section>
+
+              <section className="evalRagGeneration">
+                <div><strong>Generation</strong><span>End-to-end answer evaluation</span></div>
+                <dl>
+                  <div><dt>Faithfulness</dt><dd>Not measured</dd></div>
+                  <div><dt>Answer relevance</dt><dd>Not measured</dd></div>
+                  <div><dt>Citation precision</dt><dd>Not measured</dd></div>
+                  <div><dt>Citation recall</dt><dd>Not measured</dd></div>
+                  <div><dt>Abstention</dt><dd>Not measured</dd></div>
+                </dl>
+              </section>
+            </div>
+
+            <div className="evalRagDepth">
+              <div>
+                <strong>Retrieval depth</strong>
+                <span>Quality as context grows from K=1 to K=5</span>
+              </div>
+              <div className="evalRagDepthTable">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>K</th>
+                      <th>Hit</th>
+                      <th>Precision</th>
+                      <th>Recall</th>
+                      <th>F1</th>
+                      <th>nDCG</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[1, 2, 3, 4, 5].map((k) => {
+                      const metrics = dashboard?.rag_latest?.metrics_by_k[String(k)];
+                      return (
+                        <tr key={k}>
+                          <th>{k}</th>
+                          <td>{metrics ? `${metrics.hit_percent.toFixed(1)}%` : "--"}</td>
+                          <td>{metrics ? `${metrics.mean_precision_percent.toFixed(1)}%` : "--"}</td>
+                          <td>{metrics ? `${metrics.mean_source_recall_percent.toFixed(1)}%` : "--"}</td>
+                          <td>{metrics ? `${metrics.mean_retrieval_f1_percent.toFixed(1)}%` : "--"}</td>
+                          <td>{metrics ? metrics.mean_ndcg.toFixed(3) : "--"}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </article>
         </section>
 
         <section className="evalPrimaryGrid">
