@@ -1,13 +1,10 @@
 from pathlib import Path
-import os
-import re
 import sys
-from typing import Any
+from typing import Literal
 
 from dotenv import load_dotenv
 import httpx
 from mcp.server.fastmcp import FastMCP
-from sqlalchemy import text
 
 from app.db.readonly_session import (
     ReadOnlySessionLocal,
@@ -20,71 +17,6 @@ from app.tools.db import get_db_info, run_readonly_sql
 load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
 
 mcp = FastMCP("TraceStock AI")
-
-VECTOR_DOCUMENT_SEARCH_AVAILABLE = os.getenv("MCP_VECTOR_DOCUMENT_SEARCH", "0") == "1"
-
-
-def _fallback_document_keyword_search(db: Any, query: str, top_k: int) -> dict:
-    words = [
-        word.lower()
-        for word in re.findall(r"[a-zA-Z0-9]+", query)
-        if len(word) > 2
-    ][:6]
-    if not words:
-        words = [query.strip().lower()]
-
-    params: dict[str, Any] = {"top_k": top_k}
-    conditions = []
-    for index, word in enumerate(words):
-        param_name = f"term_{index}"
-        params[param_name] = f"%{word}%"
-        conditions.append(
-            f"(lower(c.content) LIKE :{param_name} OR lower(d.title) LIKE :{param_name})"
-        )
-
-    rows = db.execute(
-        text(
-            f"""
-            SELECT
-                d.document_id,
-                c.chunk_id,
-                d.title,
-                c.content,
-                d.source_type,
-                d.source_path,
-                d.department,
-                d.version,
-                c.chunk_index
-            FROM document_chunks c
-            JOIN documents d ON d.document_id = c.document_id
-            WHERE {" OR ".join(conditions)}
-            ORDER BY d.title, c.chunk_index
-            LIMIT :top_k
-            """
-        ),
-        params,
-    ).mappings()
-
-    return {
-        "query": query,
-        "retrieval_mode": "keyword_fallback",
-        "matches": [
-            {
-                "document_id": str(row["document_id"]),
-                "chunk_id": str(row["chunk_id"]),
-                "title": row["title"],
-                "content": row["content"],
-                "score": 0.0,
-                "source_type": row["source_type"],
-                "source_path": row["source_path"],
-                "department": row["department"],
-                "version": row["version"],
-                "chunk_index": row["chunk_index"],
-            }
-            for row in rows
-        ],
-    }
-
 
 @mcp.tool()
 def tracestock_mcp_status() -> dict:
@@ -247,27 +179,38 @@ def run_readonly_inventory_sql(query: str, max_rows: int = 100) -> dict:
 
 
 @mcp.tool()
-def search_company_documents(query: str, top_k: int = 5) -> dict:
+def search_company_documents(
+    query: str,
+    top_k: int = 5,
+    retrieval_mode: Literal["vector", "keyword", "hybrid"] = "hybrid",
+) -> dict:
     """
     Search indexed company policies, SOPs, supplier rules, return policies, and warehouse docs.
 
     Use this for unstructured company knowledge rather than live product/inventory/sales facts.
     """
-    global VECTOR_DOCUMENT_SEARCH_AVAILABLE
-    safe_top_k = max(1, min(int(top_k or 5), 20))
+    safe_top_k = max(1, min(int(top_k or 5), 12))
     with SessionLocal() as db:
-        if not VECTOR_DOCUMENT_SEARCH_AVAILABLE:
-            return _fallback_document_keyword_search(db, query, safe_top_k)
-
         try:
-            return search_company_docs(db=db, query=query, top_k=safe_top_k).model_dump()
+            return search_company_docs(
+                db=db,
+                query=query,
+                top_k=safe_top_k,
+                retrieval_mode=retrieval_mode,
+            ).model_dump()
         except Exception as exc:
-            VECTOR_DOCUMENT_SEARCH_AVAILABLE = False
+            if retrieval_mode == "keyword":
+                raise
             print(
-                f"[MCP SERVER] vector document search failed, using keyword fallback: {exc!r}",
+                f"[MCP SERVER] {retrieval_mode} search failed, using keyword: {exc!r}",
                 file=sys.stderr,
             )
-            return _fallback_document_keyword_search(db, query, safe_top_k)
+            return search_company_docs(
+                db=db,
+                query=query,
+                top_k=safe_top_k,
+                retrieval_mode="keyword",
+            ).model_dump()
 
 
 if __name__ == "__main__":
