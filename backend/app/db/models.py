@@ -330,7 +330,8 @@ class DocumentChunk(Base):
     )
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding: Mapped[list[float]] = mapped_column(Vector(1536), nullable=False)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(1536))
+    embedding_baai: Mapped[list[float] | None] = mapped_column(Vector(384))
     chunk_metadata: Mapped[dict | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 

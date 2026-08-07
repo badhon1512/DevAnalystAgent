@@ -10,14 +10,18 @@ from app.schemas.evaluations import (
     EvaluationRunDetail,
     EvaluationRunQueued,
     EvaluationRunRequest,
+    RagEvaluationRunRequest,
 )
 from app.services.evaluations import (
     get_evaluation_dashboard,
     get_evaluation_run,
 )
+from app.rag.embeddings import get_embedding_profile
 from evals.load_cases import load_cases
+from evals.load_rag_cases import load_rag_cases
 from evals.models import EvalOptions
 from evals.persistence import EvaluationPersistence
+from evals.rag_persistence import RagEvaluationPersistence
 from evals.run_batch import (
     DEFAULT_API_BASE,
     build_batch_configuration,
@@ -25,6 +29,7 @@ from evals.run_batch import (
     execute_batch,
     select_cases,
 )
+from evals.run_rag import execute_rag_batch, select_rag_cases
 
 
 router = APIRouter(tags=["evaluations"])
@@ -142,4 +147,74 @@ def queue_evaluation_run(
         status="queued",
         selected_case_count=len(selected),
         estimated_cost_usd=estimated_cost,
+    )
+
+
+@router.post(
+    "/admin/evaluations/rag",
+    response_model=EvaluationRunQueued,
+    status_code=202,
+)
+def queue_rag_evaluation_run(
+    payload: RagEvaluationRunRequest,
+    background_tasks: BackgroundTasks,
+    _: None = Depends(require_admin),
+):
+    try:
+        selected = select_rag_cases(
+            load_rag_cases(),
+            categories=payload.categories or None,
+            case_ids=payload.case_ids or None,
+            limit=payload.limit,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not selected:
+        raise HTTPException(status_code=400, detail="No RAG cases selected.")
+
+    embedding_profile = get_embedding_profile(payload.embedding_model)
+    selection_filters = {
+        "categories": payload.categories,
+        "case_ids": payload.case_ids,
+        "limit": payload.limit,
+        "retrieval_mode": payload.retrieval_mode,
+        "embedding_model": embedding_profile.model,
+    }
+    persistence = RagEvaluationPersistence()
+    run_id = persistence.create_rag_run(
+        selected,
+        configuration={
+            "api_base": DEFAULT_API_BASE,
+            "quality_gates": "production-defaults-v1",
+            "retrieval_mode": payload.retrieval_mode,
+            "embedding_model": embedding_profile.model,
+            "embedding_provider": embedding_profile.provider,
+            "embedding_dimensions": embedding_profile.dimensions,
+        },
+        selection_filters=selection_filters,
+        context={
+            "trigger_source": "admin",
+            "triggered_by": "productai-admin",
+        },
+    )
+    background_tasks.add_task(
+        execute_rag_batch,
+        selected,
+        api_base=DEFAULT_API_BASE,
+        fail_fast=payload.fail_fast,
+        retrieval_mode=payload.retrieval_mode,
+        embedding_model=embedding_profile.model,
+        persistence=persistence,
+        persistence_context={
+            "trigger_source": "admin",
+            "triggered_by": "productai-admin",
+        },
+        selection_filters=selection_filters,
+        existing_database_run_id=run_id,
+    )
+    return EvaluationRunQueued(
+        run_id=run_id,
+        status="queued",
+        selected_case_count=len(selected),
+        estimated_cost_usd=0,
     )
