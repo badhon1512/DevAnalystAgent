@@ -364,7 +364,7 @@ export default function EvaluationDashboardPage() {
                 <dl>
                   <div><dt>Hit@1</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.hit_at_1_percent.toFixed(1)}%` : "--"}</dd></div>
                   <div><dt>Hit@3</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.hit_at_3_percent.toFixed(1)}%` : "--"}</dd></div>
-                  <div><dt>Recall@K</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.mean_source_recall_percent.toFixed(1)}%` : "--"}</dd></div>
+                  <div><dt>Passage Recall@K</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.mean_passage_recall_percent.toFixed(1)}%` : "--"}</dd></div>
                   <div><dt>Precision@K</dt><dd>{dashboard?.rag_latest ? `${dashboard.rag_latest.mean_precision_at_k_percent.toFixed(1)}%` : "--"}</dd></div>
                   <div><dt>MRR</dt><dd>{dashboard?.rag_latest?.mean_reciprocal_rank.toFixed(3) ?? "--"}</dd></div>
                   <div><dt>nDCG@K</dt><dd>{dashboard?.rag_latest?.mean_ndcg_at_k.toFixed(3) ?? "--"}</dd></div>
@@ -421,7 +421,7 @@ export default function EvaluationDashboardPage() {
                       <th>K</th>
                       <th>Hit</th>
                       <th>Precision</th>
-                      <th>Recall</th>
+                      <th>Passage recall</th>
                       <th>F1</th>
                       <th>nDCG</th>
                     </tr>
@@ -434,7 +434,7 @@ export default function EvaluationDashboardPage() {
                           <th>{k}</th>
                           <td>{metrics ? `${metrics.hit_percent.toFixed(1)}%` : "--"}</td>
                           <td>{metrics ? `${metrics.mean_precision_percent.toFixed(1)}%` : "--"}</td>
-                          <td>{metrics ? `${metrics.mean_source_recall_percent.toFixed(1)}%` : "--"}</td>
+                          <td>{metrics ? `${metrics.mean_passage_recall_percent.toFixed(1)}%` : "--"}</td>
                           <td>{metrics ? `${metrics.mean_retrieval_f1_percent.toFixed(1)}%` : "--"}</td>
                           <td>{metrics ? metrics.mean_ndcg.toFixed(3) : "--"}</td>
                         </tr>

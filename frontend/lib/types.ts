@@ -390,6 +390,7 @@ export type RagEvaluationSummary = {
   hit_at_3_percent: number;
   hit_at_k_percent: number;
   mean_precision_at_k_percent: number;
+  mean_passage_recall_percent: number;
   mean_source_recall_percent: number;
   mean_retrieval_f1_percent: number;
   mean_reciprocal_rank: number;
@@ -411,6 +412,7 @@ export type RagEvaluationSummary = {
   metrics_by_k: Record<string, {
     hit_percent: number;
     mean_precision_percent: number;
+    mean_passage_recall_percent: number;
     mean_source_recall_percent: number;
     mean_retrieval_f1_percent: number;
     mean_reciprocal_rank: number;
