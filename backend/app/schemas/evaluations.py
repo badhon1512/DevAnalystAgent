@@ -64,6 +64,46 @@ class EvaluationRunDetail(EvaluationRunSummary):
     cases: list[EvaluationCaseSummary]
 
 
+class RagEvaluationSummary(BaseModel):
+    run_id: UUID
+    status: str
+    retrieval_mode: Literal["keyword", "vector", "hybrid"] = "hybrid"
+    embedding_model: str
+    embedding_provider: str
+    embedding_dimensions: int
+    selected_case_count: int
+    completed_case_count: int
+    pass_rate_percent: float
+    quality_gate_status: str
+    hit_at_1_percent: float
+    hit_at_3_percent: float
+    hit_at_k_percent: float
+    mean_precision_at_k_percent: float
+    mean_passage_recall_percent: float
+    mean_source_recall_percent: float
+    mean_retrieval_f1_percent: float
+    mean_reciprocal_rank: float
+    mean_average_precision: float
+    mean_ndcg_at_k: float
+    mean_content_term_recall_percent: float
+    mean_unique_chunk_ratio_percent: float
+    mean_redundancy_percent: float
+    mean_similarity_score: float
+    mean_context_character_count: int
+    error_free_rate_percent: float
+    average_latency_ms: int
+    p50_latency_ms: int
+    p95_latency_ms: int
+    p99_latency_ms: int
+    throughput_cases_per_second: float
+    quality_gates: dict[str, bool]
+    generation_evaluation: dict[str, str]
+    metrics_by_k: dict[str, dict[str, float | int]] = Field(
+        default_factory=dict
+    )
+    finished_at: datetime | None
+
+
 class EvaluationDashboardResponse(BaseModel):
     generated_at: datetime
     latest_run: EvaluationRunSummary | None
@@ -73,6 +113,7 @@ class EvaluationDashboardResponse(BaseModel):
     completed_runs: int
     average_pass_rate_percent: float
     total_known_cost_usd: float
+    rag_latest: RagEvaluationSummary | None
 
 
 class EvaluationRunRequest(BaseModel):
@@ -92,3 +133,15 @@ class EvaluationRunQueued(BaseModel):
     status: str
     selected_case_count: int
     estimated_cost_usd: float
+
+
+class RagEvaluationRunRequest(BaseModel):
+    categories: list[str] = Field(default_factory=list)
+    case_ids: list[str] = Field(default_factory=list)
+    limit: int | None = Field(default=None, ge=1, le=100)
+    fail_fast: bool = False
+    retrieval_mode: Literal["keyword", "vector", "hybrid"] = "hybrid"
+    embedding_model: Literal[
+        "BAAI/bge-small-en-v1.5",
+        "text-embedding-3-small",
+    ] = "BAAI/bge-small-en-v1.5"

@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.models import Document
-from app.rag.ingestion import SUPPORTED_TEXT_SUFFIXES, ingest_text_document, ingest_text_file
+from app.rag.ingestion import SUPPORTED_SUFFIXES, ingest_text_document, ingest_text_file
 from app.rag.retriever import search_company_docs
 from app.schemas.document import (
     DocumentCreate,
@@ -67,6 +67,7 @@ def create_document(db: Session, payload: DocumentCreate) -> DocumentSummary:
             department=payload.department,
             version=payload.version,
             metadata=payload.metadata,
+            embedding_models=payload.embedding_models,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -87,6 +88,7 @@ def create_document_from_file(db: Session, payload: DocumentFileIngestRequest) -
             department=payload.department,
             version=payload.version,
             metadata=payload.metadata,
+            embedding_models=payload.embedding_models,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -106,8 +108,24 @@ def create_documents_from_folder(
     candidates = sorted(
         path
         for path in folder_path.glob(pattern)
-        if path.is_file() and path.suffix.lower() in SUPPORTED_TEXT_SUFFIXES
+        if path.is_file() and path.suffix.lower() in SUPPORTED_SUFFIXES
     )
+
+    # A policy kept as both an editable markdown source and a circulated PDF is
+    # one document, not two. Ingesting both would duplicate every chunk and let
+    # the same passage compete with itself for retrieval, so the rendered PDF
+    # wins and its markdown source is skipped.
+    pdf_stems = {
+        path.with_suffix("").as_posix()
+        for path in candidates
+        if path.suffix.lower() == ".pdf"
+    }
+    candidates = [
+        path
+        for path in candidates
+        if path.suffix.lower() == ".pdf"
+        or path.with_suffix("").as_posix() not in pdf_stems
+    ]
 
     documents: list[DocumentSummary] = []
     skipped: list[str] = []
@@ -119,6 +137,7 @@ def create_documents_from_folder(
                 department=payload.department,
                 version=payload.version,
                 metadata=payload.metadata,
+                embedding_models=payload.embedding_models,
             )
         except ValueError as exc:
             skipped.append(f"{file_path.name}: {exc}")
@@ -130,7 +149,14 @@ def create_documents_from_folder(
 
 def search_documents(db: Session, payload: DocumentSearchRequest) -> DocumentSearchResponse:
     try:
-        return search_company_docs(db=db, query=payload.query, top_k=payload.top_k)
+        return search_company_docs(
+            db=db,
+            query=payload.query,
+            top_k=payload.top_k,
+            retrieval_mode=payload.retrieval_mode,
+            embedding_model=payload.embedding_model,
+            use_embedding_cache=payload.use_embedding_cache,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

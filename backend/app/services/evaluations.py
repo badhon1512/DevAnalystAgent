@@ -12,7 +12,12 @@ from app.schemas.evaluations import (
     EvaluationDashboardResponse,
     EvaluationRunDetail,
     EvaluationRunSummary,
+    RagEvaluationSummary,
 )
+
+
+AGENT_SUITE = "productai-agent-evals"
+RAG_SUITE = "productai-rag-evals"
 
 
 def _number(value: Decimal | float | int | None) -> float | None:
@@ -68,6 +73,75 @@ def case_summary(result: EvaluationCaseResult) -> EvaluationCaseSummary:
     )
 
 
+def rag_summary(run: EvaluationRun | None) -> RagEvaluationSummary | None:
+    if run is None:
+        return None
+    metrics = (run.run_metadata or {}).get("rag_metrics", {})
+    return RagEvaluationSummary(
+        run_id=run.run_id,
+        status=run.status,
+        retrieval_mode=metrics.get(
+            "retrieval_mode",
+            (run.configuration or {}).get("retrieval_mode", "hybrid"),
+        ),
+        embedding_model=run.model,
+        embedding_provider=(
+            run.model_provider
+            or (run.configuration or {}).get("embedding_provider", "unknown")
+        ),
+        embedding_dimensions=int(
+            (run.configuration or {}).get("embedding_dimensions", 0)
+        ),
+        selected_case_count=run.selected_case_count,
+        completed_case_count=run.completed_case_count,
+        pass_rate_percent=float(metrics.get("pass_rate_percent", 0)),
+        quality_gate_status=str(metrics.get("quality_gate_status", "PENDING")),
+        hit_at_1_percent=float(metrics.get("hit_at_1_percent", 0)),
+        hit_at_3_percent=float(metrics.get("hit_at_3_percent", 0)),
+        hit_at_k_percent=float(metrics.get("hit_at_k_percent", 0)),
+        mean_precision_at_k_percent=float(
+            metrics.get("mean_precision_at_k_percent", 0)
+        ),
+        mean_passage_recall_percent=float(
+            metrics.get("mean_passage_recall_percent", 0)
+        ),
+        mean_source_recall_percent=float(
+            metrics.get("mean_source_recall_percent", 0)
+        ),
+        mean_retrieval_f1_percent=float(
+            metrics.get("mean_retrieval_f1_percent", 0)
+        ),
+        mean_reciprocal_rank=float(metrics.get("mean_reciprocal_rank", 0)),
+        mean_average_precision=float(metrics.get("mean_average_precision", 0)),
+        mean_ndcg_at_k=float(metrics.get("mean_ndcg_at_k", 0)),
+        mean_content_term_recall_percent=float(
+            metrics.get("mean_content_term_recall_percent", 0)
+        ),
+        mean_unique_chunk_ratio_percent=float(
+            metrics.get("mean_unique_chunk_ratio_percent", 0)
+        ),
+        mean_redundancy_percent=float(
+            metrics.get("mean_redundancy_percent", 0)
+        ),
+        mean_similarity_score=float(metrics.get("mean_similarity_score", 0)),
+        mean_context_character_count=int(
+            metrics.get("mean_context_character_count", 0)
+        ),
+        error_free_rate_percent=float(metrics.get("error_free_rate_percent", 0)),
+        average_latency_ms=int(metrics.get("average_latency_ms", 0)),
+        p50_latency_ms=int(metrics.get("p50_latency_ms", 0)),
+        p95_latency_ms=int(metrics.get("p95_latency_ms", 0)),
+        p99_latency_ms=int(metrics.get("p99_latency_ms", 0)),
+        throughput_cases_per_second=float(
+            metrics.get("throughput_cases_per_second", 0)
+        ),
+        quality_gates=metrics.get("quality_gates", {}),
+        generation_evaluation=metrics.get("generation_evaluation", {}),
+        metrics_by_k=metrics.get("metrics_by_k", {}),
+        finished_at=run.finished_at,
+    )
+
+
 def get_evaluation_dashboard(
     db: Session,
     *,
@@ -75,15 +149,24 @@ def get_evaluation_dashboard(
 ) -> EvaluationDashboardResponse:
     runs = (
         db.query(EvaluationRun)
+        .filter(EvaluationRun.suite_name == AGENT_SUITE)
         .order_by(EvaluationRun.created_at.desc())
         .limit(limit)
         .all()
     )
-    total_runs = db.query(func.count(EvaluationRun.run_id)).scalar() or 0
+    total_runs = (
+        db.query(func.count(EvaluationRun.run_id))
+        .filter(EvaluationRun.suite_name == AGENT_SUITE)
+        .scalar()
+        or 0
+    )
     completed_statuses = ("completed", "completed_with_errors")
     completed_runs = (
         db.query(func.count(EvaluationRun.run_id))
-        .filter(EvaluationRun.status.in_(completed_statuses))
+        .filter(
+            EvaluationRun.suite_name == AGENT_SUITE,
+            EvaluationRun.status.in_(completed_statuses),
+        )
         .scalar()
         or 0
     )
@@ -92,7 +175,10 @@ def get_evaluation_dashboard(
             func.avg(EvaluationRun.pass_rate_percent),
             func.sum(EvaluationRun.actual_cost_usd),
         )
-        .filter(EvaluationRun.status.in_(completed_statuses))
+        .filter(
+            EvaluationRun.suite_name == AGENT_SUITE,
+            EvaluationRun.status.in_(completed_statuses),
+        )
         .one()
     )
     category_rows = (
@@ -123,7 +209,11 @@ def get_evaluation_dashboard(
             ),
             func.avg(EvaluationCaseResult.score_percent),
         )
-        .filter(EvaluationCaseResult.status.in_(("completed", "error")))
+        .join(EvaluationRun, EvaluationRun.run_id == EvaluationCaseResult.run_id)
+        .filter(
+            EvaluationRun.suite_name == AGENT_SUITE,
+            EvaluationCaseResult.status.in_(("completed", "error")),
+        )
         .group_by(EvaluationCaseResult.category)
         .order_by(EvaluationCaseResult.category)
         .all()
@@ -148,6 +238,13 @@ def get_evaluation_dashboard(
             )
         )
 
+    latest_rag_run = (
+        db.query(EvaluationRun)
+        .filter(EvaluationRun.suite_name == RAG_SUITE)
+        .order_by(EvaluationRun.created_at.desc())
+        .first()
+    )
+
     return EvaluationDashboardResponse(
         generated_at=datetime.utcnow(),
         latest_run=run_summary(runs[0]) if runs else None,
@@ -157,6 +254,7 @@ def get_evaluation_dashboard(
         completed_runs=int(completed_runs),
         average_pass_rate_percent=round(float(aggregate[0] or 0), 2),
         total_known_cost_usd=round(float(aggregate[1] or 0), 8),
+        rag_latest=rag_summary(latest_rag_run),
     )
 
 
