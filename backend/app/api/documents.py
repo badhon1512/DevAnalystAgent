@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
 from app.deps import get_db
@@ -49,7 +49,13 @@ def create_documents_from_folder(
 
 
 @router.post("/search", response_model=DocumentSearchResponse)
-def search_documents(payload: DocumentSearchRequest, db: Session = Depends(get_db)):
+def search_documents(
+    payload: DocumentSearchRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+):
+    response.headers["Cache-Control"] = "no-store, no-cache, max-age=0, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
     return search_documents_service(db, payload)
 
 
