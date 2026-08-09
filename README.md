@@ -1,45 +1,42 @@
 # ProductAI Core
 
-**A self-hosted COSS multi-agent platform that turns commerce data and trusted company knowledge into traceable analysis, artifacts, and support answers.**
+**A self-hosted COSS multi-agent platform for commerce analysis and grounded customer support.**
 
-**Live deployment:** [Open the ProductAI demo](https://product-ai.up.railway.app/) on Railway.
+[Live demo](https://product-ai.up.railway.app/) | [Evaluation dashboard](https://product-ai.up.railway.app/merchant/evaluations) | [MIT License](LICENSE)
 
-ProductAI Core is a reusable backend-first product, not only a demo chatbot. Small teams can run it locally, connect it to their own databases, documents, code workspace, and internal tools, and use controlled agentic workflows without hiding execution behind a single opaque model response.
+ProductAI connects commerce databases, trusted documents, code workspaces, and internal tools to controlled agentic workflows. Teams can run it locally, adapt it to their domain, and inspect the evidence, tools, guardrails, latency, tokens, cost, and evaluations behind each result.
 
 <p align="center">
   <img src="frontend/public/generated/productai_agent_motion.gif" alt="ProductAI agentic workflow overview" width="100%" />
 </p>
 
-The animation summarizes the ProductAI loop: users ask business questions by voice or natural language, the multi-agent core orchestrates trusted data and tools, and the system returns grounded insights, charts, reports, and visible execution traces.
-
 ## Problem
 
-Commerce teams repeatedly need data-analysis and customer-support work: querying revenue and inventory, identifying demand or stock risk, explaining product and return policies, and preparing charts or reports. Without automation, each request may require a data analyst or customer-support specialist to gather evidence from databases, documents, files, and external signals before producing an answer.
-
-The challenge is not simply generating text:
-
-- **Fragmented evidence:** sales, inventory, returns, products, branches, and policies live in different systems.
-- **Unsafe automation:** unrestricted model-generated SQL, Python, or file operations create security and reliability risks.
-- **Low trust:** answers are difficult to review without evidence, tool history, guardrail status, latency, tokens, and cost.
+One business question costs an analyst a full working session: query several systems, write throwaway Python to aggregate the result, plot a chart, write it up. The questions keep changing, daily stock risk, weekly revenue, seasonal demand, quarterly returns, so each one starts from scratch against evidence spread across sales, inventory, branches, and policy documents. Handing that to an unrestricted model is worse: generated SQL, Python, and file operations create security and reliability risks, and an answer cannot be reviewed without its evidence, tool history, guardrail status, latency, tokens, and cost.
 
 ## Goal
 
-ProductAI Core aims to automate the repeatable parts of data analysis and customer support without removing organizational control or human review. It provides a reusable agent foundation that teams can self-host and adapt to their domain.
-
-The system is designed to:
-
-- Connect private structured data, trusted documents, code workspaces, and internal tools;
-- Turn voice or natural-language requests into grounded analysis, support answers, charts, reports, and operational recommendations;
-- Keep planning, execution boundaries, artifacts, traces, and evaluation results visible.
+Automate the repeatable parts of both without removing organizational control or human review, as a foundation teams can self-host and adapt. It connects private structured data, trusted documents, code workspaces, and internal tools, turns voice or natural-language requests into grounded analysis, charts, and reports, and keeps planning, execution boundaries, artifacts, traces, and evaluation results visible.
 
 ## Solution
 
-ProductAI combines multi-agent orchestration, MCP-backed tools, guarded read-only SQL, PostgreSQL/pgvector RAG, sandboxed Python analytics, report generation, scoped file tools, persisted conversations, and a Next.js merchant interface.
+Multi-agent orchestration over MCP-backed tools: guarded read-only SQL, PostgreSQL/pgvector RAG, sandboxed Python, report generation, scoped file tools, and a Next.js merchant interface.
 
-- **DevAnalyst Agent:** automates recurring junior data-analysis and software tasks across revenue, sales, demand, inventory risk, returns, branch performance, market signals, weather context, charts, reports, and scoped UI work.
-- **Customer Support Agent:** automates product and policy research for return, refund, fulfillment, and support questions using trusted product data and company documents.
+- **DevAnalyst Agent:** queries the commerce database over a secure read-only connection, restricted to curated views and `SELECT`/`WITH` statements, then writes and runs its own Python in a sandbox to aggregate the result and returns the chart and written report alongside the SQL and rows behind them, across revenue, demand, inventory risk, returns, branch performance, and weather context.
+- **Customer Support Agent:** answers return, refund, fulfillment, and policy questions from the same read-only product data and from company documents, citing the clause it relied on.
 
-The model plans and orchestrates; approved tools inspect evidence and perform deterministic work. Outputs remain grounded in schemas, rows, document chunks, Python results, and saved artifacts. Guardrails, read-only access, sandboxing, tool traces, latency, tokens, cost, and repeatable evaluations make the workflow reviewable. Because the core is COSS, self-hosted, and extensible, organizations can add their own MCP tools, adapters, knowledge sources, and UI modules.
+The model plans; approved tools do deterministic work grounded in schemas, rows, document chunks, and artifacts. Guardrails, read-only access, sandboxing, traces, and repeatable evaluations keep it reviewable, and the COSS core accepts an organization's own MCP tools, adapters, and knowledge sources.
+
+## Impact
+
+| Production capability | Current implementation |
+|---|---|
+| Controlled automation | Guardrails, read-only views, sandboxed execution, and scoped tools |
+| Grounded intelligence | Commerce data, company documents, research, weather, and deterministic calculations |
+| Reviewable operations | Evidence, traces, checkpoints, artifacts, latency, tokens, cost, and evaluation IDs |
+| Verified quality | 40 agent cases and 64 production RAG retrieval cases |
+
+**Latest local BAAI RAG baseline:** 82.81% case pass rate, 84.38% Hit@5, 79.69% passage Recall@5, 0.6886 nDCG@5, and 164 ms P95 latency across 64 passage-judged cases with query caching disabled.
 
 ## What The Agent Can Do
 
@@ -135,13 +132,6 @@ flowchart TB
     style TOOLS fill:transparent,stroke:#CA8A04,stroke-width:2px,color:#CA8A04
     style OBS fill:transparent,stroke:#8B5CF6,stroke-width:2px,color:#8B5CF6
 ```
-
-The guardrail check gates every request. Approved requests reach the orchestrator, which reads and writes the typed graph state holding the message history and per-conversation checkpoints, and exchanges calls and observations with the MCP service group and the agent tool group. Deeper investigation is delegated to the research sub-agent, which runs its own bounded loop of at most fourteen steps over schema inspection, read-only SQL, and weather context before returning a single evidence brief. Every grounded response also emits a trace of the evidence and decisions behind it, an interpretability record of the tool timeline and guardrail status, and a cost record of tokens, latency, and estimated spend. All three persist to PostgreSQL, so any answer can be reviewed after the fact. Rejected requests and completed responses converge on the same end state.
-
-Generated graph assets are also available here:
-
-- Mermaid source: [frontend/public/generated/productai_agent_full_graph.mmd](frontend/public/generated/productai_agent_full_graph.mmd)
-- Local browser view after running the frontend: `http://localhost:3000/generated/productai_agent_full_graph.html`
 
 **Compact runtime view**
 
@@ -243,75 +233,135 @@ flowchart TB
 
 </details>
 
-Generated RAG graph assets:
-
-- Mermaid source: [frontend/public/generated/productai_rag_pipeline.mmd](frontend/public/generated/productai_rag_pipeline.mmd)
-- Rendered PNG: [frontend/public/generated/productai_rag_pipeline.png](frontend/public/generated/productai_rag_pipeline.png)
-- Local browser view: `http://localhost:3000/generated/productai_rag_pipeline.html`
-
 Agentic RAG responsibilities:
 
-- Ingest versioned Amazon S3 documents, enrich semantic chunks, generate embeddings, and index them in PostgreSQL/pgvector with keyword fallback;
+- Ingest versioned Amazon S3 documents, enrich semantic chunks, generate selectable local BAAI or OpenAI embeddings, and index both independently in PostgreSQL/pgvector with keyword fallback;
 - Retrieve policies, SOPs, supplier rules, return guidance, and warehouse playbooks with source title, path, version, department, score, and chunk evidence;
 - Keep document retrieval separate from live SQL analysis, then combine both evidence types when a question requires them.
 
-## Agent Evaluation
+## Evaluation
 
-Agentic systems need more than a convincing demo: they need repeatable evidence that the model selected appropriate tools, avoided unsafe capabilities, returned required facts, and completed the task within a reasonable execution budget. ProductAI therefore includes an application-specific benchmark and persisted evaluation workflow.
+ProductAI treats evaluation as a production subsystem, not a demo score. Agent and RAG suites use validated cases, deterministic checks, persisted run history, quality gates, category slices, and inspectable failure artifacts. Results are visible at `/merchant/evaluations`; execution is admin-only.
 
-The current suite contains **40 validated single-turn cases across 13 capability categories**. It covers RAG policy retrieval, SQL analytics, schema discovery, combined SQL + RAG reasoning, research and weather orchestration, Python analytics, chart and report generation, grounded limitations, MCP connectivity, utility tools, no-tool responses, and guardrail behavior.
+### Suite Coverage
 
-```text
-cases.jsonl -> validate -> select -> budget preflight -> execute /chat
-            -> capture trace -> deterministic score -> persist run
-            -> batch manifest + Markdown report + evaluation dashboard
-```
+| Suite | Cases | Coverage |
+|---|---:|---|
+| Agent behavior | 40 | Tool routing, required evidence, forbidden capabilities, tool efficiency, SQL, research, Python, reports, and guardrails |
+| RAG retrieval | 64 | 82 reviewed passage judgments with a 19 direct / 45 conversational, implicit, complex, or typo-heavy query split across 18 categories |
 
-Each case defines a transparent behavioral contract:
+### Production RAG Baseline
 
-| Evaluation dimension | What is checked |
-|---|---|
-| Expected tools | Required tools were selected for the task. |
-| Forbidden tools | Unnecessary or unsafe tools were not called. |
-| Required evidence | Expected normalized facts or flexible term groups appear in the answer. |
-| Tool efficiency | Total tool calls stay within the case-specific limit. |
+The application uses [`BAAI/bge-small-en-v1.5`](https://huggingface.co/BAAI/bge-small-en-v1.5) through [FastEmbed](https://qdrant.github.io/fastembed/examples/Supported_Models/) as its default embedding model. It runs locally with quantized ONNX inference and produces 384-dimensional vectors. `text-embedding-3-small` remains available as a selectable OpenAI baseline, shortened to the same 384 dimensions through OpenAI's supported `dimensions` parameter.
 
-A case passes only when all four checks pass. Batch reports additionally aggregate pass rate, average score, execution errors, tools used, agent latency, token usage, and known trace cost. The budget check is a pre-run estimate that prevents accidental oversized batches; it is not a provider billing cap.
+Why BAAI is the production default:
 
-### Verified result snapshot
+- **Self-hosted retrieval:** document and query embedding does not require an external embedding request, which better matches the COSS deployment model and keeps retrieval available without a provider dependency.
+- **Controlled vector size:** both models use separate 384-dimensional HNSW indexes, controlling pgvector storage and distance-computation effects during comparison.
+- **No per-request embedding API fee:** inference uses local CPU resources; OpenAI remains optional when its stronger early-ranking result is worth the hosted API dependency and cost.
+- **Measured quality, not assumed quality:** models use separate HNSW indexes and the same versioned corpus, passage qrels, K-depth, and scoring logic. Every persisted run records its provider, model, dimensions, latency, and ranking metrics.
 
-The latest saved local run evaluates the six guardrail cases with `gpt-5.4-nano`, quick analysis, and concise answers:
+### Embedding Comparison
 
-| Scope | Cases | Passed | Average score | Errors | Average latency | Known trace cost |
+BAAI and OpenAI are independently indexed and were evaluated with the same hybrid retriever, 64 queries, 82 passage judgments, K-depths, and no-query-cache policy.
+
+| Embedding model | Dimensions | Pass | Hit@1 | Hit@5 | Recall@5 | MRR@5 | nDCG@5 | P50 | P95 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| **BAAI/bge-small-en-v1.5** | **384** | **82.81%** | 56.25% | **84.38%** | 79.69% | 0.6880 | 0.6886 | **150 ms** | **164 ms** |
+| OpenAI text-embedding-3-small | **384** | **84.38%** | **65.62%** | **84.38%** | **81.25%** | **0.7409** | **0.7372** | 264 ms | 295 ms |
+
+With vector dimensions controlled at 384, OpenAI ranks relevant passages more strongly and leads Recall@5 by 1.56 percentage points. BAAI remains the production default because it is self-hosted, avoids per-query API cost, and recorded 43% lower P50 latency. Equal dimensions control index size and vector-distance work; the remaining latency difference includes local versus hosted query embedding generation and network overhead.
+
+<p align="center">
+  <img src="frontend/public/generated/rag_embedding_recall_comparison.svg" alt="Passage Recall at K from one through five for BAAI and OpenAI embeddings" width="900" />
+</p>
+
+#### Retrieval Depth Selection
+
+| K | BAAI Recall@K | OpenAI Recall@K | BAAI context | OpenAI context |
+|---:|---:|---:|---:|---:|
+| 1 | 47.66% | 55.47% | ~253 tokens | ~256 tokens |
+| 2 | 67.97% | 71.88% | ~513 tokens | ~514 tokens |
+| **3** | **75.00%** | **77.34%** | **~776 tokens** | **~768 tokens** |
+| 4 | 76.56% | 79.69% | ~1,037 tokens | ~1,020 tokens |
+| 5 | 79.69% | 81.25% | ~1,282 tokens | ~1,272 tokens |
+
+Token counts are estimates based on approximately four English-text characters per token; exact usage depends on the generation model's tokenizer.
+
+**Selected production depth: K=3.** It captures the main recall gains while using about 40% less context than K=5. Use K=5 for recall-sensitive policy or multi-source requests; it adds 4.69 points for BAAI and 3.91 points for OpenAI at the cost of roughly 500 additional context tokens per query.
+
+### Retrieval Strategy Comparison
+
+BAAI was evaluated across keyword, vector, and hybrid retrieval using the same 64 cases, 82 reviewed passage qrels, corpus, and K-depth settings:
+
+| Retrieval | Pass | Hit@1 | Hit@5 | Passage Recall@5 | MRR@5 | nDCG@5 | P50 | P95 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Keyword | 62.50% | 45.31% | 70.31% | 66.41% | 0.5557 | 0.5632 | **68 ms** | **79 ms** |
+| Vector | 78.12% | 53.12% | **85.94%** | 77.34% | 0.6461 | 0.6424 | 78 ms | 88 ms |
+| **Hybrid** | **82.81%** | **56.25%** | 84.38% | **79.69%** | **0.6880** | **0.6886** | 150 ms | 164 ms |
+
+Hybrid remains the default because it gives the strongest end-to-end pass rate, passage recall, MRR, and ranking quality. Vector retrieval is substantially faster than hybrid and has the highest Hit@5. Keyword retrieval has the lowest latency, but passage judgments show that it often misses the exact answer-bearing chunk.
+
+These results are from no-query-cache runs. The BAAI strategy comparison made
+192 requests and the OpenAI model baseline made 64 requests. All 256 requests
+disabled the embedding cache, sent HTTP no-store headers, ran without a warm-up
+request, and wrote new timestamped results instead of reusing saved responses.
+The runner validated the cache policy before saving each artifact. Model weights remain loaded and normal
+PostgreSQL/operating-system buffers remain active; this measures steady
+production retrieval rather than process startup or an artificially flushed
+database. The runner fails before writing an artifact if the API reports an
+enabled query cache or omits the no-store response policy.
+
+### Query Robustness
+
+The suite enforces a 29.7% direct / 70.3% robust-query mix instead of allowing easy lookup wording to dominate:
+
+| Query style | Cases | Hybrid pass | Hit@5 | Passage Recall@5 | MRR@5 | nDCG@5 |
 |---|---:|---:|---:|---:|---:|---:|
-| Guardrail subset | 6 | 6 | 100% | 0 | 833 ms | $0.000633 |
+| Direct | 19 | 94.74% | 100.00% | 92.11% | 0.8158 | 0.8077 |
+| Complex | 20 | 90.00% | 90.00% | 85.00% | 0.7250 | 0.7279 |
+| Conversational | 9 | 55.56% | 55.56% | 55.56% | 0.4444 | 0.4735 |
+| Implicit | 8 | 62.50% | 75.00% | 68.75% | 0.5250 | 0.5319 |
+| Noisy / typo-heavy | 8 | 87.50% | 87.50% | 81.25% | 0.7500 | 0.7335 |
 
-This is a verified guardrail-subset result, not a claimed full-suite score. Full and filtered runs remain reproducible through the CLI and evaluation dashboard.
+The gap identifies conversational and implicit intent as the next retrieval-improvement target. Reports retain document source recall as a diagnostic, while passage recall, Hit@K, MRR, and nDCG are computed from stable answer-bearing passage judgments. The current production quality gate intentionally fails under the stricter labels; it should only pass after retrieval improves, not by weakening the ground truth.
 
-Evaluation history is persisted in PostgreSQL through `evaluation_runs`, `evaluation_case_results`, and `evaluation_artifacts`. Raw responses, traces, score files, manifests, and reviewed Markdown reports remain independently inspectable, making failures easier to reproduce instead of reducing them to one unexplained score.
+### Agent Snapshot
 
-The merchant evaluation dashboard at `/merchant/evaluations` is visible to users for run history and quality trends. Starting a new evaluation is restricted to admin mode, while the backend also exposes a composable CLI:
+| Scope | Model | Cases | Passed | Errors | Average latency | Known trace cost |
+|---|---|---:|---:|---:|---:|---:|
+| Guardrail regression | `gpt-5.4-nano` | 6 | 6 | 0 | 833 ms | $0.000633 |
+
+This is a verified guardrail subset, not a claimed full-agent-suite result.
+
+### Run The Suites
 
 ```powershell
 cd backend
 
-# Inspect validated cases
+# Inspect and preview without executing
 uv run python -m evals list
+uv run python -m evals rag list
+uv run python -m evals batch --category guardrail --limit 6
+uv run python -m evals rag batch --limit 10
+uv run python -m evals rag compare --limit 10
 
-# Preview selection and estimated cost without API calls
-uv run python -m evals batch --category rag_policy --limit 3
+# Execute persisted runs
+uv run python -m evals batch --category guardrail --limit 6 --budget-usd 0.30 --execute
+uv run python -m evals rag batch --execute
+uv run python -m evals rag compare --execute
 
-# Execute a reviewed batch
-uv run python -m evals batch `
-  --category rag_policy `
-  --limit 3 `
-  --budget-usd 0.30 `
-  --execute
+# Compare embedding models with the same hybrid suite
+uv run python -m evals rag batch --execute --embedding-model BAAI/bge-small-en-v1.5
+uv run python -m evals rag batch --execute --embedding-model text-embedding-3-small
 ```
 
-Detailed evaluation design, case fields, artifact flow, and debugging guidance are documented in [backend/evals/README.md](backend/evals/README.md).
+Both suites persist runs, case results, metrics, and artifacts through `evaluation_runs`, `evaluation_case_results`, and `evaluation_artifacts`. See [backend/evals/README.md](backend/evals/README.md) for case contracts, scoring logic, reports, and debugging order.
 
 ## Project Structure
+
+<details>
+<summary>Full layer and directory breakdown</summary>
 
 The project follows a layered architecture so the UI, API transport, agent reasoning, tool execution, RAG, data access, and reporting concerns stay separate.
 
@@ -346,14 +396,16 @@ The project follows a layered architecture so the UI, API transport, agent reaso
 - `backend/app/knowledge`: source company documents used by the agentic RAG pipeline.
 
 **Evaluation Layer**
-- `backend/evals`: validated benchmark cases, execution, deterministic scoring, batch reporting, and CLI orchestration.
-- `backend/app/services/evaluations.py`: persisted run summaries, category metrics, case details, latency, token, and cost aggregation.
+- `backend/evals`: agent and RAG cases, deterministic scoring, ranking metrics, quality gates, reports, persistence, and CLI orchestration.
+- `backend/app/services/evaluations.py`: suite-isolated run summaries, category metrics, case details, latency, token, and cost aggregation.
 - `evaluation_runs`, `evaluation_case_results`, `evaluation_artifacts`: durable evaluation history and artifact metadata.
 
 **Infrastructure Layer**
 - `docker-compose.yml`: local PostgreSQL/pgvector service.
 - `backend/alembic`: database migrations.
 - `HOW_TO_RUN.md`: local setup and runbook.
+
+</details>
 
 ## Quick Start
 
@@ -392,6 +444,9 @@ http://localhost:3000
 
 ## Verification
 
+<details>
+<summary>Step-by-step verification checklist</summary>
+
 Backend:
 
 ```powershell
@@ -412,17 +467,19 @@ npx tsc --noEmit
 
 Optional voice input requires the voice extra, `ffmpeg`, and Whisper configuration. See [HOW_TO_RUN.md](HOW_TO_RUN.md) for details.
 
+</details>
+
 ## Roadmap
 
 High-impact next steps:
 
 - Extend the Customer Support Agent with authenticated order status, return initiation, escalation, and real-time fulfillment workflows.
 - Extend the DevAnalyst Agent with forecasting, anomaly detection, branch-level planning, and stronger executive reporting.
-- Expand the benchmark with multi-turn conversations, citation-quality checks, retrieval relevance and faithfulness measures, and isolated fixtures for side-effectful tools.
+- Add answer-quality evaluation for multi-turn behavior, faithfulness, citation quality, abstention, and side-effectful tools.
 - Add regression baselines and CI quality gates for critical guardrail, SQL, RAG, and tool-routing cases.
 - Add streaming agent timeline events and persistent LangGraph checkpointing.
 - Add dedicated MCP analytics tools for large time-series analysis, forecasting, stockout risk, and reorder recommendations.
-- Expand operational dashboards for latency, cost, tool failures, guardrail rejections, RAG quality, and evaluation trends.
+- Add cross-run RAG trends, index/model comparisons, regression alerts, and CI quality-gate enforcement.
 
 Detailed plans live in [PROJECT_TODO.md](PROJECT_TODO.md), [RAG_TODO.md](RAG_TODO.md), and [DEPLOYMENT_LLMOPS_PLAN.md](DEPLOYMENT_LLMOPS_PLAN.md).
 ## License
