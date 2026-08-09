@@ -44,10 +44,15 @@ export default function MerchantShell({
     () => "",
   );
 
-  // Close the drawer on navigation, so returning to a page does not leave it open.
-  useEffect(() => {
+  // Close the drawer on navigation, including browser back and forward, so a
+  // route change never leaves it open over the new page. Adjusting during
+  // render rather than in an effect avoids the extra commit that setState in an
+  // effect body causes.
+  const [renderedPath, setRenderedPath] = useState(pathname);
+  if (pathname !== renderedPath) {
+    setRenderedPath(pathname);
     setNavOpen(false);
-  }, [pathname]);
+  }
 
   // Escape closes the drawer, matching the backdrop click.
   useEffect(() => {

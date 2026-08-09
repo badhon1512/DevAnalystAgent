@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="430" viewBox="0 0 900 430" role="img" aria-labelledby="title desc">
+  <title id="title">Embedding model passage recall by retrieval depth</title>
+  <desc id="desc">Line chart comparing BAAI bge-small-en-v1.5 and OpenAI text-embedding-3-small passage recall from K equals one through five.</desc>
+  <rect width="900" height="430" rx="8" fill="#ffffff"/>
+  <text x="54" y="44" fill="#111827" font-family="Arial, sans-serif" font-size="22" font-weight="700">Passage recall by retrieval depth</text>
+  <text x="54" y="68" fill="#64748b" font-family="Arial, sans-serif" font-size="13">Hybrid retrieval, 64 queries, 82 reviewed passage judgments, query cache disabled</text>
+
+  <g font-family="Arial, sans-serif" font-size="12" fill="#64748b">
+    <line x1="92" y1="90" x2="92" y2="350" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="92" y1="350" x2="820" y2="350" stroke="#94a3b8" stroke-width="1"/>
+    <g stroke="#e2e8f0" stroke-width="1">
+      <line x1="92" y1="350" x2="820" y2="350"/>
+      <line x1="92" y1="298" x2="820" y2="298"/>
+      <line x1="92" y1="246" x2="820" y2="246"/>
+      <line x1="92" y1="194" x2="820" y2="194"/>
+      <line x1="92" y1="142" x2="820" y2="142"/>
+      <line x1="92" y1="90" x2="820" y2="90"/>
+    </g>
+    <text x="58" y="354">40%</text>
+    <text x="58" y="302">50%</text>
+    <text x="58" y="250">60%</text>
+    <text x="58" y="198">70%</text>
+    <text x="58" y="146">80%</text>
+    <text x="58" y="94">90%</text>
+    <text x="124" y="374">K=1</text>
+    <text x="279" y="374">K=2</text>
+    <text x="434" y="374">K=3</text>
+    <text x="589" y="374">K=4</text>
+    <text x="744" y="374">K=5</text>
+  </g>
+
+  <line x1="450" y1="90" x2="450" y2="350" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.55"/>
+  <text x="461" y="108" fill="#0f766e" font-family="Arial, sans-serif" font-size="12" font-weight="700">Selected K=3</text>
+
+  <polyline points="140,310.2 295,204.6 450,168 605,159.9 760,143.6" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="140,269.6 295,184.2 450,155.8 605,143.6 760,135.5" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g fill="#ffffff" stroke-width="3">
+    <g stroke="#0f766e">
+      <circle cx="140" cy="310.2" r="5"/><circle cx="295" cy="204.6" r="5"/><circle cx="450" cy="168" r="5"/><circle cx="605" cy="159.9" r="5"/><circle cx="760" cy="143.6" r="5"/>
+    </g>
+    <g stroke="#2563eb">
+      <circle cx="140" cy="269.6" r="5"/><circle cx="295" cy="184.2" r="5"/><circle cx="450" cy="155.8" r="5"/><circle cx="605" cy="143.6" r="5"/><circle cx="760" cy="135.5" r="5"/>
+    </g>
+  </g>
+
+  <g font-family="Arial, sans-serif" font-size="13" fill="#334155">
+    <line x1="535" y1="42" x2="565" y2="42" stroke="#0f766e" stroke-width="4"/>
+    <text x="575" y="47">BAAI, 384d</text>
+    <line x1="685" y1="42" x2="715" y2="42" stroke="#2563eb" stroke-width="4"/>
+    <text x="725" y="47">OpenAI, 384d</text>
+  </g>
+
+  <text x="450" y="408" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="12">Retrieved passages supplied to generation</text>
+</svg>
