@@ -10,6 +10,8 @@ from typing import Any
 from langchain.tools import tool
 from mcp.types import LATEST_PROTOCOL_VERSION
 
+from app.rag.constants import DEFAULT_RETRIEVAL_TOP_K
+
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 LOG_PREVIEW_LIMIT = 500
 MCP_TIMEOUT_SECONDS = 200
@@ -242,14 +244,22 @@ def run_readonly_inventory_sql(query: str, max_rows: int = 100) -> str:
 
 
 @tool
-def search_company_documents(query: str, top_k: int = 5) -> str:
+def search_company_documents(
+    query: str,
+    top_k: int = DEFAULT_RETRIEVAL_TOP_K,
+    retrieval_mode: str = "hybrid",
+) -> str:
     """
     Search indexed company policies, SOPs, supplier rules, return policies, and warehouse docs
     through the TraceStock MCP server.
     """
     return _call_mcp_tool_json(
         "search_company_documents",
-        {"query": query, "top_k": top_k},
+        {
+            "query": query,
+            "top_k": top_k,
+            "retrieval_mode": retrieval_mode,
+        },
     )
 
 
