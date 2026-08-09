@@ -16,7 +16,6 @@ KNOWN_AGENT_TOOLS = {
     "tracestock_mcp_status",
     "get_weather_forecast",
     "get_inventory_schema",
-    "sql_db_query_checker",
     "run_readonly_inventory_sql",
     "researcher_agent",
     "execute_python_code_tool",

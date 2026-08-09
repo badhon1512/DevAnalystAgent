@@ -112,6 +112,60 @@ def seed_completed_run(session_factory: sessionmaker):
         return run.run_id
 
 
+def seed_rag_run(session_factory: sessionmaker):
+    with session_factory() as session:
+        run = EvaluationRun(
+            suite_name="productai-rag-evals",
+            status="completed",
+            model="text-embedding-3-small",
+            trigger_source="cli",
+            selected_case_count=40,
+            attempted_case_count=40,
+            completed_case_count=40,
+            passed_case_count=36,
+            failed_case_count=4,
+            pass_rate_percent=90,
+            average_latency_ms=250,
+            p95_latency_ms=450,
+            run_metadata={
+                "benchmark_type": "rag_retrieval",
+                "rag_metrics": {
+                    "pass_rate_percent": 90,
+                    "quality_gate_status": "PASS",
+                    "hit_at_1_percent": 87.5,
+                    "hit_at_3_percent": 92.5,
+                    "hit_at_k_percent": 95,
+                    "mean_precision_at_k_percent": 42,
+                    "mean_source_recall_percent": 95,
+                    "mean_retrieval_f1_percent": 58.2,
+                    "mean_reciprocal_rank": 0.8812,
+                    "mean_average_precision": 0.87,
+                    "mean_ndcg_at_k": 0.91,
+                    "mean_content_term_recall_percent": 94.58,
+                    "mean_unique_chunk_ratio_percent": 100,
+                    "mean_redundancy_percent": 0,
+                    "mean_similarity_score": 0.61,
+                    "mean_context_character_count": 4200,
+                    "error_free_rate_percent": 100,
+                    "average_latency_ms": 250,
+                    "p50_latency_ms": 230,
+                    "p95_latency_ms": 450,
+                    "p99_latency_ms": 520,
+                    "throughput_cases_per_second": 2.1,
+                    "quality_gates": {"hit_at_k": True},
+                    "generation_evaluation": {
+                        "faithfulness": "not_measured"
+                    },
+                },
+            },
+            started_at=datetime.utcnow(),
+            finished_at=datetime.utcnow(),
+        )
+        session.add(run)
+        session.commit()
+        return run.run_id
+
+
 def test_dashboard_is_visible_and_excludes_unfinished_category_cases() -> None:
     client, session_factory = evaluation_client()
     run_id = seed_completed_run(session_factory)
@@ -126,6 +180,23 @@ def test_dashboard_is_visible_and_excludes_unfinished_category_cases() -> None:
     assert categories["rag"]["total"] == 1
     assert categories["rag"]["pass_rate_percent"] == 100
     assert categories["guardrails"]["pass_rate_percent"] == 0
+
+
+def test_dashboard_exposes_rag_suite_without_mixing_agent_runs() -> None:
+    client, session_factory = evaluation_client()
+    agent_run_id = seed_completed_run(session_factory)
+    rag_run_id = seed_rag_run(session_factory)
+
+    response = client.get("/evaluations/dashboard")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["latest_run"]["run_id"] == str(agent_run_id)
+    assert body["rag_latest"]["run_id"] == str(rag_run_id)
+    assert body["rag_latest"]["hit_at_k_percent"] == 95
+    assert body["rag_latest"]["generation_evaluation"]["faithfulness"] == (
+        "not_measured"
+    )
 
 
 def test_run_detail_exposes_scores_but_not_raw_prompts_or_artifacts() -> None:
@@ -165,3 +236,7 @@ def test_running_evaluations_requires_admin_mode() -> None:
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Admin token required."
+
+    rag_response = client.post("/admin/evaluations/rag", json={})
+    assert rag_response.status_code == 401
+    assert rag_response.json()["detail"] == "Admin token required."
