@@ -11,6 +11,7 @@ from app.db.readonly_session import (
     readonly_engine,
 )
 from app.db.session import SessionLocal
+from app.rag.constants import DEFAULT_RETRIEVAL_TOP_K, MAX_RETRIEVAL_TOP_K
 from app.rag.retriever import search_company_docs
 from app.tools.db import get_db_info, run_readonly_sql
 
@@ -181,7 +182,7 @@ def run_readonly_inventory_sql(query: str, max_rows: int = 100) -> dict:
 @mcp.tool()
 def search_company_documents(
     query: str,
-    top_k: int = 5,
+    top_k: int = DEFAULT_RETRIEVAL_TOP_K,
     retrieval_mode: Literal["vector", "keyword", "hybrid"] = "hybrid",
 ) -> dict:
     """
@@ -189,7 +190,10 @@ def search_company_documents(
 
     Use this for unstructured company knowledge rather than live product/inventory/sales facts.
     """
-    safe_top_k = max(1, min(int(top_k or 5), 12))
+    safe_top_k = max(
+        1,
+        min(int(top_k or DEFAULT_RETRIEVAL_TOP_K), MAX_RETRIEVAL_TOP_K),
+    )
     with SessionLocal() as db:
         try:
             return search_company_docs(
