@@ -44,7 +44,12 @@ class AgentTrace(BaseModel):
 
 
 class ChatOptions(BaseModel):
-    model: Literal["gpt-5.4", "gpt-4.1", "gpt-5.4-nano"] = "gpt-5.4"
+    model: Literal[
+        "openai/gpt-oss-120b",
+        "gpt-5.4",
+        "gpt-4.1",
+        "gpt-5.4-nano",
+    ] = "gpt-5.4"
     analysis_depth: Literal["quick", "balanced", "deep"] = "balanced"
     answer_detail: Literal["concise", "balanced", "detailed"] = "balanced"
 

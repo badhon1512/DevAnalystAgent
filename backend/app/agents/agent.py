@@ -1,6 +1,7 @@
 from langgraph.graph import StateGraph, END, START
 from langgraph.prebuilt import ToolNode
 from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
@@ -28,8 +29,8 @@ thread = {"configurable": {"thread_id": "5"}}
 
 
 DEFAULT_CHAT_MODEL = "gpt-5.4"
-SUPPORTED_CHAT_MODELS = {"gpt-5.4", "gpt-4.1", "gpt-5.4-nano"}
-base_llm = ChatOpenAI(model=DEFAULT_CHAT_MODEL)
+GROQ_CHAT_MODELS = {"openai/gpt-oss-120b"}
+SUPPORTED_CHAT_MODELS = {"gpt-5.4", "gpt-4.1", "gpt-5.4-nano", *GROQ_CHAT_MODELS}
 
 ANALYSIS_INSTRUCTIONS = {
     "quick": "Use the shortest grounded path and avoid optional investigation.",
@@ -198,7 +199,11 @@ Python analytics workflow:
         if model_name not in SUPPORTED_CHAT_MODELS:
             model_name = DEFAULT_CHAT_MODEL
         if model_name not in self.model_clients:
-            model = ChatOpenAI(model=model_name)
+            model = (
+                ChatGroq(model=model_name)
+                if model_name in GROQ_CHAT_MODELS
+                else ChatOpenAI(model=model_name)
+            )
             self.model_clients[model_name] = (model.bind_tools(self.tools), model)
         return self.model_clients[model_name]
 

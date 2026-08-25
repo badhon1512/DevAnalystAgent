@@ -29,10 +29,6 @@ Return exactly one label:
 Do not explain your decision. Do not add punctuation. Return only VALID_QUERY or INVALID_QUERY.
 """
 
-# Previous guardrail model kept for reference:
-# from langchain_groq import ChatGroq
-# guardrail_llm = ChatGroq(model="llama-3.3-70b-versatile")
-
 guardrail_llm = ChatOpenAI(model="gpt-4.1")
 
 

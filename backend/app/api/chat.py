@@ -5,6 +5,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.errors import GraphRecursionError
+from openai import APIConnectionError, AuthenticationError, RateLimitError
 from sqlalchemy.orm import Session
 
 from app.agents.agent import ProductAgent
@@ -66,6 +67,19 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
         response = {
             "messages": [*(partial_messages or agent_messages), AIMessage(content=answer)]
         }
+    except RateLimitError:
+        answer = (
+            "The selected AI model is temporarily unavailable because its provider quota "
+            "or spending limit was reached. Choose the Groq GPT-OSS model or try again "
+            "after updating the provider limit."
+        )
+        response = {"messages": [*agent_messages, AIMessage(content=answer)]}
+    except AuthenticationError:
+        answer = "The selected AI provider credentials are unavailable or invalid."
+        response = {"messages": [*agent_messages, AIMessage(content=answer)]}
+    except APIConnectionError:
+        answer = "The selected AI provider could not be reached. Please try again shortly."
+        response = {"messages": [*agent_messages, AIMessage(content=answer)]}
     latency_ms = int((time.perf_counter() - started) * 1000)
     trace = build_trace(
         response=response,
