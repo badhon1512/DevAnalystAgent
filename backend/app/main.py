@@ -7,10 +7,11 @@ if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from dotenv import load_dotenv
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
 from app.api.chat import router as chat_router
 from app.api.analytics import router as analytics_router
@@ -29,7 +30,12 @@ from app.schemas.report import GeneratedReport
 from app.tools.db import get_db_info
 from app.tools.mcp_tools import close_mcp_server, start_mcp_server
 from app.tools.read_write import CHART_OUTPUT_DIR
-from app.tools.voice import VoiceTranscriptionUnavailable, transcribe_audio_bytes
+from app.tools.voice import (
+    VoiceSynthesisUnavailable,
+    VoiceTranscriptionUnavailable,
+    synthesize_speech,
+    transcribe_audio_bytes,
+)
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 
@@ -52,7 +58,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+#
 app.include_router(products_router)
 app.include_router(users_router)
 app.include_router(inventories_router)
@@ -111,17 +117,59 @@ async def transcribe_voice(file: UploadFile = File(...)):
     if not content_type.startswith("audio/"):
         raise HTTPException(status_code=400, detail="Upload an audio file.")
 
-    content = await file.read()
+    max_audio_bytes = int(os.getenv("VOICE_MAX_AUDIO_BYTES", str(10 * 1024 * 1024)))
+    content = await file.read(max_audio_bytes + 1)
     if not content:
         raise HTTPException(status_code=400, detail="Uploaded audio file is empty.")
+    if len(content) > max_audio_bytes:
+        raise HTTPException(status_code=413, detail="Audio file exceeds the configured size limit.")
 
     suffix = Path(file.filename or "recording.webm").suffix or ".webm"
     try:
-        return transcribe_audio_bytes(content, suffix=suffix).model_dump()
+        result = await run_in_threadpool(
+            transcribe_audio_bytes,
+            content,
+            suffix,
+            content_type,
+        )
+        return result.model_dump()
     except VoiceTranscriptionUnavailable as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Transcription failed: {exc}") from exc
+
+
+class VoiceSynthesisRequest(BaseModel):
+    text: str
+
+
+@app.post("/voice/synthesize")
+async def synthesize_voice(req: VoiceSynthesisRequest):
+    text = req.text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Speech text cannot be empty.")
+
+    max_characters = int(os.getenv("VOICE_MAX_TTS_CHARACTERS", "5000"))
+    if len(text) > max_characters:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Speech text exceeds the {max_characters}-character limit.",
+        )
+
+    try:
+        speech = await run_in_threadpool(synthesize_speech, text)
+        return Response(
+            content=speech.content,
+            media_type=speech.content_type,
+            headers={
+                "Cache-Control": "private, max-age=3600",
+                "X-Voice-Model": speech.model,
+            },
+        )
+    except VoiceSynthesisUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Speech synthesis failed: {exc}") from exc
 
 
 @app.get("/reports/{report_id}", response_model=GeneratedReport)
