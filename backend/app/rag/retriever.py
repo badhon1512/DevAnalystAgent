@@ -78,12 +78,14 @@ def _vector_search(
     top_k: int,
     embedding_model: str,
     use_embedding_cache: bool,
+    query_embedding: list[float] | None = None,
 ) -> list[DocumentSearchMatch]:
     profile = get_embedding_profile(embedding_model)
     column = profile.database_column
     _ensure_embeddings_available(db, profile.model, column)
     query_embedding = to_vector_literal(
-        embed_query(query, profile.model, use_cache=use_embedding_cache)
+        query_embedding
+        or embed_query(query, profile.model, use_cache=use_embedding_cache)
     )
     _configure_vector_search(db)
     rows = db.execute(
@@ -172,12 +174,14 @@ def _hybrid_search(
     top_k: int,
     embedding_model: str,
     use_embedding_cache: bool,
+    query_embedding: list[float] | None = None,
 ) -> list[DocumentSearchMatch]:
     profile = get_embedding_profile(embedding_model)
     column = profile.database_column
     _ensure_embeddings_available(db, profile.model, column)
     query_embedding = to_vector_literal(
-        embed_query(query, profile.model, use_cache=use_embedding_cache)
+        query_embedding
+        or embed_query(query, profile.model, use_cache=use_embedding_cache)
     )
     candidate_k = min(max(top_k * 4, 20), 50)
     _configure_vector_search(db)
@@ -297,6 +301,7 @@ def search_company_docs(
     retrieval_mode: RetrievalMode = "hybrid",
     embedding_model: str | None = None,
     use_embedding_cache: bool = True,
+    query_embedding: list[float] | None = None,
 ) -> DocumentSearchResponse:
     if not query.strip():
         raise ValueError("query must be non-empty")
@@ -308,6 +313,13 @@ def search_company_docs(
         min(int(top_k or DEFAULT_RETRIEVAL_TOP_K), MAX_RETRIEVAL_TOP_K),
     )
     selected_model = get_embedding_profile(embedding_model or DEFAULT_EMBEDDING_MODEL).model
+    if query_embedding is not None:
+        expected_dimensions = get_embedding_profile(selected_model).dimensions
+        if len(query_embedding) != expected_dimensions:
+            raise ValueError(
+                f"query_embedding has {len(query_embedding)} dimensions; "
+                f"expected {expected_dimensions}."
+            )
     if retrieval_mode == "keyword":
         matches = _keyword_search(db, query, safe_top_k)
     elif retrieval_mode == "hybrid":
@@ -317,6 +329,7 @@ def search_company_docs(
             safe_top_k,
             selected_model,
             use_embedding_cache,
+            query_embedding,
         )
     else:
         matches = _vector_search(
@@ -325,6 +338,7 @@ def search_company_docs(
             safe_top_k,
             selected_model,
             use_embedding_cache,
+            query_embedding,
         )
     return DocumentSearchResponse(
         query=query,

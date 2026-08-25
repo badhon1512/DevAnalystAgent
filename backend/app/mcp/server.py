@@ -184,6 +184,7 @@ def search_company_documents(
     query: str,
     top_k: int = DEFAULT_RETRIEVAL_TOP_K,
     retrieval_mode: Literal["vector", "keyword", "hybrid"] = "hybrid",
+    query_embedding: list[float] | None = None,
 ) -> dict:
     """
     Search indexed company policies, SOPs, supplier rules, return policies, and warehouse docs.
@@ -201,6 +202,7 @@ def search_company_documents(
                 query=query,
                 top_k=safe_top_k,
                 retrieval_mode=retrieval_mode,
+                query_embedding=query_embedding,
             ).model_dump()
         except Exception as exc:
             if retrieval_mode == "keyword":

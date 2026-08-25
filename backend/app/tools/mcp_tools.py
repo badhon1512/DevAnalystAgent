@@ -1,4 +1,5 @@
 import json
+import os
 import queue
 import subprocess
 import sys
@@ -11,10 +12,11 @@ from langchain.tools import tool
 from mcp.types import LATEST_PROTOCOL_VERSION
 
 from app.rag.constants import DEFAULT_RETRIEVAL_TOP_K
+from app.rag.embeddings import DEFAULT_EMBEDDING_MODEL, embed_query
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 LOG_PREVIEW_LIMIT = 500
-MCP_TIMEOUT_SECONDS = 200
+MCP_TIMEOUT_SECONDS = float(os.getenv("MCP_TIMEOUT_SECONDS", "30"))
 
 
 def _preview(value: Any, limit: int = LOG_PREVIEW_LIMIT) -> str:
@@ -48,6 +50,7 @@ class _MCPStdioClient:
         self.lock = threading.RLock()
         self.next_request_id = 100
         self.reader_thread: threading.Thread | None = None
+        self.stderr_thread: threading.Thread | None = None
 
     def start(self) -> None:
         with self.lock:
@@ -63,13 +66,15 @@ class _MCPStdioClient:
                 cwd=str(BACKEND_DIR),
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
                 text=True,
                 encoding="utf-8",
                 bufsize=1,
             )
             self.reader_thread = threading.Thread(target=self._read_stdout, daemon=True)
             self.reader_thread.start()
+            self.stderr_thread = threading.Thread(target=self._read_stderr, daemon=True)
+            self.stderr_thread.start()
 
             message = {
                 "jsonrpc": "2.0",
@@ -178,6 +183,14 @@ class _MCPStdioClient:
 
         self.messages.put(None)
 
+    def _read_stderr(self) -> None:
+        if not self.process or not self.process.stderr:
+            return
+
+        for line in self.process.stderr:
+            if line.strip():
+                print(f"[MCP SERVER] {line.rstrip()}")
+
 
 _mcp_client = _MCPStdioClient()
 
@@ -253,12 +266,17 @@ def search_company_documents(
     Search indexed company policies, SOPs, supplier rules, return policies, and warehouse docs
     through the TraceStock MCP server.
     """
+    query_embedding = None
+    if retrieval_mode in {"vector", "hybrid"}:
+        query_embedding = embed_query(query, DEFAULT_EMBEDDING_MODEL)
+
     return _call_mcp_tool_json(
         "search_company_documents",
         {
             "query": query,
             "top_k": top_k,
             "retrieval_mode": retrieval_mode,
+            "query_embedding": query_embedding,
         },
     )
 
