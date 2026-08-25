@@ -35,7 +35,7 @@ export default function ChatComposer({
   options,
   onOptionsChange,
 }: {
-  onSend: (text: string) => void;
+  onSend: (text: string, source?: "text" | "voice") => void;
   disabled?: boolean;
   onTranscribeAudio?: (audio: Blob) => Promise<string>;
   onVoiceError?: (message: string) => void;
@@ -50,15 +50,18 @@ export default function ChatComposer({
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const inputSourceRef = useRef<"text" | "voice">("text");
 
   function send() {
     const t = text.trim();
     if (!t) return;
-    onSend(t);
+    onSend(t, inputSourceRef.current);
+    inputSourceRef.current = "text";
     setText("");
   }
 
   function fillSuggestion(query: string) {
+    inputSourceRef.current = "text";
     setText(query);
     requestAnimationFrame(() => textareaRef.current?.focus());
   }
@@ -111,6 +114,7 @@ export default function ChatComposer({
         try {
           const transcript = await onTranscribeAudio(audio);
           if (transcript) {
+            inputSourceRef.current = "voice";
             setText((current) => (current ? `${current} ${transcript}` : transcript));
             textareaRef.current?.focus();
           }
@@ -164,6 +168,7 @@ export default function ChatComposer({
             <option value="gpt-5.4">GPT-5.4</option>
             <option value="gpt-4.1">GPT-4.1</option>
             <option value="gpt-5.4-nano">GPT-5.4 Nano</option>
+            <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
           </select>
         </label>
         <label>
@@ -234,7 +239,10 @@ export default function ChatComposer({
           className="composerInput"
           placeholder="Ask about sales, inventory, or demand"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            if (!e.target.value.trim()) inputSourceRef.current = "text";
+            setText(e.target.value);
+          }}
           onKeyDown={onKeyDown}
           rows={1}
           disabled={disabled || transcribing}

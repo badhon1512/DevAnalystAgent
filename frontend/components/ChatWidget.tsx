@@ -7,6 +7,7 @@ import type { ChatMessage } from "../lib/types";
 import { sendChat } from "../lib/api";
 import { DEMO_QUERIES } from "../lib/demoQueries";
 import MarkdownContent from "./MarkdownContent";
+import VoicePlaybackButton from "./VoicePlaybackButton";
 
 type Props = {
   pageContext?: string; // optional: "/products", "/inventory", etc.
@@ -399,6 +400,7 @@ export default function ChatWidget({ pageContext }: Props) {
                 }}
               >
                 <MarkdownContent content={m.content} />
+                {m.role === "assistant" && <VoicePlaybackButton text={m.content} />}
                 {renderTraceSummary(m)}
               </div>
             ))}

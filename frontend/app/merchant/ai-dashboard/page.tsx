@@ -72,9 +72,9 @@ export default function Page() {
           </div>
           <div className="aiDashboardActions">
             <button type="button" disabled>
-              Sync AI Insights
+              <span aria-hidden="true">&#10022;</span> Sync AI Insights
             </button>
-            <Link href="/chat">Open AI Analysis</Link>
+            <Link href="/chat"><span aria-hidden="true">&#10022;</span> Open AI Analysis</Link>
           </div>
         </section>
 

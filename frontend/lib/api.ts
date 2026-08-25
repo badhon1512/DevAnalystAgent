@@ -318,6 +318,24 @@ export async function transcribeVoice(audio: Blob): Promise<VoiceTranscriptionRe
   return res.json();
 }
 
+export async function synthesizeVoice(text: string): Promise<Blob> {
+  const res = await fetch(`${API_BASE}/voice/synthesize`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "audio/mpeg",
+    },
+    body: JSON.stringify({ text }),
+  });
+
+  if (!res.ok) {
+    const message = await res.text();
+    throw new Error(`Voice synthesis error (${res.status}): ${message}`);
+  }
+
+  return res.blob();
+}
+
 
 
 

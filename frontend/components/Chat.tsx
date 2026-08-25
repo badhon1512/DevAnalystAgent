@@ -10,6 +10,7 @@ import {
   getConversationForUser,
   listConversations,
   sendChat,
+  synthesizeVoice,
   transcribeVoice,
 } from "../lib/api";
 import { buildThreadTitle } from "../lib/chatThreads";
@@ -72,6 +73,45 @@ export default function Chat({ embedded = false }: { embedded?: boolean }) {
   const [error, setError] = useState("");
   const [chatOptions, setChatOptions] = useState<ChatOptions>(() => readStoredChatOptions());
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const automaticVoiceRef = useRef<HTMLAudioElement | null>(null);
+  const automaticVoiceUrlRef = useRef<string | null>(null);
+  const automaticVoiceRequestRef = useRef(0);
+
+  function releaseAutomaticVoice() {
+    automaticVoiceRef.current?.pause();
+    automaticVoiceRef.current = null;
+    if (automaticVoiceUrlRef.current) {
+      URL.revokeObjectURL(automaticVoiceUrlRef.current);
+      automaticVoiceUrlRef.current = null;
+    }
+  }
+
+  function stopAutomaticVoice() {
+    automaticVoiceRequestRef.current += 1;
+    releaseAutomaticVoice();
+  }
+
+  async function playAutomaticVoice(text: string) {
+    const requestId = automaticVoiceRequestRef.current + 1;
+    automaticVoiceRequestRef.current = requestId;
+    releaseAutomaticVoice();
+    const audioBlob = await synthesizeVoice(text);
+    const objectUrl = URL.createObjectURL(audioBlob);
+    if (requestId !== automaticVoiceRequestRef.current) {
+      URL.revokeObjectURL(objectUrl);
+      return;
+    }
+    const audio = new Audio(objectUrl);
+    automaticVoiceUrlRef.current = objectUrl;
+    automaticVoiceRef.current = audio;
+    audio.onended = () => {
+      if (requestId === automaticVoiceRequestRef.current) releaseAutomaticVoice();
+    };
+    audio.onerror = () => {
+      if (requestId === automaticVoiceRequestRef.current) releaseAutomaticVoice();
+    };
+    await audio.play();
+  }
 
   function handleOptionsChange(options: ChatOptions) {
     setChatOptions(options);
@@ -149,6 +189,14 @@ export default function Chat({ embedded = false }: { embedded?: boolean }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeMessages.length, loading, activeThreadId]);
 
+  useEffect(() => {
+    return () => {
+      automaticVoiceRequestRef.current += 1;
+      automaticVoiceRef.current?.pause();
+      if (automaticVoiceUrlRef.current) URL.revokeObjectURL(automaticVoiceUrlRef.current);
+    };
+  }, []);
+
   const sortedThreads = useMemo(
     () => [...threads].sort((a, b) => b.updatedAt - a.updatedAt),
     [threads]
@@ -211,7 +259,7 @@ export default function Chat({ embedded = false }: { embedded?: boolean }) {
     }
   }
 
-  async function handleSend(text: string) {
+  async function handleSend(text: string, source: "text" | "voice" = "text") {
     if (!activeThreadId || !username) return;
     const activeUsername = username;
     setError("");
@@ -237,8 +285,13 @@ export default function Chat({ embedded = false }: { embedded?: boolean }) {
     );
 
     setLoading(true);
+    if (source === "voice") {
+      void playAutomaticVoice("Orchestrating your request.").catch(() => undefined);
+    }
     try {
-      const data = await sendChat(text, activeThreadId, activeUsername, chatOptions);
+      const requestOptions =
+        source === "voice" ? { ...chatOptions, answer_detail: "concise" as const } : chatOptions;
+      const data = await sendChat(text, activeThreadId, activeUsername, requestOptions);
       const assistantText =
         data?.final_answer ??
         data?.finalAnswer ??
@@ -269,7 +322,12 @@ export default function Chat({ embedded = false }: { embedded?: boolean }) {
             : thread
         )
       );
+      if (source === "voice") {
+        stopAutomaticVoice();
+        void playAutomaticVoice(assistantText).catch(() => undefined);
+      }
     } catch (e: unknown) {
+      if (source === "voice") stopAutomaticVoice();
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
       setLoading(false);

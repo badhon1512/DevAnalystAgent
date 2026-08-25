@@ -51,7 +51,7 @@ export type ChatResponse = {
 };
 
 export type ChatOptions = {
-  model: "gpt-5.4" | "gpt-4.1" | "gpt-5.4-nano";
+  model: "openai/gpt-oss-120b" | "gpt-5.4" | "gpt-4.1" | "gpt-5.4-nano";
   analysis_depth: "quick" | "balanced" | "deep";
   answer_detail: "concise" | "balanced" | "detailed";
 };

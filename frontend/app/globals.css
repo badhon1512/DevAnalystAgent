@@ -8514,3 +8514,67 @@ canvas {
   color: #1d4ed8;
   box-shadow: none;
 }
+
+/* --- Voice playback ------------------------------------------------------- */
+
+.messageActions {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.voicePlaybackButton {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 7px;
+  background: rgba(248, 250, 252, 0.94);
+  color: #475569;
+  padding: 5px 9px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.voicePlaybackButton:hover:not(:disabled),
+.voicePlaybackButton:focus-visible {
+  border-color: rgba(37, 99, 235, 0.5);
+  background: #ffffff;
+  color: #1d4ed8;
+}
+
+.voicePlaybackButton-playing {
+  border-color: rgba(20, 184, 166, 0.48);
+  color: #0f766e;
+}
+
+.voicePlaybackButton-error {
+  border-color: rgba(239, 68, 68, 0.34);
+  color: #b91c1c;
+}
+
+.voicePlaybackLoading {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(71, 85, 105, 0.24);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: voicePlaybackSpin 700ms linear infinite;
+}
+
+@keyframes voicePlaybackSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voicePlaybackLoading {
+    animation: none;
+  }
+}

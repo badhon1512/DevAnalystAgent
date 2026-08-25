@@ -114,7 +114,7 @@ export default function MerchantShell({
               @{username}
             </button>
             <Link href="/storefront">Storefront</Link>
-            <Link href="/chat">AI Analysis</Link>
+            <Link href="/chat"><span aria-hidden="true">&#10022;</span> AI Analysis</Link>
           </div>
         </div>
         <div className={`merchantContentPanel${isChatLayout ? " merchantContentPanelChat" : ""}`}>

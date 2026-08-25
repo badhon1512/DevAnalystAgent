@@ -7,7 +7,7 @@ const NAV = [
   { href: "/merchant", label: "BI Dashboard", icon: "BI" },
   { href: "/merchant/ai-dashboard", label: "AI Dashboard", icon: "AD" },
   { href: "/merchant/evaluations", label: "Agent Evals", icon: "EV" },
-  { href: "/chat", label: "AI Analysis", icon: "AI" },
+  { href: "/chat", label: "AI Analysis", icon: "\u2726" },
   { href: "/merchant/products", label: "Products", icon: "PR" },
   { href: "/merchant/warehouses", label: "Branches", icon: "BR" },
   { href: "/merchant/inventory", label: "Inventory", icon: "IN" },

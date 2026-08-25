@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import type { ChatMessage as Msg } from "../lib/types";
 import MarkdownContent from "./MarkdownContent";
+import VoicePlaybackButton from "./VoicePlaybackButton";
 
 function formatTime(ms: number) {
   const d = new Date(ms);
@@ -66,6 +67,11 @@ export default function ChatMessageView({ message }: { message: Msg }) {
         <div className="bubbleContent">
           <MarkdownContent content={message.content} />
         </div>
+        {!isUser && (
+          <div className="messageActions">
+            <VoicePlaybackButton text={message.content} />
+          </div>
+        )}
         {report && (
           <div className="reportCard">
             <div className="reportCardHeader">

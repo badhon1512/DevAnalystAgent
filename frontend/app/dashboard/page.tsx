@@ -114,7 +114,7 @@ export default function Page() {
             <span>AI</span>
             <strong>Need deeper analysis?</strong>
             <small>Ask in natural language or voice for demand research, branch risk, or a business report.</small>
-            <Link href="/chat">Open AI Analysis</Link>
+            <Link href="/chat"><span aria-hidden="true">&#10022;</span> Open AI Analysis</Link>
           </div>
         </section>
 
